@@ -1,0 +1,17 @@
+
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: peerzee
+      POSTGRES_PASSWORD: peerzee
+      POSTGRES_DB: peerzee-db
+    ports:
+      - "5456:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
