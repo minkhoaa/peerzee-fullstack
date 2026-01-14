@@ -1,0 +1,70 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: peerzee-db
+    environment:
+      POSTGRES_USER: peerzee
+      POSTGRES_PASSWORD: peerzee
+      POSTGRES_DB: peerzee-db
+    ports:
+      - "5456:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - peerzee-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U peerzee -d peerzee-db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS Backend
+  backend:
+    build:
+      context: ./peerzee-backend
+      dockerfile: Dockerfile
+    container_name: peerzee-backend
+    environment:
+      NODE_ENV: production
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: peerzee
+      DATABASE_PASSWORD: peerzee
+      DATABASE_NAME: peerzee-db
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      PORT: 9000
+    ports:
+      - "9000:9000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - peerzee-network
+    restart: unless-stopped
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./peerzee-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:9000
+    container_name: peerzee-frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://backend:9000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - peerzee-network
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  peerzee-network:
+    driver: bridge

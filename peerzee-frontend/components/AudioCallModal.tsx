@@ -16,6 +16,7 @@ interface CallModalProps {
     isIncoming?: boolean;
     remoteAudioRef: RefObject<HTMLAudioElement | null>;
     localStreamRef: MutableRefObject<MediaStream | null>;
+    remoteStream: MediaStream | null;
 }
 
 // Icons
@@ -67,6 +68,7 @@ export default function CallModal({
     isIncoming = false,
     remoteAudioRef,
     localStreamRef,
+    remoteStream,
 }: CallModalProps) {
     const [callDuration, setCallDuration] = useState(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -94,17 +96,22 @@ export default function CallModal({
         };
     }, [callState]);
 
+    // Attach local stream to local video element
     useEffect(() => {
         if (localVideoRef.current && localStreamRef.current && callType === 'video') {
+            console.log('[CallModal] Attaching local stream to video');
             localVideoRef.current.srcObject = localStreamRef.current;
         }
-    }, [localStreamRef, callType, callState]);
+    }, [localStreamRef, localStreamRef.current, callType, callState]);
 
+    // Attach remote stream to remote video element
     useEffect(() => {
-        if (remoteVideoRef.current && remoteAudioRef.current?.srcObject && callType === 'video') {
-            remoteVideoRef.current.srcObject = remoteAudioRef.current.srcObject;
+        if (remoteVideoRef.current && remoteStream && callType === 'video') {
+            console.log('[CallModal] Attaching remote stream to video');
+            remoteVideoRef.current.srcObject = remoteStream;
         }
-    }, [remoteAudioRef, callType, callState]);
+    }, [remoteStream, callType, callState]);
+
 
     const formatDuration = (seconds: number) => {
         const mins = Math.floor(seconds / 60);

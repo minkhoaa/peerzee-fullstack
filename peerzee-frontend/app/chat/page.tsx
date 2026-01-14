@@ -178,6 +178,7 @@ export default function ChatPage() {
         toggleMute,
         toggleCamera,
         localStream,
+        remoteStream,
         handleAnswer,
         handleIceCandidate,
         remoteAudio
@@ -1117,6 +1118,7 @@ export default function ChatPage() {
                     isIncoming={!!incomingCall}
                     remoteAudioRef={remoteAudio}
                     localStreamRef={localStream}
+                    remoteStream={remoteStream}
                 />
             )}
         </div >

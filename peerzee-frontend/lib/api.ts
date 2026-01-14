@@ -2,7 +2,7 @@ import axios from "axios";
 import type { LoginDto, LoginResponse, RegisterDto, RegisterResponse, UpdateUserProfileDto } from "@/types";
 import { Conversation } from "@/types/conversation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://cfdmd45g-9000.asse.devtunnels.ms/";
 const api = axios.create({
     baseURL: API_URL,
     headers: {

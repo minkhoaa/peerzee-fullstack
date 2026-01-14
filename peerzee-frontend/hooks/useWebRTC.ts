@@ -5,6 +5,7 @@ import { Socket } from "socket.io-client";
 export function useWebRTC(socket: Socket) {
     const [callState, setCallState] = useState<'idle' | 'calling' | 'ringing' | 'connected'>("idle");
     const [activeCallConversationId, setActiveCallConversationId] = useState<string | null>(null);
+    const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
     const peerConnection = useRef<RTCPeerConnection | null>(null);
     const localStream = useRef<MediaStream | null>(null);
     const remoteAudio = useRef<HTMLAudioElement | null>(null);
@@ -34,9 +35,12 @@ export function useWebRTC(socket: Socket) {
                 }
             }
             peerConnection.current.ontrack = (event) => {
+                console.log('[WebRTC] ontrack received:', event.streams);
+                const stream = event.streams[0];
+                setRemoteStream(stream);
                 if (remoteAudio.current) {
-                    remoteAudio.current.srcObject = event.streams[0];
-                    remoteAudio.current.play();
+                    remoteAudio.current.srcObject = stream;
+                    remoteAudio.current.play().catch(console.error);
                 }
             }
             const offer = await peerConnection.current.createOffer();
@@ -68,9 +72,12 @@ export function useWebRTC(socket: Socket) {
                 }
             }
             peerConnection.current.ontrack = event => {
+                console.log('[WebRTC] ontrack received:', event.streams);
+                const stream = event.streams[0];
+                setRemoteStream(stream);
                 if (remoteAudio.current) {
-                    remoteAudio.current.srcObject = event.streams[0];
-                    remoteAudio.current.play();
+                    remoteAudio.current.srcObject = stream;
+                    remoteAudio.current.play().catch(console.error);
                 }
             }
             await peerConnection.current.setRemoteDescription(offer);
@@ -91,6 +98,7 @@ export function useWebRTC(socket: Socket) {
         localStream.current?.getTracks().forEach(track => track.stop());
         peerConnection.current = null;
         localStream.current = null;
+        setRemoteStream(null);
 
         setActiveCallConversationId(null);
         setCallState("idle");
@@ -134,6 +142,7 @@ export function useWebRTC(socket: Socket) {
         toggleMute,
         toggleCamera,
         localStream,
+        remoteStream,
         handleAnswer,
         handleIceCandidate,
         remoteAudio

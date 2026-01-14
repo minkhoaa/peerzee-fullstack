@@ -43,7 +43,7 @@ async function bootstrap() {
 
   const port = process.env.SERVER_PORT || process.env.PORT || 9000;
   app.enableCors({
-    origin: ['http://localhost:3001', 'http://localhost:3000',],
+    origin: ['http://localhost:3001', 'http://localhost:3000', 'https://cfdmd45g-9000.asse.devtunnels.ms/'],
     credentials: true,
   });
   await app.listen(port);
