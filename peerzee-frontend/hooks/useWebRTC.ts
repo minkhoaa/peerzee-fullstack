@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type MutableRefObject } from "react";
 import { Socket } from "socket.io-client";
 
 
-export function useWebRTC(socket: Socket) {
+export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
     const [callState, setCallState] = useState<'idle' | 'calling' | 'ringing' | 'connected'>("idle");
     const [activeCallConversationId, setActiveCallConversationId] = useState<string | null>(null);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -17,6 +17,7 @@ export function useWebRTC(socket: Socket) {
         ],
     };
     const startCall = async (conversation_id: string, withVideo: boolean = false) => {
+        const socket = socketRef.current;
         if (!socket) return;
         try {
             localStream.current = await navigator.mediaDevices.getUserMedia({
@@ -56,6 +57,7 @@ export function useWebRTC(socket: Socket) {
         }
     }
     const answerCall = async (conversation_id: string, offer: RTCSessionDescriptionInit, withVideo: boolean = false) => {
+        const socket = socketRef.current;
         if (!socket) return;
         try {
             localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true, video: withVideo });
@@ -92,6 +94,7 @@ export function useWebRTC(socket: Socket) {
         }
     }
     const endCall = () => {
+        const socket = socketRef.current;
         if (socket && activeCallConversationId)
             socket.emit('call:end', { conversation_id: activeCallConversationId })
         peerConnection.current?.close();

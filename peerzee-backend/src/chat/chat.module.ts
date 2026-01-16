@@ -29,5 +29,6 @@ import { UserModule } from '../user/user.module';
   ],
   controllers: [UploadController],
   providers: [ChatGateway, ChatService],
+  exports: [ChatService],
 })
 export class ChatModule { }

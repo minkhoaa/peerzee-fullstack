@@ -6,6 +6,10 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ChatModule } from './chat/chat.module';
 import { ConversationModule } from './conversation/conversation.module';
+import { SwipeModule } from './swipe/swipe.module';
+import { CommunityModule } from './community/community.module';
+import { DiscoverModule } from './discover/discover.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -25,8 +29,12 @@ import { ConversationModule } from './conversation/conversation.module';
     UserModule,
     ChatModule,
     ConversationModule,
+    SwipeModule,
+    CommunityModule,
+    DiscoverModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

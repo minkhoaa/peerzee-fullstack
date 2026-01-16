@@ -37,6 +37,16 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   last_active_at: Date;
 
+  // Safety: Incognito mode - hide from discovery except mutual likes
+  @ApiProperty({ description: 'Incognito mode - hidden from discovery' })
+  @Column({ name: 'is_incognito', type: 'boolean', default: false })
+  isIncognito: boolean;
+
+  // Safety: Blocked user IDs
+  @ApiProperty({ description: 'List of blocked user IDs' })
+  @Column({ name: 'blocked_user_ids', type: 'jsonb', default: '[]' })
+  blockedUserIds: string[];
+
   @OneToOne(() => UserProfile, (profile) => profile.user)
   profile: UserProfile;
 
@@ -49,3 +59,4 @@ export class User {
   @UpdateDateColumn()
   updated_at: Date;
 }
+

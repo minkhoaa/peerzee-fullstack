@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Get, Param, Put, UseGuards, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put, Patch, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AddTagDto } from './dto/add-tag.dto';
 import { UpdateUserProfileDto } from './dto/update-profile.dto';
+import { UpdatePropertiesDto } from './dto/update-properties.dto';
 import { RefreshTokenDto } from './dto/refresh.dto';
 import { AuthGuard } from './guards/auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -70,5 +71,16 @@ export class UserController {
     return this.userService.addTags(addTag);
   }
 
-
+  /**
+   * Update profile properties (intentMode, zodiac, mbti, habits, etc.)
+   */
+  @UseGuards(AuthGuard)
+  @Patch('profile/properties')
+  updateProfileProperties(
+    @CurrentUser('user_id') userId: string,
+    @Body() dto: UpdatePropertiesDto,
+  ) {
+    return this.userService.updateProfileProperties(userId, dto);
+  }
 }
+

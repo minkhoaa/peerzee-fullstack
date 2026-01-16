@@ -1,0 +1,17 @@
+import { Module, forwardRef } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { Notification } from './entities/notification.entity';
+import { NotificationService } from './notification.service';
+import { NotificationController } from './notification.controller';
+
+@Module({
+    imports: [
+        TypeOrmModule.forFeature([Notification]),
+        JwtModule.register({}),
+    ],
+    controllers: [NotificationController],
+    providers: [NotificationService],
+    exports: [NotificationService],
+})
+export class NotificationModule { }

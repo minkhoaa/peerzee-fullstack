@@ -23,7 +23,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
     const [mounted, setMounted] = useState(false);
 
+    // Set mounted state after hydration
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 

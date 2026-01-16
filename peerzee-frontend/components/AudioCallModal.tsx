@@ -102,7 +102,8 @@ export default function CallModal({
             console.log('[CallModal] Attaching local stream to video');
             localVideoRef.current.srcObject = localStreamRef.current;
         }
-    }, [localStreamRef, localStreamRef.current, callType, callState]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [callType, callState]);
 
     // Attach remote stream to remote video element
     useEffect(() => {
@@ -131,7 +132,7 @@ export default function CallModal({
 
             {/* Modal Overlay */}
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100]">
-                <div className={`bg-gradient-to-b from-neutral-900 to-neutral-950 rounded-3xl shadow-2xl border border-neutral-800 overflow-hidden ${isVideoCall && isConnected ? 'w-[640px] h-[480px]' : 'w-80 p-8'}`}>
+                <div className={`bg-linear-to-b from-neutral-900 to-neutral-950 rounded-3xl shadow-2xl border border-neutral-800 overflow-hidden ${isVideoCall && isConnected ? 'w-[640px] h-[480px]' : 'w-80 p-8'}`}>
 
                     {/* Video Call Layout */}
                     {isVideoCall && isConnected ? (

@@ -9,6 +9,9 @@ import { useTheme } from "@/lib/theme";
 import api from "@/lib/api";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import CallModal from "@/components/AudioCallModal";
+import VoiceRecorder from "@/components/chat/VoiceRecorder";
+import AudioMessage from "@/components/chat/AudioMessage";
+import NotificationPopover from "@/components/NotificationPopover";
 
 
 interface Message {
@@ -167,11 +170,12 @@ export default function ChatPage() {
     const activeConversationRef = useRef<Conversation | null>(null);
     const processedMsgIds = useRef<Set<string>>(new Set());
     const [userNames, setUserNames] = useState<Record<string, string>>({});
+    const [_userEmails, setUserEmails] = useState<Record<string, string>>({});
 
 
     const {
         callState,
-        activeCallConversationId,
+        activeCallConversationId: _activeCallConversationId,
         startCall,
         answerCall,
         endCall,
@@ -182,7 +186,7 @@ export default function ChatPage() {
         handleAnswer,
         handleIceCandidate,
         remoteAudio
-    } = useWebRTC(socketRef.current!);
+    } = useWebRTC(socketRef);
     const [isMuted, setIsMuted] = useState(false);
     const [isCameraOff, setIsCameraOff] = useState(false);
     const [callType, setCallType] = useState<'audio' | 'video'>('audio');
@@ -308,6 +312,7 @@ export default function ChatPage() {
             router.push("/login");
             return;
         }
+
         setUserId(uid);
         const socket = connectSocket(token);
         socketRef.current = socket;
@@ -422,17 +427,28 @@ export default function ChatPage() {
             socket.off('user:online-list');
             socket.off('user:online');
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
 
     useEffect(() => {
         if (!userId) return;
         const loadConversations = async () => {
-            const res = await api.get<Conversation[]>(`/conversation`);
+            const res = await api.get<(Conversation & { participantInfo?: { user_id: string; email?: string; display_name?: string }[] })[]>(`/conversation`);
             setConversations(res.data);
             res.data.forEach(c => {
+                // Extract user info from participantInfo (priority)
+                c.participantInfo?.forEach(p => {
+                    if (p.user_id !== userId) {
+                        if (p.display_name) setUserNames(prev => ({ ...prev, [p.user_id]: p.display_name! }));
+                        if (p.email) setUserEmails(prev => ({ ...prev, [p.user_id]: p.email! }));
+                    }
+                });
+                // Fallback to conversation name ONLY if no participantInfo display_name
                 const otherUserId = c.participantIds?.find(id => id !== userId);
-                if (otherUserId && c.name) setUserNames(prev => ({ ...prev, [otherUserId]: c.name as string }));
-
+                const hasDisplayName = c.participantInfo?.some(p => p.user_id === otherUserId && p.display_name);
+                if (otherUserId && c.name && !hasDisplayName) {
+                    setUserNames(prev => ({ ...prev, [otherUserId]: c.name as string }));
+                }
             });
         };
         loadConversations();
@@ -552,7 +568,7 @@ export default function ChatPage() {
         }
     };
 
-    const TypingIndicator = () => {
+    const typingIndicator = (() => {
         const typing = activeConversation ? typingUsers[activeConversation.id] || [] : [];
         if (typing.length === 0) return null;
         return (
@@ -569,7 +585,7 @@ export default function ChatPage() {
                 </span>
             </div>
         );
-    };
+    })();
 
     const handleCreate = () => {
         if (!newUserId.trim() || !socketRef.current) return;
@@ -641,6 +657,47 @@ export default function ChatPage() {
         return prevMessage.sender_id !== currentMessage.sender_id || prevMessage.isDeleted ? "mt-4" : "mt-0.5";
     };
 
+    // Show avatar only on the last message of a consecutive group from the same sender
+    const shouldShowAvatar = (index: number) => {
+        const currentMessage = messages[index];
+        const nextMessage = messages[index + 1];
+        // Show avatar if this is the last message OR next message is from different sender
+        return !nextMessage || nextMessage.sender_id !== currentMessage.sender_id || nextMessage.isDeleted;
+    };
+
+    // Get sender name from userNames or generate from id
+    const getSenderName = (senderId: string) => {
+        return userNames[senderId] || senderId.slice(0, 8);
+    };
+
+    // Check if this is the first message in a group from the same sender
+    const isFirstInMessageGroup = (index: number) => {
+        const currentMessage = messages[index];
+        const prevMessage = messages[index - 1];
+        // First in group if no previous message OR previous message is from different sender
+        return !prevMessage || prevMessage.sender_id !== currentMessage.sender_id || prevMessage.isDeleted;
+    };
+
+    // Format message timestamp
+    const formatMessageTime = (dateString: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+        if (diffDays === 0) {
+            return timeStr;
+        } else if (diffDays === 1) {
+            return `Yesterday ${timeStr}`;
+        } else if (diffDays < 7) {
+            return `${date.toLocaleDateString('en-US', { weekday: 'short' })} ${timeStr}`;
+        } else {
+            return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${timeStr}`;
+        }
+    };
+
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-neutral-950 transition-colors">
             <div className="flex items-center gap-3">
@@ -653,7 +710,7 @@ export default function ChatPage() {
     );
 
     return (
-        <div className="flex h-screen overflow-hidden bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 antialiased transition-colors duration-300">
+        <div className="flex h-screen overflow-hidden overflow-x-hidden max-w-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 antialiased transition-colors duration-300">
             {/* Sidebar */}
             <div className="w-72 shrink-0 bg-white dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 flex flex-col">
                 {/* Header */}
@@ -678,15 +735,27 @@ export default function ChatPage() {
                             </button>
                         </div>
                     </div>
-                    <button onClick={() => setShowModal(true)} className="w-full py-2.5 text-sm font-medium bg-gradient-to-r from-neutral-800 via-neutral-900 to-black dark:from-white dark:via-neutral-100 dark:to-neutral-200 text-white dark:text-neutral-900 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
-                        {Icons.plus}
-                        New Chat
-                    </button>
+                    <div className="flex gap-2">
+                        <button onClick={() => setShowModal(true)} className="flex-1 py-2.5 text-sm font-medium bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all flex items-center justify-center gap-2">
+                            {Icons.plus}
+                            New Chat
+                        </button>
+                        <Link href="/discover" className="py-2.5 px-3 text-sm font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all flex items-center justify-center" title="Discover">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+                        </Link>
+                        <Link href="/community" className="py-2.5 px-3 text-sm font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all flex items-center justify-center" title="Community">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Conversations List */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    {conversations.map((c, index) => {
+                    {conversations.map((c) => {
                         const otherUserId = c.participantIds?.find(id => id !== userId) || '';
                         const isActive = activeConversation?.id === c.id;
                         return (
@@ -849,113 +918,147 @@ export default function ChatPage() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className={`group flex items-end gap-1.5 ${m.sender_id === userId ? "flex-row-reverse" : "flex-row"}`}>
-                                            {/* Message Bubble */}
-                                            <div className={`relative max-w-[70%] ${getBubbleRadius(m, index)} ${m.sender_id === userId
-                                                ? "bg-neutral-900 dark:bg-neutral-700 text-white"
-                                                : "bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white"} transition-all duration-200`}>
-                                                {/* Quoted Reply */}
-                                                {m.replyTo && (
-                                                    <div className={`mx-2 mt-2 px-3 py-2 rounded-lg text-xs border-l-2 ${m.sender_id === userId ? "bg-neutral-800 dark:bg-neutral-600 border-neutral-600 dark:border-neutral-500" : "bg-neutral-100 dark:bg-neutral-700 border-neutral-400 dark:border-neutral-500"}`}>
-                                                        <p className={`font-medium mb-0.5 ${m.sender_id === userId ? "text-neutral-400 dark:text-neutral-500" : "text-neutral-500 dark:text-neutral-400"}`}>
-                                                            {m.replyTo.sender_id === userId ? "You" : "Reply"}
-                                                        </p>
-                                                        <p className={`truncate ${m.sender_id === userId ? "text-neutral-300 dark:text-neutral-600" : "text-neutral-600 dark:text-neutral-300"}`}>
-                                                            {m.replyTo.body?.slice(0, 50)}{m.replyTo.body?.length > 50 ? "..." : ""}
-                                                        </p>
-                                                    </div>
-                                                )}
-                                                {m.fileUrl && m.fileType?.startsWith('image/') && (
-                                                    <img
-                                                        src={`http://localhost:9000${m.fileUrl}`}
-                                                        alt={m.fileName || 'Image'}
-                                                        className="w-full rounded-t-2xl object-cover max-h-64"
-                                                    />
-                                                )}
-                                                {m.body && (
-                                                    <p className="px-4 py-2.5 text-sm break-words whitespace-pre-wrap">{m.body}</p>
-                                                )}
-                                                {m.isEdited && (
-                                                    <span className={`absolute -bottom-4 text-[10px] text-neutral-400 ${m.sender_id === userId ? "right-0" : "left-0"}`}>edited</span>
-                                                )}
-                                                {/* Reactions */}
-                                                {m.reactions && m.reactions.length > 0 && (
-                                                    <div className={`absolute -bottom-3 flex gap-0.5 ${m.sender_id === userId ? "right-2" : "left-2"}`}>
-                                                        {[...new Set(m.reactions.map(r => r.emoji))].slice(0, 3).map((emoji, i) => (
-                                                            <span key={i} className="text-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full px-1 shadow-sm">{emoji}</span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                                {/* Seen Status - only for sender's messages */}
-                                                {m.sender_id === userId && index === messages.length - 1 && (
-                                                    <div className="absolute -bottom-5 right-0 flex items-center gap-1">
-                                                        <span className={m.readAt ? "text-blue-500" : "text-neutral-400"}>
-                                                            {m.readAt ? Icons.doubleCheck : Icons.singleCheck}
-                                                        </span>
-                                                        {m.readAt && (
-                                                            <span className="text-[10px] text-blue-500">Seen</span>
+                                        <div className="flex flex-col">
+                                            {/* Sender name - show above first message in group */}
+                                            {m.sender_id !== userId && isFirstInMessageGroup(index) && (
+                                                <span className="text-xs text-neutral-500 dark:text-neutral-400 mb-1 ml-9">
+                                                    {getSenderName(m.sender_id)}
+                                                </span>
+                                            )}
+                                            <div className={`group flex items-end gap-2 ${m.sender_id === userId ? "flex-row-reverse" : "flex-row"}`}>
+                                                {/* Avatar - only show for other users, and only on last message of group */}
+                                                {m.sender_id !== userId && (
+                                                    <div className="shrink-0 mb-0.5">
+                                                        {shouldShowAvatar(index) ? (
+                                                            <div className="w-7 h-7 rounded-full bg-neutral-600 dark:bg-neutral-500 flex items-center justify-center text-white text-xs font-medium">
+                                                                {getSenderName(m.sender_id).slice(0, 1).toUpperCase()}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-7 h-7" /> /* Invisible placeholder for alignment */
                                                         )}
                                                     </div>
                                                 )}
-                                            </div>
-
-                                            {/* Actions */}
-                                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                {/* Reply Button */}
-                                                <button
-                                                    onClick={() => setReplyingTo(m)}
-                                                    className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                                                    title="Reply"
-                                                >
-                                                    {Icons.reply}
-                                                </button>
-                                                <div className="relative">
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); setOpenEmojiPickerId(openEmojiPickerId === m.id ? null : m.id); }}
-                                                        className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                                                    >
-                                                        {Icons.smile}
-                                                    </button>
-                                                    {openEmojiPickerId === m.id && (
-                                                        <div className={`absolute bottom-full mb-1 z-50 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-1.5 flex gap-0.5 ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>
-                                                            {['👍', '❤️', '😂', '😮', '😢'].map(emoji => (
-                                                                <button
-                                                                    key={emoji}
-                                                                    onClick={() => { handleReaction(m.id, emoji); setOpenEmojiPickerId(null); }}
-                                                                    className="text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded p-1.5 hover:scale-110 transition-transform"
-                                                                >
-                                                                    {emoji}
-                                                                </button>
+                                                {/* Message Bubble */}
+                                                <div className={`relative max-w-[70%] ${getBubbleRadius(m, index)} ${m.sender_id === userId
+                                                    ? "bg-neutral-900 dark:bg-neutral-700 text-white"
+                                                    : "bg-neutral-700 dark:bg-neutral-700 text-white"} transition-all duration-200`}>
+                                                    {/* Quoted Reply */}
+                                                    {m.replyTo && (
+                                                        <div className={`mx-2 mt-2 px-3 py-2 rounded-lg text-xs border-l-2 ${m.sender_id === userId ? "bg-neutral-800 dark:bg-neutral-600 border-neutral-600 dark:border-neutral-500" : "bg-neutral-100 dark:bg-neutral-700 border-neutral-400 dark:border-neutral-500"}`}>
+                                                            <p className={`font-medium mb-0.5 ${m.sender_id === userId ? "text-neutral-400 dark:text-neutral-500" : "text-neutral-500 dark:text-neutral-400"}`}>
+                                                                {m.replyTo.sender_id === userId ? "You" : "Reply"}
+                                                            </p>
+                                                            <p className={`truncate ${m.sender_id === userId ? "text-neutral-300 dark:text-neutral-600" : "text-neutral-600 dark:text-neutral-300"}`}>
+                                                                {m.replyTo.body?.slice(0, 50)}{m.replyTo.body?.length > 50 ? "..." : ""}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                    {m.fileUrl && m.fileType?.startsWith('image/') && (
+                                                        <img
+                                                            src={`http://localhost:9000${m.fileUrl}`}
+                                                            alt={m.fileName || 'Image'}
+                                                            className="w-full rounded-t-2xl object-cover max-h-64"
+                                                        />
+                                                    )}
+                                                    {/* Audio Message Playback - with fallback detection */}
+                                                    {m.fileUrl && (m.fileType?.startsWith('audio/') || m.fileName?.includes('voice') || m.body?.startsWith('🎤 Voice message')) && (
+                                                        <div className="px-2 py-2">
+                                                            <AudioMessage
+                                                                audioUrl={`http://localhost:9000${m.fileUrl}`}
+                                                                isOwn={m.sender_id === userId}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    {/* Text body - hide if it's just voice message placeholder with audio */}
+                                                    {m.body && !(m.fileUrl && m.body.startsWith('🎤 Voice message')) && (
+                                                        <p className="px-4 py-2.5 text-sm break-words whitespace-pre-wrap">{m.body}</p>
+                                                    )}
+                                                    {/* Timestamp tooltip on hover */}
+                                                    <span className={`absolute top-1/2 -translate-y-1/2 text-[10px] text-neutral-400 dark:text-neutral-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ${m.sender_id === userId ? "right-full mr-2" : "left-full ml-2"}`}>
+                                                        {formatMessageTime(m.createdAt)}
+                                                    </span>
+                                                    {m.isEdited && (
+                                                        <span className={`absolute -bottom-4 text-[10px] text-neutral-400 ${m.sender_id === userId ? "right-0" : "left-0"}`}>edited</span>
+                                                    )}
+                                                    {/* Reactions */}
+                                                    {m.reactions && m.reactions.length > 0 && (
+                                                        <div className={`absolute -bottom-3 flex gap-0.5 ${m.sender_id === userId ? "right-2" : "left-2"}`}>
+                                                            {[...new Set(m.reactions.map(r => r.emoji))].slice(0, 3).map((emoji, i) => (
+                                                                <span key={i} className="text-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full px-1 shadow-sm">{emoji}</span>
                                                             ))}
                                                         </div>
                                                     )}
+                                                    {/* Seen Status - only for sender's messages */}
+                                                    {m.sender_id === userId && index === messages.length - 1 && (
+                                                        <div className="absolute -bottom-5 right-0 flex items-center gap-1">
+                                                            <span className={m.readAt ? "text-blue-500" : "text-neutral-400"}>
+                                                                {m.readAt ? Icons.doubleCheck : Icons.singleCheck}
+                                                            </span>
+                                                            {m.readAt && (
+                                                                <span className="text-[10px] text-blue-500">Seen</span>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {m.sender_id === userId && (
+
+                                                {/* Actions */}
+                                                <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {/* Reply Button */}
+                                                    <button
+                                                        onClick={() => setReplyingTo(m)}
+                                                        className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                                                        title="Reply"
+                                                    >
+                                                        {Icons.reply}
+                                                    </button>
                                                     <div className="relative">
                                                         <button
-                                                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === m.id ? null : m.id); }}
+                                                            onClick={(e) => { e.stopPropagation(); setOpenEmojiPickerId(openEmojiPickerId === m.id ? null : m.id); }}
                                                             className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
                                                         >
-                                                            {Icons.more}
+                                                            {Icons.smile}
                                                         </button>
-                                                        {openMenuId === m.id && (
-                                                            <div className="absolute top-full mt-1 right-0 z-50 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg overflow-hidden min-w-[100px]">
-                                                                <button
-                                                                    onClick={() => { setEditingMessageId(m.id); setEditContent(m.body); setOpenMenuId(null); }}
-                                                                    className="w-full px-3 py-2 text-xs text-left text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
-                                                                >
-                                                                    Edit
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => { handleDelete(m); setOpenMenuId(null); }}
-                                                                    className="w-full px-3 py-2 text-xs text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                                                >
-                                                                    Delete
-                                                                </button>
+                                                        {openEmojiPickerId === m.id && (
+                                                            <div className={`absolute bottom-full mb-1 z-50 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-1.5 flex gap-0.5 ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>
+                                                                {['👍', '❤️', '😂', '😮', '😢'].map(emoji => (
+                                                                    <button
+                                                                        key={emoji}
+                                                                        onClick={() => { handleReaction(m.id, emoji); setOpenEmojiPickerId(null); }}
+                                                                        className="text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded p-1.5 hover:scale-110 transition-transform"
+                                                                    >
+                                                                        {emoji}
+                                                                    </button>
+                                                                ))}
                                                             </div>
                                                         )}
                                                     </div>
-                                                )}
+                                                    {m.sender_id === userId && (
+                                                        <div className="relative">
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === m.id ? null : m.id); }}
+                                                                className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                                                            >
+                                                                {Icons.more}
+                                                            </button>
+                                                            {openMenuId === m.id && (
+                                                                <div className="absolute top-full mt-1 right-0 z-50 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg overflow-hidden min-w-[100px]">
+                                                                    <button
+                                                                        onClick={() => { setEditingMessageId(m.id); setEditContent(m.body); setOpenMenuId(null); }}
+                                                                        className="w-full px-3 py-2 text-xs text-left text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => { handleDelete(m); setOpenMenuId(null); }}
+                                                                        className="w-full px-3 py-2 text-xs text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                                    >
+                                                                        Delete
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -964,7 +1067,7 @@ export default function ChatPage() {
                             <div ref={messagesEndRef} />
                         </div>
 
-                        <TypingIndicator />
+                        {typingIndicator}
 
                         {/* File Preview */}
                         {selectedFile && (
@@ -1009,6 +1112,27 @@ export default function ChatPage() {
                                 <button type="button" onClick={() => fileInputRef.current?.click()} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors">
                                     {Icons.attach}
                                 </button>
+                                {/* Voice Recorder */}
+                                <VoiceRecorder
+                                    disabled={!activeConversation}
+                                    onSendAudio={async (blob, duration) => {
+                                        // Upload to server - must clear Content-Type for FormData
+                                        const formData = new FormData();
+                                        formData.append('file', blob, 'voice_message.webm');
+                                        const res = await api.post('/chat/upload', formData, {
+                                            headers: { 'Content-Type': undefined }
+                                        });
+                                        console.log('Upload response:', res.data);
+                                        // Send as audio message - use actual upload response
+                                        socketRef.current?.emit('conversation:send', {
+                                            conversation_id: activeConversation?.id,
+                                            body: `🎤 Voice message (${duration}s)`,
+                                            fileUrl: res.data.fileUrl,
+                                            fileName: res.data.fileName || 'voice_message.webm',
+                                            fileType: res.data.fileType || 'audio/webm',
+                                        });
+                                    }}
+                                />
                                 <input
                                     value={newMessage}
                                     onChange={handleInputChange}

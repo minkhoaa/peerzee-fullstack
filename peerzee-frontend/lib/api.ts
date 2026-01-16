@@ -2,7 +2,7 @@ import axios from "axios";
 import type { LoginDto, LoginResponse, RegisterDto, RegisterResponse, UpdateUserProfileDto } from "@/types";
 import { Conversation } from "@/types/conversation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://cfdmd45g-9000.asse.devtunnels.ms/";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
 const api = axios.create({
     baseURL: API_URL,
     headers: {
@@ -59,4 +59,81 @@ export const authApi = {
 };
 export const chatApi = {
     getConversations: () => api.get<Conversation[]>("/conversation"),
+};
+
+// Rich Profile Types for Matching
+export interface ProfilePhoto {
+    id: string;
+    url: string;
+    isCover?: boolean;
+    order?: number;
+}
+
+export interface ProfilePrompt {
+    id: string;
+    question: string;
+    answer: string;
+    emoji?: string;
+}
+
+export interface RecommendationUser {
+    id: string;
+    email: string;
+    display_name?: string;
+    bio?: string;
+    location?: string;
+    age?: number;
+    occupation?: string;
+    education?: string;
+    photos?: ProfilePhoto[];
+    prompts?: ProfilePrompt[];
+    tags?: string[];
+    spotify?: { song: string; artist: string };
+    instagram?: string;
+}
+
+export interface SwipeResponse {
+    isMatch: boolean;
+    matchedUser?: {
+        id: string;
+        display_name: string;
+    };
+    conversationId?: string;
+}
+
+export interface SwipeRequest {
+    targetId: string;
+    action: 'LIKE' | 'PASS' | 'SUPER_LIKE';
+    message?: string;
+    likedContentId?: string;
+    likedContentType?: 'photo' | 'prompt' | 'vibe';
+}
+
+export const swipeApi = {
+    getRecommendations: (limit: number = 10) =>
+        api.get<RecommendationUser[]>(`/swipe/recommendations?limit=${limit}&_t=${Date.now()}`),
+
+    swipe: (data: SwipeRequest) =>
+        api.post<SwipeResponse>('/swipe', data),
+
+    getMatches: () =>
+        api.get('/swipe/matches'),
+
+    getRecentMatches: (limit: number = 5) =>
+        api.get<{ ok: boolean; matches: unknown[] }>(`/swipe/matches/recent?limit=${limit}`),
+};
+
+// Profile API for rich profile management
+export const profileApi = {
+    getMyProfile: () =>
+        api.get<RecommendationUser>('/profile/me'),
+
+    updateProfile: (data: Partial<RecommendationUser>) =>
+        api.patch<RecommendationUser>('/profile/me', data),
+
+    addPhoto: (url: string, isCover?: boolean) =>
+        api.post<RecommendationUser>('/profile/photos', { url, isCover }),
+
+    reorderPhotos: (photoIds: string[]) =>
+        api.put<RecommendationUser>('/profile/photos/order', { photoIds }),
 };

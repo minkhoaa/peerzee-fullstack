@@ -4,6 +4,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
+import { ProfileController } from './profile.controller';
+import { SeedController } from './seed.controller';
+import { ProfileService } from './profile.service';
+import { SeedService } from './seed.service';
 import { UserProfile } from './entities/user-profile.entity';
 import { UserTag } from './entities/user-tag.entity';
 import { User } from './entities/user.entity';
@@ -20,10 +24,10 @@ import { ProfileTag } from './entities/profile-tag.entity';
         signOptions: { expiresIn: '1h' },
       }),
       inject: [ConfigService],
-    })
+    }),
   ],
-  controllers: [UserController],
-  providers: [UserService],
-  exports: [UserService],
+  controllers: [UserController, ProfileController, SeedController],
+  providers: [UserService, ProfileService, SeedService],
+  exports: [UserService, ProfileService, SeedService],
 })
 export class UserModule { }

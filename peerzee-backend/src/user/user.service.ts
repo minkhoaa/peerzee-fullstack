@@ -194,4 +194,39 @@ export class UserService {
       fullName: u.profile?.display_name,
     }));
   }
+
+  /**
+   * Update profile properties (intentMode, zodiac, mbti, habits, etc.)
+   */
+  async updateProfileProperties(
+    userId: string,
+    dto: { intentMode?: string; profileProperties?: any }
+  ) {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user_id: userId },
+    });
+    if (!profile) throw new NotFoundException('User profile not found');
+
+    // Update intentMode if provided
+    if (dto.intentMode) {
+      profile.intentMode = dto.intentMode as any;
+    }
+
+    // Merge profileProperties if provided
+    if (dto.profileProperties) {
+      profile.profileProperties = {
+        ...(profile.profileProperties || {}),
+        ...dto.profileProperties,
+      } as any;
+    }
+
+    const updated = await this.userProfileRepository.save(profile);
+    return {
+      ok: true,
+      intentMode: updated.intentMode,
+      profileProperties: updated.profileProperties,
+    };
+  }
 }
+
+
