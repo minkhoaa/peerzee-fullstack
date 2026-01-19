@@ -24,6 +24,10 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./peerzee-backend/.env
+    environment:
+      # Override for Docker network
+      DB_HOST: postgres
+      DB_PORT: 5432
     ports:
       - "9000:9000"
     depends_on:
