@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MessageCircle, Settings, Heart } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Settings, Heart, Video } from 'lucide-react';
 import { ProfileCardStack } from '@/components/discover';
 import ModeSwitcher from '@/components/discover/ModeSwitcher';
 import { useDiscover } from '@/hooks/useDiscover';
@@ -122,6 +122,15 @@ export default function DiscoverPage() {
                                     {likersCount > 9 ? '9+' : likersCount}
                                 </span>
                             )}
+                        </button>
+
+                        {/* Video Dating button */}
+                        <button
+                            onClick={() => router.push('/video-dating')}
+                            className="p-2 text-[#9B9A97] hover:text-purple-400 rounded-lg hover:bg-[#202020] transition-colors"
+                            title="Random Video Chat"
+                        >
+                            <Video className="w-5 h-5" />
                         </button>
 
                         {/* Connection indicator */}

@@ -5,6 +5,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { DataSource } from 'typeorm';
+import { seedIceBreakers } from './seeds/ice-breakers.seed';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -47,5 +49,11 @@ async function bootstrap() {
     credentials: true,
   });
   await app.listen(port);
+
+  // Run seeds
+  const dataSource = app.get(DataSource);
+  await seedIceBreakers(dataSource);
+
+  console.log(`Application running on port ${port}`);
 }
 bootstrap();

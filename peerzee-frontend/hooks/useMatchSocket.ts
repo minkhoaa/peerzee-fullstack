@@ -24,9 +24,18 @@ export function useMatchSocket(options: UseMatchSocketOptions = {}) {
     const [isConnected, setIsConnected] = useState(false);
     const [lastMatch, setLastMatch] = useState<MatchNotification | null>(null);
 
+    // Use ref to avoid recreating connect on callback change
+    const onMatchFoundRef = useRef(onMatchFound);
+    onMatchFoundRef.current = onMatchFound;
+
     const connect = useCallback(() => {
         const token = localStorage.getItem('token');
         if (!token || !enabled) return;
+
+        // Prevent duplicate connections
+        if (socketRef.current?.connected) {
+            return;
+        }
 
         // Disconnect existing socket if any
         if (socketRef.current) {
@@ -62,11 +71,11 @@ export function useMatchSocket(options: UseMatchSocketOptions = {}) {
         socket.on('match_found', (notification: MatchNotification) => {
             console.log('[MatchSocket] Match found:', notification);
             setLastMatch(notification);
-            onMatchFound?.(notification);
+            onMatchFoundRef.current?.(notification);
         });
 
         socketRef.current = socket;
-    }, [enabled, onMatchFound]);
+    }, [enabled]); // Only depend on enabled
 
     const disconnect = useCallback(() => {
         if (socketRef.current) {
@@ -85,7 +94,8 @@ export function useMatchSocket(options: UseMatchSocketOptions = {}) {
     useEffect(() => {
         connect();
         return () => disconnect();
-    }, [connect, disconnect]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [enabled]); // Only reconnect when enabled changes
 
     return {
         isConnected,

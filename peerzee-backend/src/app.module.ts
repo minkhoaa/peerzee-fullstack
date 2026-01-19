@@ -10,6 +10,7 @@ import { SwipeModule } from './swipe/swipe.module';
 import { CommunityModule } from './community/community.module';
 import { DiscoverModule } from './discover/discover.module';
 import { NotificationModule } from './notification/notification.module';
+import { VideoDatingModule } from './video-dating/video-dating.module';
 
 @Module({
   imports: [
@@ -19,12 +20,13 @@ import { NotificationModule } from './notification/notification.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5456'),
+      port: parseInt(process.env.DB_PORT || '5432'),
       username: process.env.DB_USERNAME || 'peerzee',
       password: process.env.DB_PASSWORD || 'peerzee',
       database: process.env.DB_DATABASE || 'peerzee-db',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
     UserModule,
     ChatModule,
@@ -33,6 +35,7 @@ import { NotificationModule } from './notification/notification.module';
     CommunityModule,
     DiscoverModule,
     NotificationModule,
+    VideoDatingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

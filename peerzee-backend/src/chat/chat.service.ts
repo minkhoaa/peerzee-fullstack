@@ -5,6 +5,7 @@ import { Participant } from './entities/participants.entity';
 import { Message } from './entities/message.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MessageReaction } from './entities/message-reaction.entity';
+import { IceBreaker } from './entities/ice-breaker.entity';
 
 @Injectable()
 export class ChatService {
@@ -18,6 +19,8 @@ export class ChatService {
     private readonly msgRepo: Repository<Message>,
     @InjectRepository(MessageReaction)
     private readonly reactionRepo: Repository<MessageReaction>,
+    @InjectRepository(IceBreaker)
+    private readonly iceBreakerRepo: Repository<IceBreaker>,
   ) { }
 
   async isParticipants(user_id: string, conversation_id: string) {
@@ -162,5 +165,38 @@ export class ChatService {
     message.readAt = new Date();
     await this.msgRepo.save(message);
     return { readAt: message.readAt };
+  }
+
+  /**
+   * Get random ice breaker prompts
+   */
+  async getRandomIceBreakers(count: number = 3): Promise<IceBreaker[]> {
+    // Try to get from database first
+    const fromDb = await this.iceBreakerRepo
+      .createQueryBuilder('ib')
+      .where('ib.isActive = :isActive', { isActive: true })
+      .orderBy('RANDOM()')
+      .limit(count)
+      .getMany();
+
+    if (fromDb.length >= count) {
+      return fromDb;
+    }
+
+    // Fallback to default prompts if database is empty
+    const defaultPrompts = [
+      { id: '1', prompt: "What's the best trip you've ever been on?", category: 'general', isActive: true, createdAt: new Date() },
+      { id: '2', prompt: "If you could have dinner with anyone, who would it be?", category: 'deep', isActive: true, createdAt: new Date() },
+      { id: '3', prompt: "What's your go-to karaoke song?", category: 'fun', isActive: true, createdAt: new Date() },
+      { id: '4', prompt: "What's the most spontaneous thing you've ever done?", category: 'fun', isActive: true, createdAt: new Date() },
+      { id: '5', prompt: "What's something you're really passionate about?", category: 'deep', isActive: true, createdAt: new Date() },
+      { id: '6', prompt: "Coffee or tea? And what's your order?", category: 'general', isActive: true, createdAt: new Date() },
+      { id: '7', prompt: "What's on your bucket list?", category: 'deep', isActive: true, createdAt: new Date() },
+      { id: '8', prompt: "What's the last show you binged?", category: 'general', isActive: true, createdAt: new Date() },
+    ] as IceBreaker[];
+
+    // Shuffle and return requested count
+    const shuffled = defaultPrompts.sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
   }
 }

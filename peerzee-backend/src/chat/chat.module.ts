@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
+import { ChatController } from './chat.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 import { Participant } from './entities/participants.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { MessageReaction } from './entities/message-reaction.entity';
+import { IceBreaker } from './entities/ice-breaker.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { extname } from 'path';
 import { diskStorage } from 'multer';
@@ -14,7 +16,7 @@ import { UploadController } from './upload.controller';
 import { UserModule } from '../user/user.module';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Conversation, Message, Participant, MessageReaction]),
+    TypeOrmModule.forFeature([Conversation, Message, Participant, MessageReaction, IceBreaker]),
     JwtModule.register({}),
     UserModule,
     MulterModule.register({
@@ -27,7 +29,7 @@ import { UserModule } from '../user/user.module';
       })
     }),
   ],
-  controllers: [UploadController],
+  controllers: [UploadController, ChatController],
   providers: [ChatGateway, ChatService],
   exports: [ChatService],
 })

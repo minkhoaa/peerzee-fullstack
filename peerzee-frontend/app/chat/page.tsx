@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Socket } from "socket.io-client";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
@@ -132,6 +132,7 @@ const setPageTitle = (title: string) => {
 
 export default function ChatPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { theme, toggleTheme } = useTheme();
     const [userId, setUserId] = useState<string | null>(null);
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -454,6 +455,31 @@ export default function ChatPage() {
         loadConversations();
     }, [userId]);
 
+    // Handle URL params: conversation=id&draft=message
+    useEffect(() => {
+        const conversationId = searchParams.get('conversation');
+        const draftMessage = searchParams.get('draft');
+
+        if (conversationId && conversations.length > 0 && !activeConversation) {
+            const conv = conversations.find(c => c.id === conversationId);
+            if (conv) {
+                // Auto-select conversation
+                socketRef.current?.emit("conversation:join", { conversation_id: conv.id }, (msgs: Message[]) => {
+                    setMessages(msgs || []);
+                });
+                setActiveConversation(conv);
+                setUnreadCounts(prev => ({ ...prev, [conv.id]: 0 }));
+            }
+        }
+
+        // Pre-fill draft message
+        if (draftMessage && !newMessage) {
+            setNewMessage(decodeURIComponent(draftMessage));
+            // Clear the URL params after using them
+            router.replace('/chat', { scroll: false });
+        }
+    }, [searchParams, conversations, activeConversation, newMessage, router]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewMessage(e.target.value);
         if (!activeConversation || !socketRef.current) return;
@@ -750,6 +776,11 @@ export default function ChatPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                         </Link>
+                        <Link href="/video-dating" className="py-2.5 px-3 text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-xl hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-all flex items-center justify-center" title="Video Dating">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </Link>
                     </div>
                 </div>
 
@@ -894,10 +925,16 @@ export default function ChatPage() {
                                     style={{ animationDelay: `${Math.min(index * 20, 200)}ms` }}
                                 >
                                     {m.isDeleted ? (
-                                        <div className={`max-w-[70%] px-4 py-2.5 ${getBubbleRadius(m, index)} ${m.sender_id === userId
-                                            ? "bg-neutral-900 dark:bg-neutral-700"
-                                            : "bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"}`}>
-                                            <span className="text-sm text-neutral-400 dark:text-neutral-500 italic">Message deleted</span>
+                                        <div className={`flex items-end gap-2 ${m.sender_id === userId ? "flex-row-reverse" : "flex-row"}`}>
+                                            {/* Avatar placeholder for alignment */}
+                                            {m.sender_id !== userId && (
+                                                <div className="w-7 h-7 shrink-0" />
+                                            )}
+                                            <div className={`max-w-[70%] px-4 py-2.5 ${getBubbleRadius(m, index)} ${m.sender_id === userId
+                                                ? "bg-neutral-900 dark:bg-neutral-700"
+                                                : "bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"}`}>
+                                                <span className="text-sm text-neutral-400 dark:text-neutral-500 italic">Message deleted</span>
+                                            </div>
                                         </div>
                                     ) : editingMessageId === m.id ? (
                                         <div className="flex flex-col gap-2 max-w-[70%]">
