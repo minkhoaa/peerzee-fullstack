@@ -1,31 +1,31 @@
+# Production docker-compose - for deployment with nginx
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
+    container_name: peerzee-postgres
     environment:
-      POSTGRES_USER: peerzee
-      POSTGRES_PASSWORD: peerzee
-      POSTGRES_DB: peerzee-db
-    ports:
-      - "5456:5432"
+      POSTGRES_USER: ${DB_USER:-peerzee}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-peerzee}
+      POSTGRES_DB: ${DB_NAME:-peerzee-db}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - peerzee-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U peerzee -d peerzee-db" ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-peerzee} -d ${DB_NAME:-peerzee-db}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   backend:
     build:
       context: ./peerzee-backend
       dockerfile: Dockerfile
+    container_name: peerzee-backend
     env_file:
       - ./peerzee-backend/.env
     environment:
-      # Override for Docker network
       DB_HOST: postgres
       DB_PORT: 5432
     ports:
@@ -36,16 +36,18 @@ services:
     networks:
       - peerzee-network
     restart: unless-stopped
+    volumes:
+      - ./peerzee-backend/uploads:/app/uploads
 
   frontend:
     build:
       context: ./peerzee-frontend
       dockerfile: Dockerfile
       args:
-        # For LOCAL: set these in .env file or pass via command line
-        # For PRODUCTION with nginx: use empty string
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:9000/api}
-        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:9000}
+        # PRODUCTION: empty for nginx proxy
+        NEXT_PUBLIC_API_URL: ""
+        NEXT_PUBLIC_SOCKET_URL: ""
+    container_name: peerzee-frontend
     environment:
       NODE_ENV: production
     ports:
@@ -58,7 +60,6 @@ services:
 
 volumes:
   pgdata:
-
 
 networks:
   peerzee-network:

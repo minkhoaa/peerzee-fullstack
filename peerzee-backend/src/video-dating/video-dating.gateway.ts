@@ -14,7 +14,7 @@ import { VideoDatingService } from './video-dating.service';
 import { JoinQueueDto } from './dto/join-queue.dto';
 
 @WebSocketGateway({
-    namespace: '/video-dating',
+    namespace: '/socket/video-dating',
     cors: {
         origin: '*',
         credentials: true,
@@ -115,11 +115,16 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
 
         this.logger.log(`User ${userId} joined queue (${dto.intentMode})`);
 
+        // Broadcast updated queue size to all connected clients
+        this.broadcastQueueSize();
+
         // Try to find a match
         const match = this.videoDatingService.findMatch(userId);
 
         if (match) {
             await this.createVideoSession(userId, client.id, match.userId, match.socketId, dto.intentMode);
+            // Broadcast again after match (queue size decreased)
+            this.broadcastQueueSize();
         }
 
         return { ok: true, inQueue: true };
@@ -131,6 +136,8 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         if (userId) {
             this.videoDatingService.removeFromQueue(userId);
             this.logger.log(`User ${userId} left queue`);
+            // Broadcast updated queue size
+            this.broadcastQueueSize();
         }
         return { ok: true };
     }
@@ -354,7 +361,15 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         if (session) {
             this.userSessions.delete(session.user1Id);
             this.userSessions.delete(session.user2Id);
+            this.activeSessions.delete(sessionId);
         }
-        this.activeSessions.delete(sessionId);
+    }
+
+    /**
+     * Broadcast current queue size to all connected clients
+     */
+    private broadcastQueueSize() {
+        const queueSize = this.videoDatingService.getQueueSize();
+        this.server.emit('queue:status', { queueSize });
     }
 }

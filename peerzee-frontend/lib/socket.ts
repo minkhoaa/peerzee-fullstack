@@ -7,8 +7,8 @@ export function getSocket() {
 }
 export function connectSocket(token: string) {
     if (socket?.connected) return socket;
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
-    socket = io(socketUrl, {
+    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
+    socket = io(`${baseUrl}/socket/chat`, {
         auth: { token },
         transports: ['websocket'],
     });

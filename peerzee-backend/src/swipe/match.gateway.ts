@@ -20,7 +20,7 @@ export interface MatchNotification {
 }
 
 @WebSocketGateway({
-    namespace: '/matching',
+    namespace: '/socket/matching',
     cors: {
         origin: '*',
         credentials: true,

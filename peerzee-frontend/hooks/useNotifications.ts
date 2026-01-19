@@ -31,8 +31,6 @@ interface NotificationsResponse {
     unreadCount: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
-
 /**
  * useNotifications - Hook for fetching and managing notifications
  * Uses infinite query for pagination and socket for real-time updates
@@ -76,8 +74,8 @@ export function useNotifications() {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (!token) return;
 
-        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
-        const socket = io(socketUrl, {
+        const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
+        const socket = io(`${baseUrl}/socket/chat`, {
             auth: { token },
             transports: ['websocket'],
         });

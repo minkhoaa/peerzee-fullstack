@@ -44,8 +44,12 @@ async function bootstrap() {
   SwaggerModule.setup('swagger', app, document);
 
   const port = process.env.SERVER_PORT || process.env.PORT || 9000;
+
+  // Global API prefix for all REST endpoints
+  app.setGlobalPrefix('api');
+
   app.enableCors({
-    origin: ['http://localhost:3001', 'http://localhost:3000', 'https://cfdmd45g-9000.asse.devtunnels.ms/'],
+    origin: ['http://localhost:3001', 'http://localhost:3000', 'https://peerzee.centralindia.cloudapp.azure.com'],
     credentials: true,
   });
   await app.listen(port);

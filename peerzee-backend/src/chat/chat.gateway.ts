@@ -20,6 +20,7 @@ import { DeleteMessageDto, EditMessageDto } from './dto/edit-message.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 
 @WebSocketGateway({
+  namespace: '/socket/chat',
   cors: { origin: '*', credentials: true },
 })
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))

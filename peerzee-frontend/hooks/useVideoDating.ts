@@ -118,10 +118,10 @@ export function useVideoDating() {
 
     setState('connecting');
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
-    console.log('[VideoDating] Connecting to:', socketUrl + '/video-dating');
+    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
+    console.log('[VideoDating] Connecting to:', `${baseUrl}/socket/video-dating`);
 
-    const socket = io(`${socketUrl}/video-dating`, {
+    const socket = io(`${baseUrl}/socket/video-dating`, {
       auth: { token },
       transports: ['websocket'],
     });

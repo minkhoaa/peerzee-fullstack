@@ -44,7 +44,7 @@ export function useMatchSocket(options: UseMatchSocketOptions = {}) {
 
         // Connect to matching namespace
         const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
-        const socket = io(`${baseUrl}/matching`, {
+        const socket = io(`${baseUrl}/socket/matching`, {
             auth: { token },
             transports: ['websocket'],
             reconnection: true,
