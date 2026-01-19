@@ -992,7 +992,7 @@ export default function ChatPage() {
                                                     )}
                                                     {m.fileUrl && m.fileType?.startsWith('image/') && (
                                                         <img
-                                                            src={`http://localhost:9000${m.fileUrl}`}
+                                                            src={m.fileUrl}
                                                             alt={m.fileName || 'Image'}
                                                             className="w-full rounded-t-2xl object-cover max-h-64"
                                                         />
@@ -1001,7 +1001,7 @@ export default function ChatPage() {
                                                     {m.fileUrl && (m.fileType?.startsWith('audio/') || m.fileName?.includes('voice') || m.body?.startsWith('🎤 Voice message')) && (
                                                         <div className="px-2 py-2">
                                                             <AudioMessage
-                                                                audioUrl={`http://localhost:9000${m.fileUrl}`}
+                                                                audioUrl={m.fileUrl}
                                                                 isOwn={m.sender_id === userId}
                                                             />
                                                         </div>

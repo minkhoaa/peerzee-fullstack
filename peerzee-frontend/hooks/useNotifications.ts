@@ -31,7 +31,7 @@ interface NotificationsResponse {
     unreadCount: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 /**
  * useNotifications - Hook for fetching and managing notifications
@@ -76,7 +76,8 @@ export function useNotifications() {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (!token) return;
 
-        const socket = io(API_URL, {
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
+        const socket = io(socketUrl, {
             auth: { token },
             transports: ['websocket'],
         });

@@ -7,7 +7,8 @@ export function getSocket() {
 }
 export function connectSocket(token: string) {
     if (socket?.connected) return socket;
-    socket = io('http://localhost:9000', {
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
+    socket = io(socketUrl, {
         auth: { token },
         transports: ['websocket'],
     });

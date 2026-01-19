@@ -43,7 +43,7 @@ export function useMatchSocket(options: UseMatchSocketOptions = {}) {
         }
 
         // Connect to matching namespace
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:9000';
+        const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
         const socket = io(`${baseUrl}/matching`, {
             auth: { token },
             transports: ['websocket'],

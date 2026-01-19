@@ -118,7 +118,7 @@ export function useVideoDating() {
 
     setState('connecting');
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:9000';
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
     console.log('[VideoDating] Connecting to:', socketUrl + '/video-dating');
 
     const socket = io(`${socketUrl}/video-dating`, {
