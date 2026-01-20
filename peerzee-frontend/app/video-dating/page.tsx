@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Video, VideoOff, Mic, MicOff, SkipForward, Flag, X, Users, Heart, BookOpen, UserPlus, User } from 'lucide-react';
 import { useVideoDating, VideoDatingState } from '@/hooks/useVideoDating';
@@ -57,10 +57,19 @@ export default function VideoDatingPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Update local video
+    // Ref callback to set srcObject immediately when video element mounts
+    const setLocalVideoRef = useCallback((videoEl: HTMLVideoElement | null) => {
+        localVideoRef.current = videoEl;
+        if (videoEl && localStream) {
+            videoEl.srcObject = localStream;
+        }
+    }, [localStream]);
+
+    // Also update when localStream changes (for already mounted elements)
     useEffect(() => {
         if (localVideoRef.current && localStream) {
             localVideoRef.current.srcObject = localStream;
+            console.log('[Video] Local video srcObject set');
         }
     }, [localStream]);
 
@@ -256,7 +265,7 @@ export default function VideoDatingPage() {
                 {/* Local Video (picture-in-picture) - always render for srcObject */}
                 <div className="absolute bottom-4 right-4 w-32 h-24 rounded-lg overflow-hidden border-2 border-[#2F2F2F] shadow-lg bg-[#191919]">
                     <video
-                        ref={localVideoRef}
+                        ref={setLocalVideoRef}
                         autoPlay
                         playsInline
                         muted
