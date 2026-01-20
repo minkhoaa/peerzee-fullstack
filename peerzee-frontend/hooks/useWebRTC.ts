@@ -6,6 +6,7 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
     const [callState, setCallState] = useState<'idle' | 'calling' | 'ringing' | 'connected'>("idle");
     const [activeCallConversationId, setActiveCallConversationId] = useState<string | null>(null);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+    const [remoteHasVideo, setRemoteHasVideo] = useState(false);
     const peerConnection = useRef<RTCPeerConnection | null>(null);
     const localStream = useRef<MediaStream | null>(null);
     const remoteAudio = useRef<HTMLAudioElement | null>(null);
@@ -27,6 +28,12 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
             peerConnection.current = new RTCPeerConnection(config);
             localStream.current.getTracks().forEach(track => peerConnection.current?.addTrack(track, localStream.current!));
 
+            // If no video track, add recvonly transceiver to receive video from remote
+            if (!withVideo) {
+                console.log('[WebRTC] No local video, adding recvonly transceiver');
+                peerConnection.current.addTransceiver('video', { direction: 'recvonly' });
+            }
+
             peerConnection.current.onicecandidate = (event) => {
                 if (event.candidate) {
                     socket.emit("call:ice-candidate", {
@@ -35,12 +42,24 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
                     });
                 }
             }
+
+            // Handle remote tracks
+            const remoteStreamRef = { current: new MediaStream() };
             peerConnection.current.ontrack = (event) => {
-                console.log('[WebRTC] ontrack received:', event.streams);
-                const stream = event.streams[0];
-                setRemoteStream(stream);
-                if (remoteAudio.current) {
-                    remoteAudio.current.srcObject = stream;
+                console.log('[WebRTC] ontrack received:', event.track.kind, 'enabled:', event.track.enabled);
+                remoteStreamRef.current.addTrack(event.track);
+                setRemoteStream(remoteStreamRef.current);
+
+                if (event.track.kind === 'video') {
+                    console.log('[WebRTC] Remote video track received');
+                    setRemoteHasVideo(event.track.enabled);
+                    event.track.onmute = () => setRemoteHasVideo(false);
+                    event.track.onunmute = () => setRemoteHasVideo(true);
+                    event.track.onended = () => setRemoteHasVideo(false);
+                }
+
+                if (remoteAudio.current && event.track.kind === 'audio') {
+                    remoteAudio.current.srcObject = remoteStreamRef.current;
                     remoteAudio.current.play().catch(console.error);
                 }
             }
@@ -65,6 +84,13 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
             localStream.current.getTracks().forEach(track => {
                 peerConnection.current?.addTrack(track, localStream.current!);
             })
+
+            // If no video track, add recvonly transceiver to receive video from remote
+            if (!withVideo) {
+                console.log('[WebRTC] No local video, adding recvonly transceiver');
+                peerConnection.current.addTransceiver('video', { direction: 'recvonly' });
+            }
+
             peerConnection.current.onicecandidate = (event) => {
                 if (event.candidate) {
                     socket.emit("call:ice-candidate", {
@@ -73,12 +99,24 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
                     });
                 }
             }
+
+            // Handle remote tracks
+            const remoteStreamRef = { current: new MediaStream() };
             peerConnection.current.ontrack = event => {
-                console.log('[WebRTC] ontrack received:', event.streams);
-                const stream = event.streams[0];
-                setRemoteStream(stream);
-                if (remoteAudio.current) {
-                    remoteAudio.current.srcObject = stream;
+                console.log('[WebRTC] ontrack received:', event.track.kind, 'enabled:', event.track.enabled);
+                remoteStreamRef.current.addTrack(event.track);
+                setRemoteStream(remoteStreamRef.current);
+
+                if (event.track.kind === 'video') {
+                    console.log('[WebRTC] Remote video track received');
+                    setRemoteHasVideo(event.track.enabled);
+                    event.track.onmute = () => setRemoteHasVideo(false);
+                    event.track.onunmute = () => setRemoteHasVideo(true);
+                    event.track.onended = () => setRemoteHasVideo(false);
+                }
+
+                if (remoteAudio.current && event.track.kind === 'audio') {
+                    remoteAudio.current.srcObject = remoteStreamRef.current;
                     remoteAudio.current.play().catch(console.error);
                 }
             }
@@ -102,6 +140,7 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
         peerConnection.current = null;
         localStream.current = null;
         setRemoteStream(null);
+        setRemoteHasVideo(false);
 
         setActiveCallConversationId(null);
         setCallState("idle");
@@ -146,6 +185,7 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
         toggleCamera,
         localStream,
         remoteStream,
+        remoteHasVideo,
         handleAnswer,
         handleIceCandidate,
         remoteAudio

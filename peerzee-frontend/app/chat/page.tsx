@@ -184,6 +184,7 @@ export default function ChatPage() {
         toggleCamera,
         localStream,
         remoteStream,
+        remoteHasVideo,
         handleAnswer,
         handleIceCandidate,
         remoteAudio
@@ -1280,6 +1281,7 @@ export default function ChatPage() {
                     remoteAudioRef={remoteAudio}
                     localStreamRef={localStream}
                     remoteStream={remoteStream}
+                    remoteHasVideo={remoteHasVideo}
                 />
             )}
         </div >
