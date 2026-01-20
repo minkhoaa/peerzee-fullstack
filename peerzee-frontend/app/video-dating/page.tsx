@@ -68,17 +68,20 @@ export default function VideoDatingPage() {
     // Also update when localStream changes (for already mounted elements)
     useEffect(() => {
         if (localVideoRef.current && localStream) {
+            console.log('[Video] Local stream set, tracks:', localStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+            console.log('[Video] withVideo:', withVideo, 'isCameraOff:', isCameraOff);
             localVideoRef.current.srcObject = localStream;
-            console.log('[Video] Local video srcObject set');
         }
-    }, [localStream]);
+    }, [localStream, withVideo, isCameraOff]);
 
     // Update remote video
     useEffect(() => {
         if (remoteVideoRef.current && remoteStream) {
+            console.log('[Video] Remote stream set, tracks:', remoteStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+            console.log('[Video] remoteHasVideo:', remoteHasVideo);
             remoteVideoRef.current.srcObject = remoteStream;
         }
-    }, [remoteStream]);
+    }, [remoteStream, remoteHasVideo]);
 
     const handleStartMatching = () => {
         joinQueue(intentMode, genderPref, enableCamera);
