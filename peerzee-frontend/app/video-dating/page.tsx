@@ -238,11 +238,11 @@ export default function VideoDatingPage() {
     );
 
     const renderVideoCall = () => (
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col overflow-hidden">
             {/* Split Screen Video Container - horizontal */}
-            <div className="flex-1 flex flex-row gap-2">
+            <div className="flex-1 min-h-0 flex flex-row gap-2">
                 {/* Remote Video (left half) */}
-                <div className="flex-1 relative bg-black rounded-xl overflow-hidden">
+                <div className="flex-1 min-h-0 relative bg-black rounded-xl overflow-hidden">
                     <video
                         ref={remoteVideoRef}
                         autoPlay
@@ -283,7 +283,7 @@ export default function VideoDatingPage() {
                 </div>
 
                 {/* Local Video (right half) */}
-                <div className="flex-1 relative bg-black rounded-xl overflow-hidden">
+                <div className="flex-1 min-h-0 relative bg-black rounded-xl overflow-hidden">
                     <video
                         ref={setLocalVideoRef}
                         autoPlay
@@ -312,46 +312,46 @@ export default function VideoDatingPage() {
                 </div>
             </div>
 
-            {/* Controls */}
-            <div className="p-4 flex items-center justify-center gap-3">
+            {/* Controls - fixed at bottom */}
+            <div className="shrink-0 p-2 flex items-center justify-center gap-2">
                 <button
                     onClick={handleToggleMute}
-                    className={`p-4 rounded-full transition-colors ${isMuted ? 'bg-red-500/20 text-red-400' : 'bg-[#2F2F2F] text-[#E3E3E3] hover:bg-[#3A3A3A]'
+                    className={`p-3 rounded-full transition-colors ${isMuted ? 'bg-red-500/20 text-red-400' : 'bg-[#2F2F2F] text-[#E3E3E3] hover:bg-[#3A3A3A]'
                         }`}
                 >
-                    {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                    {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                 </button>
 
                 <button
                     onClick={handleToggleCamera}
-                    className={`p-4 rounded-full transition-colors ${isCameraOff ? 'bg-red-500/20 text-red-400' : 'bg-[#2F2F2F] text-[#E3E3E3] hover:bg-[#3A3A3A]'
+                    className={`p-3 rounded-full transition-colors ${isCameraOff ? 'bg-red-500/20 text-red-400' : 'bg-[#2F2F2F] text-[#E3E3E3] hover:bg-[#3A3A3A]'
                         }`}
                 >
-                    {isCameraOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+                    {isCameraOff ? <VideoOff className="w-4 h-4" /> : <Video className="w-4 h-4" />}
                 </button>
 
                 <button
                     onClick={nextPartner}
-                    className="p-4 bg-[#2F2F2F] text-[#E3E3E3] hover:bg-[#3A3A3A] rounded-full transition-colors"
+                    className="p-3 bg-[#2F2F2F] text-[#E3E3E3] hover:bg-[#3A3A3A] rounded-full transition-colors"
                     title="Next Partner"
                 >
-                    <SkipForward className="w-5 h-5" />
+                    <SkipForward className="w-4 h-4" />
                 </button>
 
                 <button
                     onClick={() => setShowReportModal(true)}
-                    className="p-4 bg-[#2F2F2F] text-yellow-400 hover:bg-yellow-500/20 rounded-full transition-colors"
+                    className="p-3 bg-[#2F2F2F] text-yellow-400 hover:bg-yellow-500/20 rounded-full transition-colors"
                     title="Report"
                 >
-                    <Flag className="w-5 h-5" />
+                    <Flag className="w-4 h-4" />
                 </button>
 
                 <button
                     onClick={endCall}
-                    className="p-4 bg-red-500 text-white hover:bg-red-600 rounded-full transition-colors"
+                    className="p-3 bg-red-500 text-white hover:bg-red-600 rounded-full transition-colors"
                     title="End Call"
                 >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" />
                 </button>
             </div>
         </div>
