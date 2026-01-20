@@ -6,10 +6,14 @@ import {
     IsArray,
     ValidateNested,
     IsIn,
+    IsEnum,
+    IsBoolean,
     Min,
     Max,
+    MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { UserGender, AvailabilitySchedule } from '../entities/user-profile.entity';
 
 // ============================================================================
 // Profile Photo DTO
@@ -87,6 +91,42 @@ export class DiscoverySettingsDto {
     @IsOptional()
     @IsIn(['male', 'female', 'all'])
     genderPreference?: 'male' | 'female' | 'all';
+}
+
+// ============================================================================
+// Availability Schedule DTO
+// ============================================================================
+
+export class AvailabilityScheduleDto {
+    @ApiPropertyOptional({ description: 'Available weekday mornings (6am-12pm)' })
+    @IsOptional()
+    @IsBoolean()
+    weekdayMorning?: boolean;
+
+    @ApiPropertyOptional({ description: 'Available weekday afternoons (12pm-6pm)' })
+    @IsOptional()
+    @IsBoolean()
+    weekdayAfternoon?: boolean;
+
+    @ApiPropertyOptional({ description: 'Available weekday evenings (6pm-10pm)' })
+    @IsOptional()
+    @IsBoolean()
+    weekdayEvening?: boolean;
+
+    @ApiPropertyOptional({ description: 'Available weekend mornings' })
+    @IsOptional()
+    @IsBoolean()
+    weekendMorning?: boolean;
+
+    @ApiPropertyOptional({ description: 'Available weekend afternoons' })
+    @IsOptional()
+    @IsBoolean()
+    weekendAfternoon?: boolean;
+
+    @ApiPropertyOptional({ description: 'Available weekend evenings' })
+    @IsOptional()
+    @IsBoolean()
+    weekendEvening?: boolean;
 }
 
 // ============================================================================
@@ -170,6 +210,36 @@ export class UpdateProfileDto {
     @IsOptional()
     @IsNumber()
     longitude?: number;
+
+    // Hybrid Search Fields
+    @ApiPropertyOptional({ enum: UserGender, description: 'User gender' })
+    @IsOptional()
+    @IsEnum(UserGender)
+    gender?: UserGender;
+
+    @ApiPropertyOptional({ description: 'City name for filtering' })
+    @IsOptional()
+    @IsString()
+    @MaxLength(100)
+    city?: string;
+
+    @ApiPropertyOptional({ description: 'Region/Province name' })
+    @IsOptional()
+    @IsString()
+    @MaxLength(100)
+    region?: string;
+
+    @ApiPropertyOptional({ description: 'ISO 2-letter country code' })
+    @IsOptional()
+    @IsString()
+    @MaxLength(2)
+    country?: string;
+
+    @ApiPropertyOptional({ type: AvailabilityScheduleDto, description: 'Availability schedule' })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => AvailabilityScheduleDto)
+    availability?: AvailabilityScheduleDto;
 }
 
 // ============================================================================

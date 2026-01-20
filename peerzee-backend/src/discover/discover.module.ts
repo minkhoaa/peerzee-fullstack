@@ -7,11 +7,13 @@ import { DiscoverService } from './discover.service';
 import { UserSwipe } from '../swipe/entities/user-swipe.entity';
 import { Match } from '../swipe/entities/match.entity';
 import { User } from '../user/entities/user.entity';
+import { UserProfile } from '../user/entities/user-profile.entity';
 import { ChatModule } from '../chat/chat.module';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UserSwipe, Match, User]),
+        TypeOrmModule.forFeature([UserSwipe, Match, User, UserProfile]),
         JwtModule.registerAsync({
             imports: [ConfigModule],
             useFactory: (configService: ConfigService) => ({
@@ -21,9 +23,11 @@ import { ChatModule } from '../chat/chat.module';
             inject: [ConfigService],
         }),
         forwardRef(() => ChatModule),
+        AiModule,
     ],
     controllers: [DiscoverController],
     providers: [DiscoverService],
     exports: [DiscoverService],
 })
 export class DiscoverModule { }
+

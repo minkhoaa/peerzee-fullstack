@@ -96,4 +96,47 @@ export class DiscoverController {
             );
         }
     }
+
+    /**
+     * GET /discover/search?q=...
+     * Hybrid Semantic Search using natural language
+     * Example: "Tìm bạn nữ học AI ở Hà Nội"
+     */
+    @Get('search')
+    @ApiOperation({ summary: 'Search users with natural language query (Hybrid AI Search)' })
+    @ApiQuery({ name: 'q', required: true, description: 'Natural language search query' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max results (default: 10)' })
+    @ApiResponse({ status: 200, description: 'Search results with match scores' })
+    async search(
+        @Request() req,
+        @Query('q') query: string,
+        @Query('limit') limit?: string,
+    ) {
+        if (!query?.trim()) {
+            throw new HttpException('Query parameter "q" is required', HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            const parsedLimit = limit ? parseInt(limit, 10) : 10;
+            const result = await this.discoverService.searchUsers(
+                query.trim(),
+                req.user.user_id,
+                Math.min(parsedLimit, 50),
+            );
+
+            return {
+                query,
+                filters: result.filters,
+                count: result.results.length,
+                results: result.results,
+            };
+        } catch (error) {
+            this.logger.error(`Search error: ${error.message}`, error.stack);
+            throw new HttpException(
+                `Search failed: ${error.message}`,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
 }
+

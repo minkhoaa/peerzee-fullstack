@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
-import { UserProfile, ProfilePhoto, ProfilePrompt } from '../user/entities/user-profile.entity';
+import { UserProfile, ProfilePhoto, ProfilePrompt, IntentMode, UserGender } from '../user/entities/user-profile.entity';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -20,27 +20,47 @@ const SAMPLE_PHOTOS = [
     'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop',
 ];
 
-const SAMPLE_NAMES = [
-    'Minh Anh', 'Đức Khang', 'Thu Hà', 'Quốc Bảo', 'Linh Chi',
-    'Hoàng Nam', 'Phương Thảo', 'Tuấn Kiệt', 'Mai Linh', 'Văn Hùng',
+const SAMPLE_NAMES_MALE = [
+    'Đức Khang', 'Quốc Bảo', 'Hoàng Nam', 'Tuấn Kiệt', 'Văn Hùng',
+    'Minh Đức', 'Anh Tuấn', 'Hải Long', 'Thanh Tùng', 'Công Vinh',
+    'Duy Khánh', 'Thành Đạt', 'Quang Huy', 'Bảo Long', 'Đình Phúc',
+];
+
+const SAMPLE_NAMES_FEMALE = [
+    'Minh Anh', 'Thu Hà', 'Linh Chi', 'Phương Thảo', 'Mai Linh',
+    'Ngọc Ánh', 'Thanh Hương', 'Bích Ngọc', 'Hoàng Yến', 'Thùy Dung',
+    'Kim Ngân', 'Hồng Nhung', 'Diệu Linh', 'Thảo Vy', 'Phương Anh',
 ];
 
 const SAMPLE_OCCUPATIONS = [
     'UX Designer at Shopee', 'Backend Engineer at Tiki', 'Product Manager at VNG',
     'Data Scientist at Grab', 'Frontend Developer at FPT', 'DevOps Engineer at MoMo',
     'Mobile Developer at ZaloPay', 'AI Researcher at VinAI', 'Full-stack Developer',
-    'Startup Founder',
+    'Startup Founder', 'Marketing Manager', 'Business Analyst', 'QA Engineer',
+    'Cloud Architect', 'Blockchain Developer',
 ];
 
 const SAMPLE_EDUCATIONS = [
     'RMIT University', 'Bach Khoa University', 'FPT University',
     'National University', 'University of Technology', 'Academy of Finance',
+    'Foreign Trade University', 'Banking Academy', 'Hanoi University',
+];
+
+const SAMPLE_CITIES = [
+    'Hà Nội', 'Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ',
+    'Nha Trang', 'Huế', 'Vũng Tàu', 'Biên Hòa', 'Thủ Đức',
+];
+
+const SAMPLE_REGIONS = [
+    'Miền Bắc', 'Miền Nam', 'Miền Trung', 'Miền Nam', 'Miền Nam',
+    'Miền Trung', 'Miền Trung', 'Miền Nam', 'Miền Nam', 'Miền Nam',
 ];
 
 const SAMPLE_TAGS = [
     'Coding', 'Coffee', 'Gym', 'Travel', 'K-Drama', 'Gaming', 'Music',
     'Photography', 'Hiking', 'Yoga', 'Cooking', 'Reading', 'Netflix',
-    'React', 'NextJS', 'Python', 'AI/ML', 'Startup', 'Crypto',
+    'React', 'NextJS', 'Python', 'AI/ML', 'Startup', 'Crypto', 'Art',
+    'Dance', 'Movies', 'Foodie', 'Fashion', 'Tech', 'Sports',
 ];
 
 const SAMPLE_PROMPTS: { question: string; emoji: string }[] = [
@@ -80,6 +100,11 @@ const SAMPLE_BIOS = [
     'Building the future, one commit at a time.',
     'Introvert who codes in public cafes. The contradictions are real.',
     'Remote worker exploring Vietnam one coffee shop at a time.',
+    'Thích học hỏi điều mới, luôn tìm kiếm cơ hội phát triển bản thân.',
+    'Đam mê công nghệ và muốn kết nối với những người cùng đam mê.',
+    'Yêu thích du lịch, khám phá ẩm thực và văn hóa các vùng miền.',
+    'Thích đọc sách và cafe vào cuối tuần.',
+    'Đang tìm kiếm bạn học để cùng nhau phát triển kỹ năng.',
 ];
 
 const SAMPLE_SPOTIFY = [
@@ -102,7 +127,98 @@ export class SeedService {
     ) { }
 
     /**
-     * Seed dummy users with rich profiles for testing
+     * Seed 50 test users with full profile data for hybrid search testing
+     * Email: test1@gmail.com, test2@gmail.com, ...
+     * Password: Khoa040505@
+     */
+    async seedTestUsers(count: number = 50): Promise<{ created: number; skipped: number }> {
+        this.logger.log(`Starting to seed ${count} test users...`);
+
+        const passwordHash = await bcrypt.hash('Khoa040505@', 12);
+        let created = 0;
+        let skipped = 0;
+
+        for (let i = 1; i <= count; i++) {
+            const email = `test${i}@gmail.com`;
+
+            // Check if user already exists
+            const existing = await this.userRepo.findOne({ where: { email } });
+            if (existing) {
+                this.logger.log(`User ${email} already exists, skipping.`);
+                skipped++;
+                continue;
+            }
+
+            // Determine gender (alternating for variety)
+            const isFemale = i % 2 === 0;
+            const gender = isFemale ? UserGender.FEMALE : UserGender.MALE;
+            const names = isFemale ? SAMPLE_NAMES_FEMALE : SAMPLE_NAMES_MALE;
+            const name = names[i % names.length];
+
+            // Create user
+            const user = await this.userRepo.save({
+                email,
+                password_hash: passwordHash,
+                status: 'active',
+            });
+
+            // Determine intent mode (variety)
+            const intentModes = [IntentMode.DATE, IntentMode.STUDY, IntentMode.FRIEND];
+            const intentMode = intentModes[i % 3];
+
+            // Create rich profile with hybrid search fields
+            const cityIndex = i % SAMPLE_CITIES.length;
+            const photos = this.generatePhotos(i);
+            const prompts = this.generatePrompts();
+            const tags = this.generateTags();
+
+            await this.profileRepo.save({
+                user_id: user.id,
+                display_name: name,
+                bio: SAMPLE_BIOS[i % SAMPLE_BIOS.length],
+                age: 20 + Math.floor(Math.random() * 12), // 20-31
+                occupation: SAMPLE_OCCUPATIONS[i % SAMPLE_OCCUPATIONS.length],
+                education: SAMPLE_EDUCATIONS[i % SAMPLE_EDUCATIONS.length],
+                location: SAMPLE_CITIES[cityIndex],
+                photos,
+                prompts,
+                tags,
+                spotify: SAMPLE_SPOTIFY[i % SAMPLE_SPOTIFY.length],
+                instagram: `@${name.toLowerCase().replace(' ', '')}`,
+                discovery_settings: {
+                    minAge: 18,
+                    maxAge: 35,
+                    maxDistance: 50,
+                    genderPreference: 'all',
+                },
+                // Hybrid Search Fields
+                gender,
+                intentMode,
+                city: SAMPLE_CITIES[cityIndex],
+                region: SAMPLE_REGIONS[cityIndex],
+                country: 'VN',
+                availability: {
+                    weekdayMorning: Math.random() > 0.5,
+                    weekdayAfternoon: Math.random() > 0.5,
+                    weekdayEvening: Math.random() > 0.3,
+                    weekendMorning: Math.random() > 0.4,
+                    weekendAfternoon: Math.random() > 0.3,
+                    weekendEvening: Math.random() > 0.3,
+                },
+                latitude: 10.762622 + (Math.random() - 0.5) * 2,
+                longitude: 106.660172 + (Math.random() - 0.5) * 2,
+            });
+
+            created++;
+            this.logger.log(`Created user ${i}/${count}: ${email} (${name}, ${gender}, ${intentMode})`);
+        }
+
+        this.logger.log(`Seeding complete. Created: ${created}, Skipped: ${skipped}`);
+        return { created, skipped };
+    }
+
+    /**
+     * Legacy seed method for demo users
      */
     async seedDummyUsers(count: number = 10): Promise<void> {
         this.logger.log(`Starting to seed ${count} dummy users...`);
@@ -116,24 +232,22 @@ export class SeedService {
         const passwordHash = await bcrypt.hash('Password123!', 12);
 
         for (let i = 0; i < count; i++) {
-            const name = SAMPLE_NAMES[i % SAMPLE_NAMES.length];
+            const names = [...SAMPLE_NAMES_MALE, ...SAMPLE_NAMES_FEMALE];
+            const name = names[i % names.length];
             const email = `demo${i + 1}@peerzee.com`;
 
-            // Check if user already exists
             const existing = await this.userRepo.findOne({ where: { email } });
             if (existing) {
                 this.logger.log(`User ${email} already exists, skipping.`);
                 continue;
             }
 
-            // Create user
             const user = await this.userRepo.save({
                 email,
                 password_hash: passwordHash,
                 status: 'active',
             });
 
-            // Create rich profile
             const photos = this.generatePhotos(i);
             const prompts = this.generatePrompts();
             const tags = this.generateTags();
@@ -168,7 +282,7 @@ export class SeedService {
     }
 
     private generatePhotos(index: number): ProfilePhoto[] {
-        const photoCount = 1 + Math.floor(Math.random() * 3); // 1-3 photos
+        const photoCount = 1 + Math.floor(Math.random() * 3);
         const photos: ProfilePhoto[] = [];
 
         for (let i = 0; i < photoCount; i++) {
@@ -184,7 +298,7 @@ export class SeedService {
     }
 
     private generatePrompts(): ProfilePrompt[] {
-        const promptCount = 2 + Math.floor(Math.random() * 2); // 2-3 prompts
+        const promptCount = 2 + Math.floor(Math.random() * 2);
         const prompts: ProfilePrompt[] = [];
         const usedIndices = new Set<number>();
 
@@ -207,8 +321,7 @@ export class SeedService {
     }
 
     private generateTags(): string[] {
-        const tagCount = 4 + Math.floor(Math.random() * 4); // 4-7 tags
-        const tags: string[] = [];
+        const tagCount = 4 + Math.floor(Math.random() * 4);
         const shuffled = [...SAMPLE_TAGS].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, tagCount);
     }

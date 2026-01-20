@@ -13,10 +13,12 @@ import { UserTag } from './entities/user-tag.entity';
 import { User } from './entities/user.entity';
 import { UserSession } from './entities/user-session.entity';
 import { ProfileTag } from './entities/profile-tag.entity';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, UserTag, UserProfile, UserSession, ProfileTag]),
+    AiModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

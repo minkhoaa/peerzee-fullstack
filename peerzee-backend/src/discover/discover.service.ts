@@ -3,13 +3,16 @@ import {
     ConflictException,
     NotFoundException,
     BadRequestException,
+    Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserSwipe, SwipeAction } from '../swipe/entities/user-swipe.entity';
 import { Match } from '../swipe/entities/match.entity';
 import { User } from '../user/entities/user.entity';
+import { UserProfile } from '../user/entities/user-profile.entity';
 import { ChatService } from '../chat/chat.service';
+import { AiService, SearchFilters } from '../ai/ai.service';
 
 // Types
 export interface ProfilePhoto {
@@ -69,6 +72,8 @@ interface SwipeInput {
 
 @Injectable()
 export class DiscoverService {
+    private readonly logger = new Logger(DiscoverService.name);
+
     constructor(
         @InjectRepository(UserSwipe)
         private readonly swipeRepo: Repository<UserSwipe>,
@@ -76,7 +81,10 @@ export class DiscoverService {
         private readonly matchRepo: Repository<Match>,
         @InjectRepository(User)
         private readonly userRepo: Repository<User>,
+        @InjectRepository(UserProfile)
+        private readonly profileRepo: Repository<UserProfile>,
         private readonly chatService: ChatService,
+        private readonly aiService: AiService,
     ) { }
 
     /**
@@ -263,5 +271,102 @@ export class DiscoverService {
             },
             conversationId: conversation.id,
         };
+    }
+
+    /**
+     * Hybrid Semantic Search
+     * Combines hard SQL filters (gender, city, intent) with soft vector similarity
+     */
+    async searchUsers(
+        query: string,
+        currentUserId: string,
+        limit: number = 10,
+    ): Promise<{
+        filters: SearchFilters;
+        results: (DiscoverUserDto & { matchScore: number })[];
+    }> {
+        this.logger.log(`Hybrid search: "${query}" by user ${currentUserId}`);
+
+        // Step 1: Extract structured filters from natural language
+        const filters = await this.aiService.extractSearchFilters(query);
+        this.logger.log(`Extracted filters: ${JSON.stringify(filters)}`);
+
+        // Step 2: Generate embedding for semantic search
+        let queryEmbedding: number[] = [];
+        if (filters.semantic_text) {
+            try {
+                queryEmbedding = await this.aiService.generateEmbedding(filters.semantic_text);
+            } catch (error) {
+                this.logger.warn('Failed to generate query embedding, falling back to SQL-only search');
+            }
+        }
+
+        // Step 3: Build hybrid query
+        const queryBuilder = this.profileRepo
+            .createQueryBuilder('profile')
+            .leftJoinAndSelect('profile.user', 'user')
+            .where('profile.user_id != :currentUserId', { currentUserId })
+            .andWhere('user.status = :status', { status: 'active' });
+
+        // Hard filters (SQL)
+        if (filters.gender) {
+            queryBuilder.andWhere('profile.gender = :gender', { gender: filters.gender });
+        }
+        if (filters.city) {
+            queryBuilder.andWhere('LOWER(profile.city) LIKE LOWER(:city)', { city: `%${filters.city}%` });
+        }
+        if (filters.intent) {
+            queryBuilder.andWhere('profile."intentMode" = :intent', { intent: filters.intent });
+        }
+
+        // Soft filter (Vector similarity) - only if we have embeddings
+        if (queryEmbedding.length > 0) {
+            // Use pgvector cosine distance operator
+            // Note: profiles without embeddings will be excluded
+            queryBuilder
+                .andWhere('profile."bioEmbedding" IS NOT NULL')
+                .addSelect(
+                    `1 - (profile."bioEmbedding" <=> :queryVector)`,
+                    'similarity'
+                )
+                .setParameter('queryVector', `[${queryEmbedding.join(',')}]`)
+                .orderBy('similarity', 'DESC');
+        } else {
+            // Fallback: order by created date
+            queryBuilder.orderBy('profile.id', 'DESC');
+        }
+
+        queryBuilder.limit(limit);
+
+        // Execute query
+        const rawResults = await queryBuilder.getRawAndEntities();
+
+        // Map results with match scores
+        const results = rawResults.entities.map((profile, index) => {
+            const rawRow = rawResults.raw[index];
+            const similarity = rawRow?.similarity ? parseFloat(rawRow.similarity) : 0;
+
+            return {
+                id: profile.user_id,
+                display_name: profile.display_name || 'Unknown',
+                bio: profile.bio || undefined,
+                location: profile.location || undefined,
+                age: profile.age || undefined,
+                occupation: profile.occupation || undefined,
+                education: profile.education || undefined,
+                photos: (profile.photos as ProfilePhoto[]) || [],
+                prompts: (profile.prompts as ProfilePrompt[]) || [],
+                tags: (profile.tags as string[]) || [],
+                spotify: profile.spotify || undefined,
+                instagram: profile.instagram || undefined,
+                intentMode: profile.intentMode || 'DATE',
+                profileProperties: profile.profileProperties || {},
+                matchScore: Math.round(similarity * 100), // Convert to percentage
+            };
+        });
+
+        this.logger.log(`Found ${results.length} results for query: "${query}"`);
+
+        return { filters, results };
     }
 }

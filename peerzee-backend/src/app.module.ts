@@ -11,6 +11,7 @@ import { CommunityModule } from './community/community.module';
 import { DiscoverModule } from './discover/discover.module';
 import { NotificationModule } from './notification/notification.module';
 import { VideoDatingModule } from './video-dating/video-dating.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { VideoDatingModule } from './video-dating/video-dating.module';
     DiscoverModule,
     NotificationModule,
     VideoDatingModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

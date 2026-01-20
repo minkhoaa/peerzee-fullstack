@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Get, Param, Put, Patch, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service';
+import { ProfileService } from './profile.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AddTagDto } from './dto/add-tag.dto';
@@ -11,7 +12,10 @@ import { CurrentUser } from './decorators/current-user.decorator';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(
+    private readonly userService: UserService,
+    private readonly profileService: ProfileService,
+  ) { }
 
   // ========== Public Routes ==========
 
@@ -82,5 +86,14 @@ export class UserController {
   ) {
     return this.userService.updateProfileProperties(userId, dto);
   }
-}
 
+  /**
+   * Admin endpoint: Bulk re-index all profiles with AI embeddings
+   * POST /user/reindex-all?batchSize=10
+   */
+  @Post('reindex-all')
+  async reindexAllProfiles(@Query('batchSize') batchSize?: string) {
+    const size = batchSize ? parseInt(batchSize, 10) : 10;
+    return this.profileService.reindexAllProfiles(size);
+  }
+}
