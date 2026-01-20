@@ -253,18 +253,18 @@ export default function VideoDatingPage() {
                     </div>
                 )}
 
-                {/* Local Video (picture-in-picture) */}
+                {/* Local Video (picture-in-picture) - always render for srcObject */}
                 <div className="absolute bottom-4 right-4 w-32 h-24 rounded-lg overflow-hidden border-2 border-[#2F2F2F] shadow-lg bg-[#191919]">
-                    {!isCameraOff && withVideo ? (
-                        <video
-                            ref={localVideoRef}
-                            autoPlay
-                            playsInline
-                            muted
-                            className="w-full h-full object-cover"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-[#252525]">
+                    <video
+                        ref={localVideoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className={`w-full h-full object-cover ${(!withVideo || isCameraOff) ? 'opacity-0' : ''}`}
+                    />
+                    {/* Camera off overlay */}
+                    {(!withVideo || isCameraOff) && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#252525]">
                             <VideoOff className="w-6 h-6 text-[#9B9A97]" />
                         </div>
                     )}
