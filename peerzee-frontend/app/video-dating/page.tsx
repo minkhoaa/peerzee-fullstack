@@ -400,7 +400,7 @@ export default function VideoDatingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#191919] flex flex-col">
+        <div className="h-screen bg-[#191919] flex flex-col overflow-hidden">
             {/* Header */}
             <header className="shrink-0 bg-[#191919] border-b border-[#2F2F2F] px-4 h-14 flex items-center justify-between">
                 <button
@@ -414,16 +414,16 @@ export default function VideoDatingPage() {
             </header>
 
             {/* Main Content - full screen for video call */}
-            <main className={`flex-1 w-full ${(state === 'matched' || state === 'connected')
-                    ? 'p-2'
-                    : 'max-w-lg mx-auto p-4'
+            <main className={`flex-1 min-h-0 w-full ${(state === 'matched' || state === 'connected')
+                ? 'p-2'
+                : 'max-w-lg mx-auto p-4 overflow-auto'
                 }`}>
                 {renderContent()}
             </main>
 
             {/* Report Modal */}
             {showReportModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed  inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowReportModal(false)} />
                     <div className="relative bg-[#202020] border border-[#2F2F2F] rounded-xl p-6 max-w-sm w-full mx-4">
                         <h3 className="text-lg font-medium text-[#E3E3E3] mb-4">Report User</h3>
