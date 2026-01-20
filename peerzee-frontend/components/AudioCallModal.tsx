@@ -18,6 +18,7 @@ interface CallModalProps {
     localStreamRef: MutableRefObject<MediaStream | null>;
     remoteStream: MediaStream | null;
     remoteHasVideo?: boolean;
+    withVideo?: boolean; // Whether local camera is actually available/enabled
 }
 
 // Icons
@@ -71,6 +72,7 @@ export default function CallModal({
     localStreamRef,
     remoteStream,
     remoteHasVideo = false,
+    withVideo = false,
 }: CallModalProps) {
     const [callDuration, setCallDuration] = useState(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -182,11 +184,11 @@ export default function CallModal({
                                     autoPlay
                                     muted
                                     playsInline
-                                    className={`w-full h-full object-cover ${isCameraOff ? 'opacity-0' : ''}`}
+                                    className={`w-full h-full object-cover ${(!withVideo || isCameraOff) ? 'opacity-0' : ''}`}
                                 />
 
                                 {/* Local camera off placeholder */}
-                                {isCameraOff && (
+                                {(!withVideo || isCameraOff) && (
                                     <div className="absolute inset-0 bg-neutral-800 flex flex-col items-center justify-center">
                                         <div className="w-16 h-16 rounded-full bg-neutral-700 flex items-center justify-center mb-2">
                                             {Icons.cameraOff}

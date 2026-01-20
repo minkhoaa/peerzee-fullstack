@@ -185,6 +185,7 @@ export default function ChatPage() {
         localStream,
         remoteStream,
         remoteHasVideo,
+        withVideo,
         handleAnswer,
         handleIceCandidate,
         remoteAudio
@@ -1282,6 +1283,7 @@ export default function ChatPage() {
                     localStreamRef={localStream}
                     remoteStream={remoteStream}
                     remoteHasVideo={remoteHasVideo}
+                    withVideo={withVideo}
                 />
             )}
         </div >

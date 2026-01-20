@@ -7,6 +7,7 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
     const [activeCallConversationId, setActiveCallConversationId] = useState<string | null>(null);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
     const [remoteHasVideo, setRemoteHasVideo] = useState(false);
+    const [withVideo, setWithVideo] = useState(false); // Track if local camera is enabled
     const peerConnection = useRef<RTCPeerConnection | null>(null);
     const localStream = useRef<MediaStream | null>(null);
     const remoteAudio = useRef<HTMLAudioElement | null>(null);
@@ -17,20 +18,45 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
             { urls: 'stun:stun1.l.google.com:19302' },
         ],
     };
-    const startCall = async (conversation_id: string, withVideo: boolean = false) => {
+    const startCall = async (conversation_id: string, enableVideo: boolean = false) => {
         const socket = socketRef.current;
         if (!socket) return;
+
+        let hasLocalVideo = false;
+
         try {
+            // Try to get media with requested video setting
             localStream.current = await navigator.mediaDevices.getUserMedia({
                 audio: true,
-                video: withVideo
+                video: enableVideo
             });
-            peerConnection.current = new RTCPeerConnection(config);
-            localStream.current.getTracks().forEach(track => peerConnection.current?.addTrack(track, localStream.current!));
+            hasLocalVideo = localStream.current.getVideoTracks().length > 0;
+            setWithVideo(hasLocalVideo);
+        } catch (error) {
+            console.error("Error getting media:", error);
+            // If video failed, try audio only as fallback
+            if (enableVideo) {
+                try {
+                    console.log('[WebRTC] Video failed, trying audio only...');
+                    localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    hasLocalVideo = false;
+                    setWithVideo(false);
+                } catch (audioError) {
+                    console.error("Audio also failed:", audioError);
+                    return;
+                }
+            } else {
+                return;
+            }
+        }
 
-            // If no video track, add recvonly transceiver to receive video from remote
-            if (!withVideo) {
-                console.log('[WebRTC] No local video, adding recvonly transceiver');
+        try {
+            peerConnection.current = new RTCPeerConnection(config);
+            localStream.current!.getTracks().forEach(track => peerConnection.current?.addTrack(track, localStream.current!));
+
+            // If no local video track, add recvonly transceiver to receive video from remote
+            if (!hasLocalVideo) {
+                console.log('[WebRTC] No local video track, adding recvonly transceiver');
                 peerConnection.current.addTransceiver('video', { direction: 'recvonly' });
             }
 
@@ -75,21 +101,45 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
             console.error("Error starting call:", error);
         }
     }
-    const answerCall = async (conversation_id: string, offer: RTCSessionDescriptionInit, withVideo: boolean = false) => {
+    const answerCall = async (conversation_id: string, offer: RTCSessionDescriptionInit, enableVideo: boolean = false) => {
         const socket = socketRef.current;
         if (!socket) return;
+
+        let hasLocalVideo = false;
+
+        // Try to get media, with fallback to audio only if video fails
         try {
-            localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true, video: withVideo });
+            localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true, video: enableVideo });
+            hasLocalVideo = localStream.current.getVideoTracks().length > 0;
+            setWithVideo(hasLocalVideo);
+        } catch (error) {
+            console.error("Error getting media:", error);
+            // If video failed, try audio only as fallback
+            if (enableVideo) {
+                try {
+                    console.log('[WebRTC] Video failed, trying audio only...');
+                    localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    hasLocalVideo = false;
+                    setWithVideo(false);
+                } catch (audioError) {
+                    console.error("Audio also failed:", audioError);
+                    return;
+                }
+            } else {
+                return;
+            }
+        }
+
+        try {
             peerConnection.current = new RTCPeerConnection(config);
 
             // Add local tracks
-            localStream.current.getTracks().forEach(track => {
+            localStream.current!.getTracks().forEach(track => {
                 peerConnection.current?.addTrack(track, localStream.current!);
             });
 
             // Check if offer contains video (caller has video)
             const offerHasVideo = offer.sdp?.includes('m=video');
-            const hasLocalVideo = localStream.current.getVideoTracks().length > 0;
 
             console.log('[WebRTC] Answering call - offerHasVideo:', offerHasVideo, 'hasLocalVideo:', hasLocalVideo);
 
@@ -150,6 +200,7 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
         localStream.current = null;
         setRemoteStream(null);
         setRemoteHasVideo(false);
+        setWithVideo(false);
 
         setActiveCallConversationId(null);
         setCallState("idle");
@@ -195,6 +246,7 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
         localStream,
         remoteStream,
         remoteHasVideo,
+        withVideo,
         handleAnswer,
         handleIceCandidate,
         remoteAudio
