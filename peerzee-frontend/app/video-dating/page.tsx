@@ -29,6 +29,7 @@ export default function VideoDatingPage() {
         remoteHasVideo,
         queueSize,
         withVideo,
+        localStream,
         connect,
         disconnect,
         joinQueue,
@@ -36,7 +37,6 @@ export default function VideoDatingPage() {
         nextPartner,
         endCall,
         reportPartner,
-        localStreamRef,
     } = useVideoDating();
 
     const [intentMode, setIntentMode] = useState<IntentMode>('DATE');
@@ -59,10 +59,10 @@ export default function VideoDatingPage() {
 
     // Update local video
     useEffect(() => {
-        if (localVideoRef.current && localStreamRef.current) {
-            localVideoRef.current.srcObject = localStreamRef.current;
+        if (localVideoRef.current && localStream) {
+            localVideoRef.current.srcObject = localStream;
         }
-    }, [localStreamRef.current]);
+    }, [localStream]);
 
     // Update remote video
     useEffect(() => {
@@ -77,8 +77,8 @@ export default function VideoDatingPage() {
     };
 
     const handleToggleMute = () => {
-        if (localStreamRef.current) {
-            const audioTrack = localStreamRef.current.getAudioTracks()[0];
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
             if (audioTrack) {
                 audioTrack.enabled = !audioTrack.enabled;
                 setIsMuted(!audioTrack.enabled);
@@ -87,8 +87,8 @@ export default function VideoDatingPage() {
     };
 
     const handleToggleCamera = () => {
-        if (localStreamRef.current) {
-            const videoTrack = localStreamRef.current.getVideoTracks()[0];
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
             if (videoTrack) {
                 videoTrack.enabled = !videoTrack.enabled;
                 setIsCameraOff(!videoTrack.enabled);

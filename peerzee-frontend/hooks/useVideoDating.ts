@@ -14,6 +14,7 @@ export function useVideoDating() {
   const [matchInfo, setMatchInfo] = useState<MatchInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteHasVideo, setRemoteHasVideo] = useState(false);
   const [queueSize, setQueueSize] = useState(0);
   const [withVideo, setWithVideo] = useState(true);
@@ -41,6 +42,9 @@ export function useVideoDating() {
     setRemoteStream(null);
     setRemoteHasVideo(false);
     setMatchInfo(null);
+    if (cleanupStream) {
+      setLocalStream(null);
+    }
   }, []);
 
   const setupPeerConnection = useCallback((socket: Socket, sessionId: string, isInitiator: boolean) => {
@@ -252,6 +256,7 @@ export function useVideoDating() {
       };
 
       localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints);
+      setLocalStream(localStreamRef.current); // Trigger re-render
       setWithVideo(enableVideo);
       setState('searching');
       socketRef.current.emit('queue:join', { intentMode, genderPreference });
@@ -263,6 +268,7 @@ export function useVideoDating() {
         try {
           console.log('Video failed, trying audio only...');
           localStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          setLocalStream(localStreamRef.current); // Trigger re-render
           setWithVideo(false);
           setState('searching');
           socketRef.current?.emit('queue:join', { intentMode, genderPreference });
@@ -333,7 +339,7 @@ export function useVideoDating() {
     state,
     matchInfo,
     error,
-    localStream: localStreamRef.current,
+    localStream,
     remoteStream,
     remoteHasVideo,
     queueSize,
