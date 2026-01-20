@@ -14,6 +14,7 @@ export function useVideoDating() {
   const [matchInfo, setMatchInfo] = useState<MatchInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [remoteHasVideo, setRemoteHasVideo] = useState(false);
   const [queueSize, setQueueSize] = useState(0);
   const [withVideo, setWithVideo] = useState(true);
 
@@ -38,6 +39,7 @@ export function useVideoDating() {
     }
 
     setRemoteStream(null);
+    setRemoteHasVideo(false);
     setMatchInfo(null);
   }, []);
 
@@ -69,8 +71,32 @@ export function useVideoDating() {
 
     // Handle remote stream
     pc.ontrack = (event) => {
-      console.log('[WebRTC] Received remote track!');
-      setRemoteStream(event.streams[0]);
+      console.log('[WebRTC] Received remote track:', event.track.kind);
+      const stream = event.streams[0];
+      setRemoteStream(stream);
+
+      // Check if remote has video track enabled
+      const videoTracks = stream.getVideoTracks();
+      const hasActiveVideo = videoTracks.length > 0 && videoTracks.some(track => track.enabled && track.readyState === 'live');
+      console.log('[WebRTC] Remote has video:', hasActiveVideo, 'Video tracks:', videoTracks.length);
+      setRemoteHasVideo(hasActiveVideo);
+
+      // Listen for track mute/unmute events
+      stream.getVideoTracks().forEach(track => {
+        track.onmute = () => {
+          console.log('[WebRTC] Remote video muted');
+          setRemoteHasVideo(false);
+        };
+        track.onunmute = () => {
+          console.log('[WebRTC] Remote video unmuted');
+          setRemoteHasVideo(true);
+        };
+        track.onended = () => {
+          console.log('[WebRTC] Remote video track ended');
+          setRemoteHasVideo(false);
+        };
+      });
+
       setState('connected');
     };
 
@@ -291,6 +317,7 @@ export function useVideoDating() {
     error,
     localStream: localStreamRef.current,
     remoteStream,
+    remoteHasVideo,
     queueSize,
     withVideo,
     connect,

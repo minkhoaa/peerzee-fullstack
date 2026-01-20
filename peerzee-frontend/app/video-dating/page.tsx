@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Video, VideoOff, Mic, MicOff, SkipForward, Flag, X, Users, Heart, BookOpen, UserPlus } from 'lucide-react';
+import { ArrowLeft, Video, VideoOff, Mic, MicOff, SkipForward, Flag, X, Users, Heart, BookOpen, UserPlus, User } from 'lucide-react';
 import { useVideoDating, VideoDatingState } from '@/hooks/useVideoDating';
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
@@ -26,6 +26,7 @@ export default function VideoDatingPage() {
         state,
         error,
         remoteStream,
+        remoteHasVideo,
         queueSize,
         withVideo,
         connect,
@@ -161,8 +162,8 @@ export default function VideoDatingPage() {
                 <button
                     onClick={() => setEnableCamera(!enableCamera)}
                     className={`w-full py-3 px-4 rounded-xl border transition-all flex items-center justify-center gap-3 ${enableCamera
-                            ? 'border-[#3A3A3A] bg-[#252525] text-[#E3E3E3]'
-                            : 'border-orange-500/50 bg-orange-500/10 text-orange-400'
+                        ? 'border-[#3A3A3A] bg-[#252525] text-[#E3E3E3]'
+                        : 'border-orange-500/50 bg-orange-500/10 text-orange-400'
                         }`}
                 >
                     {enableCamera ? (
@@ -236,20 +237,34 @@ export default function VideoDatingPage() {
                     ref={remoteVideoRef}
                     autoPlay
                     playsInline
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover ${!remoteHasVideo ? 'hidden' : ''}`}
                 />
 
+                {/* Remote user camera off placeholder */}
+                {!remoteHasVideo && (
+                    <div className="absolute inset-0 bg-[#252525] flex flex-col items-center justify-center">
+                        <div className="w-24 h-24 rounded-full bg-[#3A3A3A] flex items-center justify-center mb-4">
+                            <User className="w-12 h-12 text-[#9B9A97]" />
+                        </div>
+                        <div className="flex items-center gap-2 text-[#9B9A97]">
+                            <VideoOff className="w-5 h-5" />
+                            <span className="text-sm">Camera off</span>
+                        </div>
+                    </div>
+                )}
+
                 {/* Local Video (picture-in-picture) */}
-                <div className="absolute bottom-4 right-4 w-32 h-24 rounded-lg overflow-hidden border-2 border-[#2F2F2F] shadow-lg">
-                    <video
-                        ref={localVideoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className="w-full h-full object-cover"
-                    />
-                    {isCameraOff && (
-                        <div className="absolute inset-0 bg-[#191919] flex items-center justify-center">
+                <div className="absolute bottom-4 right-4 w-32 h-24 rounded-lg overflow-hidden border-2 border-[#2F2F2F] shadow-lg bg-[#191919]">
+                    {!isCameraOff && withVideo ? (
+                        <video
+                            ref={localVideoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-[#252525]">
                             <VideoOff className="w-6 h-6 text-[#9B9A97]" />
                         </div>
                     )}
