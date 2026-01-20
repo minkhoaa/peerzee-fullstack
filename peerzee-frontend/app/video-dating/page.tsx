@@ -239,31 +239,51 @@ export default function VideoDatingPage() {
 
     const renderVideoCall = () => (
         <div className="h-full flex flex-col">
-            {/* Video Container */}
-            <div className="flex-1 relative bg-black rounded-xl overflow-hidden">
-                {/* Remote Video (full screen) - always active for audio */}
-                <video
-                    ref={remoteVideoRef}
-                    autoPlay
-                    playsInline
-                    className={`w-full h-full object-cover ${!remoteHasVideo ? 'opacity-0' : ''}`}
-                />
+            {/* Split Screen Video Container - horizontal */}
+            <div className="flex-1 flex flex-row gap-2">
+                {/* Remote Video (left half) */}
+                <div className="flex-1 relative bg-black rounded-xl overflow-hidden">
+                    <video
+                        ref={remoteVideoRef}
+                        autoPlay
+                        playsInline
+                        className={`w-full h-full object-cover ${!remoteHasVideo ? 'opacity-0' : ''}`}
+                    />
 
-                {/* Remote user camera off placeholder - shown over transparent video */}
-                {!remoteHasVideo && (
-                    <div className="absolute inset-0 bg-[#252525] flex flex-col items-center justify-center z-10">
-                        <div className="w-24 h-24 rounded-full bg-[#3A3A3A] flex items-center justify-center mb-4">
-                            <User className="w-12 h-12 text-[#9B9A97]" />
+                    {/* Remote camera off placeholder */}
+                    {!remoteHasVideo && (
+                        <div className="absolute inset-0 bg-[#252525] flex flex-col items-center justify-center">
+                            <div className="w-16 h-16 rounded-full bg-[#3A3A3A] flex items-center justify-center mb-2">
+                                <User className="w-8 h-8 text-[#9B9A97]" />
+                            </div>
+                            <div className="flex items-center gap-2 text-[#9B9A97]">
+                                <VideoOff className="w-4 h-4" />
+                                <span className="text-xs">Partner camera off</span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 text-[#9B9A97]">
-                            <VideoOff className="w-5 h-5" />
-                            <span className="text-sm">Camera off</span>
+                    )}
+
+                    {/* Status indicator */}
+                    {state === 'matched' && (
+                        <div className="absolute top-2 left-2 px-2 py-1 bg-[#2F2F2F]/80 backdrop-blur-sm rounded-full text-xs text-[#E3E3E3]">
+                            Connecting...
                         </div>
+                    )}
+                    {state === 'connected' && (
+                        <div className="absolute top-2 left-2 px-2 py-1 bg-green-500/20 backdrop-blur-sm rounded-full text-xs text-green-400 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                            Connected
+                        </div>
+                    )}
+
+                    {/* Partner label */}
+                    <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded text-xs text-white">
+                        Partner
                     </div>
-                )}
+                </div>
 
-                {/* Local Video (picture-in-picture) - always render for srcObject */}
-                <div className="absolute bottom-4 right-4 w-32 h-24 rounded-lg overflow-hidden border-2 border-[#2F2F2F] shadow-lg bg-[#191919]">
+                {/* Local Video (right half) */}
+                <div className="flex-1 relative bg-black rounded-xl overflow-hidden">
                     <video
                         ref={setLocalVideoRef}
                         autoPlay
@@ -271,27 +291,25 @@ export default function VideoDatingPage() {
                         muted
                         className={`w-full h-full object-cover ${(!withVideo || isCameraOff) ? 'opacity-0' : ''}`}
                     />
-                    {/* Camera off overlay */}
+
+                    {/* Local camera off placeholder */}
                     {(!withVideo || isCameraOff) && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#252525]">
-                            <VideoOff className="w-6 h-6 text-[#9B9A97]" />
+                        <div className="absolute inset-0 bg-[#252525] flex flex-col items-center justify-center">
+                            <div className="w-16 h-16 rounded-full bg-[#3A3A3A] flex items-center justify-center mb-2">
+                                <User className="w-8 h-8 text-[#9B9A97]" />
+                            </div>
+                            <div className="flex items-center gap-2 text-[#9B9A97]">
+                                <VideoOff className="w-4 h-4" />
+                                <span className="text-xs">Camera off</span>
+                            </div>
                         </div>
                     )}
+
+                    {/* You label */}
+                    <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded text-xs text-white">
+                        You
+                    </div>
                 </div>
-
-                {/* Status indicator */}
-                {state === 'matched' && (
-                    <div className="absolute top-4 left-4 px-3 py-1.5 bg-[#2F2F2F]/80 backdrop-blur-sm rounded-full text-sm text-[#E3E3E3]">
-                        Connecting...
-                    </div>
-                )}
-
-                {state === 'connected' && (
-                    <div className="absolute top-4 left-4 px-3 py-1.5 bg-green-500/20 backdrop-blur-sm rounded-full text-sm text-green-400 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        Connected
-                    </div>
-                )}
             </div>
 
             {/* Controls */}
