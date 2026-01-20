@@ -413,8 +413,11 @@ export default function VideoDatingPage() {
                 <div className="w-9" /> {/* Spacer */}
             </header>
 
-            {/* Main Content */}
-            <main className="flex-1 max-w-lg mx-auto w-full p-4">
+            {/* Main Content - full screen for video call */}
+            <main className={`flex-1 w-full ${(state === 'matched' || state === 'connected')
+                    ? 'p-2'
+                    : 'max-w-lg mx-auto p-4'
+                }`}>
                 {renderContent()}
             </main>
 
