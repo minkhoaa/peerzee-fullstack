@@ -232,17 +232,17 @@ export default function VideoDatingPage() {
         <div className="h-full flex flex-col">
             {/* Video Container */}
             <div className="flex-1 relative bg-black rounded-xl overflow-hidden">
-                {/* Remote Video (full screen) */}
+                {/* Remote Video (full screen) - always active for audio */}
                 <video
                     ref={remoteVideoRef}
                     autoPlay
                     playsInline
-                    className={`w-full h-full object-cover ${!remoteHasVideo ? 'hidden' : ''}`}
+                    className={`w-full h-full object-cover ${!remoteHasVideo ? 'opacity-0' : ''}`}
                 />
 
-                {/* Remote user camera off placeholder */}
+                {/* Remote user camera off placeholder - shown over transparent video */}
                 {!remoteHasVideo && (
-                    <div className="absolute inset-0 bg-[#252525] flex flex-col items-center justify-center">
+                    <div className="absolute inset-0 bg-[#252525] flex flex-col items-center justify-center z-10">
                         <div className="w-24 h-24 rounded-full bg-[#3A3A3A] flex items-center justify-center mb-4">
                             <User className="w-12 h-12 text-[#9B9A97]" />
                         </div>

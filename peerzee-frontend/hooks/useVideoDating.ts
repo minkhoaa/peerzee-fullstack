@@ -65,37 +65,55 @@ export function useVideoDating() {
       localStreamRef.current.getTracks().forEach(track => {
         pc.addTrack(track, localStreamRef.current!);
       });
+
+      // If we only have audio, we still need to receive video
+      const hasVideoTrack = localStreamRef.current.getVideoTracks().length > 0;
+      if (!hasVideoTrack) {
+        console.log('[WebRTC] No local video track, adding recvonly transceiver for video');
+        pc.addTransceiver('video', { direction: 'recvonly' });
+      }
     } else {
-      console.warn('[WebRTC] No local stream available!');
+      console.warn('[WebRTC] No local stream available, adding recvonly transceivers');
+      // Add transceivers to receive media even without local stream
+      pc.addTransceiver('audio', { direction: 'recvonly' });
+      pc.addTransceiver('video', { direction: 'recvonly' });
     }
 
-    // Handle remote stream
+    // Handle remote stream - use a ref to accumulate tracks
+    const remoteStreamRef = { current: new MediaStream() };
+
     pc.ontrack = (event) => {
-      console.log('[WebRTC] Received remote track:', event.track.kind);
-      const stream = event.streams[0];
-      setRemoteStream(stream);
+      console.log('[WebRTC] Received remote track:', event.track.kind, 'enabled:', event.track.enabled);
 
-      // Check if remote has video track enabled
-      const videoTracks = stream.getVideoTracks();
-      const hasActiveVideo = videoTracks.length > 0 && videoTracks.some(track => track.enabled && track.readyState === 'live');
-      console.log('[WebRTC] Remote has video:', hasActiveVideo, 'Video tracks:', videoTracks.length);
-      setRemoteHasVideo(hasActiveVideo);
+      // Add track to our accumulated stream
+      remoteStreamRef.current.addTrack(event.track);
 
-      // Listen for track mute/unmute events
-      stream.getVideoTracks().forEach(track => {
-        track.onmute = () => {
+      // Always update the remote stream state with accumulated tracks
+      setRemoteStream(remoteStreamRef.current);
+
+      // Check if this is a video track
+      if (event.track.kind === 'video') {
+        console.log('[WebRTC] Remote video track received, enabled:', event.track.enabled);
+        setRemoteHasVideo(event.track.enabled);
+
+        // Listen for track state changes
+        event.track.onmute = () => {
           console.log('[WebRTC] Remote video muted');
           setRemoteHasVideo(false);
         };
-        track.onunmute = () => {
+        event.track.onunmute = () => {
           console.log('[WebRTC] Remote video unmuted');
           setRemoteHasVideo(true);
         };
-        track.onended = () => {
+        event.track.onended = () => {
           console.log('[WebRTC] Remote video track ended');
           setRemoteHasVideo(false);
         };
-      });
+      }
+
+      if (event.track.kind === 'audio') {
+        console.log('[WebRTC] Remote audio track received, enabled:', event.track.enabled);
+      }
 
       setState('connected');
     };
