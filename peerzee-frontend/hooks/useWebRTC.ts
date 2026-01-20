@@ -81,13 +81,22 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
         try {
             localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true, video: withVideo });
             peerConnection.current = new RTCPeerConnection(config);
+
+            // Add local tracks
             localStream.current.getTracks().forEach(track => {
                 peerConnection.current?.addTrack(track, localStream.current!);
-            })
+            });
 
-            // If no video track, add recvonly transceiver to receive video from remote
-            if (!withVideo) {
-                console.log('[WebRTC] No local video, adding recvonly transceiver');
+            // Check if offer contains video (caller has video)
+            const offerHasVideo = offer.sdp?.includes('m=video');
+            const hasLocalVideo = localStream.current.getVideoTracks().length > 0;
+
+            console.log('[WebRTC] Answering call - offerHasVideo:', offerHasVideo, 'hasLocalVideo:', hasLocalVideo);
+
+            // If offer has video but we don't have local video track,
+            // we need to add a recvonly transceiver to receive video from caller
+            if (offerHasVideo && !hasLocalVideo) {
+                console.log('[WebRTC] Adding recvonly transceiver to receive video from caller');
                 peerConnection.current.addTransceiver('video', { direction: 'recvonly' });
             }
 
