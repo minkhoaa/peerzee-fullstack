@@ -22,6 +22,9 @@ async function bootstrap() {
     }),
   );
 
+  // Global API prefix - MUST be set before Swagger
+  app.setGlobalPrefix('api');
+
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Peerzee API')
@@ -44,9 +47,6 @@ async function bootstrap() {
   SwaggerModule.setup('swagger', app, document);
 
   const port = process.env.SERVER_PORT || process.env.PORT || 9000;
-
-  // Global API prefix for all REST endpoints
-  app.setGlobalPrefix('api');
 
   app.enableCors({
     origin: ['http://localhost:3001', 'http://localhost:3000', 'https://peerzee.centralindia.cloudapp.azure.com'],

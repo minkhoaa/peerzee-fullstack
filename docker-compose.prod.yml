@@ -1,5 +1,23 @@
-# Production docker-compose - for deployment with Neon cloud database
+# Production docker-compose - with PostgreSQL container
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: peerzee-postgres
+    environment:
+      POSTGRES_USER: peerzee
+      POSTGRES_PASSWORD: peerzee
+      POSTGRES_DB: peerzee-db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - peerzee-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U peerzee -d peerzee-db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   backend:
     build:
       context: ./peerzee-backend
@@ -7,8 +25,19 @@ services:
     container_name: peerzee-backend
     env_file:
       - ./peerzee-backend/.env
+    environment:
+      # Override to use postgres container
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: peerzee
+      DB_PASSWORD: peerzee
+      DB_DATABASE: peerzee-db
+      DB_SSL: "false"
     ports:
       - "9000:9000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - peerzee-network
     restart: unless-stopped
@@ -33,6 +62,9 @@ services:
     networks:
       - peerzee-network
     restart: unless-stopped
+
+volumes:
+  pgdata:
 
 networks:
   peerzee-network:
