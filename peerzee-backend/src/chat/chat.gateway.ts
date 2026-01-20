@@ -359,13 +359,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   @SubscribeMessage('call:offer')
   handleCallOffer(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { conversation_id: string, offer: RTCSessionDescriptionInit }
+    @MessageBody() data: { conversation_id: string, offer: RTCSessionDescriptionInit, callType?: 'audio' | 'video' }
   ) {
     const userId = client.data.user_id;
     this.server.to(data.conversation_id).emit('call:offer', {
       user_id: userId,
       conversation_id: data.conversation_id,
-      offer: data.offer
+      offer: data.offer,
+      callType: data.callType || 'audio', // Forward callType so receiver knows it's audio or video call
     });
   }
   @SubscribeMessage('call:answer')

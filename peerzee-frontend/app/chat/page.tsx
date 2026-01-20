@@ -408,7 +408,7 @@ export default function ChatPage() {
             setMessages(prev => prev.map(m => m.id === data.message_id ? { ...m, readAt: data.readAt } : m));
         });
 
-        socket.on('call:offer', (data: { conversation_id: string, user_id: string, offer: RTCSessionDescriptionInit }) => {
+        socket.on('call:offer', (data: { conversation_id: string, user_id: string, offer: RTCSessionDescriptionInit, callType?: 'audio' | 'video' }) => {
             if (data.user_id !== userIdRef.current) {
                 setIncomingCall(data);
             }

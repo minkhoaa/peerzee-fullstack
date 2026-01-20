@@ -94,6 +94,7 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
             socket.emit("call:offer", {
                 conversation_id,
                 offer,
+                callType: enableVideo ? 'video' : 'audio', // Tell receiver what type of call this is
             });
             setActiveCallConversationId(conversation_id);
             setCallState("calling");
