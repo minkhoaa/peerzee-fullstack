@@ -75,12 +75,14 @@ Requirements:
     /**
      * Generate profile embedding from profile data
      * Serializes profile fields into structured text for embedding
+     * Includes hidden_keywords for enriched search
      */
     async generateProfileEmbedding(profile: {
         intentMode?: string;
         occupation?: string;
         bio?: string;
         tags?: string[];
+        hidden_keywords?: string[]; // AI-extracted enrichment
         education?: string;
         location?: string;
         prompts?: { question: string; answer: string }[];
@@ -91,6 +93,7 @@ Requirements:
         if (profile.occupation) parts.push(`Job: ${profile.occupation}`);
         if (profile.bio) parts.push(`Bio: ${profile.bio}`);
         if (profile.tags?.length) parts.push(`Tags: ${profile.tags.join(', ')}`);
+        if (profile.hidden_keywords?.length) parts.push(`Keywords: ${profile.hidden_keywords.join(', ')}`);
         if (profile.education) parts.push(`Education: ${profile.education}`);
         if (profile.location) parts.push(`Location: ${profile.location}`);
         if (profile.prompts?.length) {
@@ -156,6 +159,64 @@ Return ONLY raw JSON, no markdown, no explanation.`;
                 intent: null,
                 semantic_text: userQuery,
             };
+        }
+    }
+
+    /**
+     * Auto-extract hidden keywords from bio using Gemini
+     * Enriches sparse bios like "Mình là dev" with inferred tags
+     * @param bio User bio text
+     * @param occupation Optional occupation for context
+     * @returns Array of inferred keywords (bilingual EN/VN)
+     */
+    async extractKeywordsFromBio(bio: string, occupation?: string): Promise<string[]> {
+        try {
+            if (!bio || bio.trim().length < 3) {
+                return [];
+            }
+
+            const model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+            const prompt = `Analyze this user profile and extract hidden/implied keywords for search matching.
+
+Bio: "${bio}"
+${occupation ? `Occupation: "${occupation}"` : ''}
+
+Task:
+1. Infer related keywords that are NOT explicitly stated but can be reasonably assumed
+2. Include both English and Vietnamese keywords
+3. Focus on: profession, skills, interests, lifestyle, personality traits
+4. Return 5-10 relevant keywords
+
+Examples:
+- "Mình là dev" → ["programming", "lập trình", "software", "coding", "developer", "tech", "công nghệ"]
+- "Thích đi phượt" → ["travel", "du lịch", "adventure", "phượt", "motorcycle", "explorer", "backpacker"]
+- "Gym rat 🏋️" → ["fitness", "gym", "workout", "bodybuilding", "healthy", "thể dục", "athlete"]
+
+Return ONLY a JSON array of strings, no explanation. Example: ["keyword1", "keyword2", "keyword3"]`;
+
+            const result = await model.generateContent(prompt);
+            const response = result.response.text().trim();
+
+            // Parse JSON array - handle markdown code blocks
+            let keywords: string[] = [];
+            let jsonStr = response;
+            // Remove markdown code block if present
+            if (jsonStr.includes('```')) {
+                jsonStr = jsonStr.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+            }
+
+            keywords = JSON.parse(jsonStr);
+
+            if (!Array.isArray(keywords)) {
+                return [];
+            }
+
+            this.logger.log(`Extracted ${keywords.length} hidden keywords from bio`);
+            return keywords.slice(0, 10); // Max 10 keywords
+        } catch (error) {
+            this.logger.error('Failed to extract keywords from bio', error);
+            return [];
         }
     }
 }

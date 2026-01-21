@@ -301,7 +301,8 @@ export class DiscoverService {
             }
         }
 
-        // Step 3: Build hybrid query
+        // Step 3: Build hybrid query with WEIGHTED SCORING
+        // Formula: Score = (VectorSimilarity × 0.6) + (ActivityRecency × 0.2) + (ProfileCompleteness × 0.2)
         const queryBuilder = this.profileRepo
             .createQueryBuilder('profile')
             .leftJoinAndSelect('profile.user', 'user')
@@ -319,21 +320,52 @@ export class DiscoverService {
             queryBuilder.andWhere('profile."intentMode" = :intent', { intent: filters.intent });
         }
 
-        // Soft filter (Vector similarity) - only if we have embeddings
+        // WEIGHTED HYBRID SCORE
         if (queryEmbedding.length > 0) {
-            // Use pgvector cosine distance operator
-            // Note: profiles without embeddings will be excluded
             queryBuilder
                 .andWhere('profile."bioEmbedding" IS NOT NULL')
                 .addSelect(
-                    `1 - (profile."bioEmbedding" <=> :queryVector)`,
-                    'similarity'
+                    `(
+                        -- 1. Vector Similarity (60% weight)
+                        (1 - (profile."bioEmbedding" <=> :queryVector)) * 0.6 +
+                        -- 2. Activity Recency (20% weight) - Online in last 24h=1, 7days=0.7, else=0.3
+                        (CASE 
+                            WHEN profile."lastActive" > NOW() - INTERVAL '1 day' THEN 1
+                            WHEN profile."lastActive" > NOW() - INTERVAL '7 days' THEN 0.7
+                            WHEN profile."lastActive" > NOW() - INTERVAL '30 days' THEN 0.5
+                            ELSE 0.3
+                        END) * 0.2 +
+                        -- 3. Profile Completeness (20% weight) - Has photo + bio + tags
+                        (CASE 
+                            WHEN profile.photos IS NOT NULL AND jsonb_array_length(profile.photos) > 0 THEN 0.4
+                            ELSE 0
+                        END +
+                        CASE WHEN profile.bio IS NOT NULL AND profile.bio != '' THEN 0.3 ELSE 0 END +
+                        CASE WHEN profile.tags IS NOT NULL AND jsonb_array_length(profile.tags) > 0 THEN 0.3 ELSE 0 END
+                        ) * 0.2
+                    )`,
+                    'weightedScore'
                 )
                 .setParameter('queryVector', `[${queryEmbedding.join(',')}]`)
-                .orderBy('similarity', 'DESC');
+                .orderBy('"weightedScore"', 'DESC');
         } else {
-            // Fallback: order by created date
-            queryBuilder.orderBy('profile.id', 'DESC');
+            // Fallback: score by activity and completeness only
+            queryBuilder
+                .addSelect(
+                    `(
+                        (CASE 
+                            WHEN profile."lastActive" > NOW() - INTERVAL '1 day' THEN 1
+                            WHEN profile."lastActive" > NOW() - INTERVAL '7 days' THEN 0.7
+                            ELSE 0.5
+                        END) * 0.5 +
+                        (CASE 
+                            WHEN profile.photos IS NOT NULL AND jsonb_array_length(profile.photos) > 0 THEN 0.5
+                            ELSE 0.25
+                        END)
+                    )`,
+                    'weightedScore'
+                )
+                .orderBy('"weightedScore"', 'DESC');
         }
 
         queryBuilder.limit(limit);
@@ -341,10 +373,57 @@ export class DiscoverService {
         // Execute query
         const rawResults = await queryBuilder.getRawAndEntities();
 
-        // Map results with match scores
+        // Generate match reasons for each result
+        const generateMatchReason = (profile: UserProfile, searchFilters: SearchFilters): string => {
+            const reasons: string[] = [];
+
+            // Match by city
+            if (searchFilters.city && profile.city) {
+                reasons.push(`📍 Ở ${profile.city}`);
+            }
+
+            // Match by intent
+            if (searchFilters.intent) {
+                const intentLabels: Record<string, string> = {
+                    'DATE': 'Tìm người hẹn hò',
+                    'STUDY': 'Muốn học cùng',
+                    'FRIEND': 'Tìm bạn mới',
+                };
+                reasons.push(`🎯 ${intentLabels[searchFilters.intent] || searchFilters.intent}`);
+            }
+
+            // Match by semantic text (keywords)
+            if (searchFilters.semantic_text && profile.tags?.length) {
+                const searchKeywords = searchFilters.semantic_text.toLowerCase().split(' ');
+                const matchedTags = (profile.tags as string[]).filter(tag =>
+                    searchKeywords.some(kw => tag.toLowerCase().includes(kw) || kw.includes(tag.toLowerCase()))
+                );
+                if (matchedTags.length > 0) {
+                    reasons.push(`🏷️ ${matchedTags.slice(0, 2).join(', ')}`);
+                }
+            }
+
+            // Match by occupation
+            if (profile.occupation && searchFilters.semantic_text?.toLowerCase().includes(profile.occupation.toLowerCase().split(' ')[0])) {
+                reasons.push(`💼 ${profile.occupation}`);
+            }
+
+            // Fallback
+            if (reasons.length === 0) {
+                if (profile.bio) {
+                    reasons.push('✨ Có profile đầy đủ');
+                } else {
+                    reasons.push('👋 Mới tham gia');
+                }
+            }
+
+            return reasons.slice(0, 2).join(' • ');
+        };
+
+        // Map results with match scores and reasons
         const results = rawResults.entities.map((profile, index) => {
             const rawRow = rawResults.raw[index];
-            const similarity = rawRow?.similarity ? parseFloat(rawRow.similarity) : 0;
+            const weightedScore = rawRow?.weightedScore ? parseFloat(rawRow.weightedScore) : 0;
 
             return {
                 id: profile.user_id,
@@ -361,7 +440,8 @@ export class DiscoverService {
                 instagram: profile.instagram || undefined,
                 intentMode: profile.intentMode || 'DATE',
                 profileProperties: profile.profileProperties || {},
-                matchScore: Math.round(similarity * 100), // Convert to percentage
+                matchScore: Math.round(weightedScore * 100),
+                matchReason: generateMatchReason(profile, filters), // NEW: Why we match
             };
         });
 

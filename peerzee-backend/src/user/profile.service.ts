@@ -97,6 +97,8 @@ export class ProfileService {
         if (dto.occupation !== undefined) profile.occupation = dto.occupation;
         if (dto.education !== undefined) profile.education = dto.education;
         if (dto.location !== undefined) profile.location = dto.location;
+        if (dto.height !== undefined) profile.height = dto.height?.toString();
+        if (dto.zodiac !== undefined) profile.zodiac = dto.zodiac;
         if (dto.photos !== undefined) profile.photos = dto.photos as ProfilePhoto[];
         if (dto.prompts !== undefined) profile.prompts = dto.prompts;
         if (dto.tags !== undefined) profile.tags = dto.tags;
@@ -111,22 +113,45 @@ export class ProfileService {
         if (dto.latitude !== undefined) profile.latitude = dto.latitude;
         if (dto.longitude !== undefined) profile.longitude = dto.longitude;
 
-        // Generate embedding if relevant fields changed
+        // Save profile WITHOUT embedding first (TypeORM can't handle vector type)
+        const updatedProfile = await this.profileRepo.save(profile);
+
+        // Generate embedding if relevant fields changed - use raw SQL
         if (this.shouldRegenerateEmbedding(dto)) {
             try {
                 this.logger.log(`Generating embedding for user ${userId}`);
-                const embedding = await this.aiService.generateProfileEmbedding(profile);
+
+                // AUTO-TAGGING: Extract hidden keywords from bio for enriched search
+                let hidden_keywords: string[] = updatedProfile.hidden_keywords || [];
+                if (dto.bio !== undefined) {
+                    this.logger.log(`Extracting hidden keywords from bio for user ${userId}`);
+                    hidden_keywords = await this.aiService.extractKeywordsFromBio(
+                        updatedProfile.bio || '',
+                        updatedProfile.occupation
+                    );
+                    // Save hidden_keywords to profile
+                    await this.profileRepo.update(updatedProfile.id, { hidden_keywords });
+                    this.logger.log(`Saved ${hidden_keywords.length} hidden keywords for user ${userId}`);
+                }
+
+                // Generate embedding with enriched profile (includes hidden_keywords)
+                const embedding = await this.aiService.generateProfileEmbedding({
+                    ...updatedProfile,
+                    hidden_keywords,
+                });
+
                 if (embedding.length > 0) {
-                    profile.bioEmbedding = embedding;
-                    profile.embeddingUpdatedAt = new Date();
+                    // Use raw SQL to update vector column
+                    await this.profileRepo.query(
+                        `UPDATE user_profiles SET "bioEmbedding" = $1::vector, "embeddingUpdatedAt" = $2 WHERE id = $3`,
+                        [JSON.stringify(embedding), new Date(), updatedProfile.id]
+                    );
+                    this.logger.log(`Embedding saved for user ${userId}`);
                 }
             } catch (error) {
-                this.logger.error(`Failed to generate embedding for user ${userId}`, error);
-                // Don't fail the update if embedding generation fails
+                this.logger.error(`Failed to generate/save embedding for user ${userId}`, error);
             }
         }
-
-        const updatedProfile = await this.profileRepo.save(profile);
 
         const user = await this.userRepo.findOne({ where: { id: userId } });
         return this.mapToResponseDto(user!, updatedProfile);
@@ -209,6 +234,72 @@ export class ProfileService {
     }
 
     /**
+     * Delete a photo from profile
+     */
+    async deletePhoto(userId: string, photoId: string): Promise<ProfileResponseDto> {
+        const profile = await this.profileRepo.findOne({
+            where: { user_id: userId },
+        });
+
+        if (!profile) {
+            throw new NotFoundException('Profile not found');
+        }
+
+        const photos = profile.photos || [];
+        const photoIndex = photos.findIndex((p) => p.id === photoId);
+
+        if (photoIndex === -1) {
+            throw new NotFoundException('Photo not found');
+        }
+
+        // Remove photo
+        photos.splice(photoIndex, 1);
+
+        // Reorder remaining photos
+        photos.forEach((p, index) => {
+            p.order = index;
+            p.isCover = index === 0;
+        });
+
+        profile.photos = photos;
+        const updatedProfile = await this.profileRepo.save(profile);
+
+        const user = await this.userRepo.findOne({ where: { id: userId } });
+        return this.mapToResponseDto(user!, updatedProfile);
+    }
+
+    /**
+     * Get profile stats (matches, likes, views)
+     */
+    async getProfileStats(userId: string): Promise<{ matches: number; likes: number; views: number }> {
+        // Query matches count
+        const matchesCount = await this.userRepo.manager.query(
+            `SELECT COUNT(*) FROM user_swipes 
+             WHERE target_id = $1 AND action = 'LIKE' 
+             AND EXISTS (SELECT 1 FROM user_swipes s2 WHERE s2.user_id = $1 AND s2.target_id = user_swipes.user_id AND s2.action = 'LIKE')`,
+            [userId]
+        );
+
+        // Query likes received
+        const likesCount = await this.userRepo.manager.query(
+            `SELECT COUNT(*) FROM user_swipes WHERE target_id = $1 AND action = 'LIKE'`,
+            [userId]
+        );
+
+        // Views would require a profile_views table - for now return estimated
+        const viewsCount = await this.userRepo.manager.query(
+            `SELECT COUNT(DISTINCT user_id) FROM user_swipes WHERE target_id = $1`,
+            [userId]
+        );
+
+        return {
+            matches: parseInt(matchesCount[0]?.count || '0', 10),
+            likes: parseInt(likesCount[0]?.count || '0', 10),
+            views: parseInt(viewsCount[0]?.count || '0', 10),
+        };
+    }
+
+    /**
      * Map to response DTO
      */
     private mapToResponseDto(user: User, profile: UserProfile): ProfileResponseDto {
@@ -232,7 +323,7 @@ export class ProfileService {
 
     /**
      * Bulk re-index all profiles with embeddings
-     * Processes in batches to avoid rate limits
+     * Uses raw SQL to save to vector(768) column
      */
     async reindexAllProfiles(batchSize: number = 10): Promise<{
         total: number;
@@ -261,9 +352,15 @@ export class ProfileService {
                 batch.map(async (profile) => {
                     const embedding = await this.aiService.generateProfileEmbedding(profile);
                     if (embedding.length > 0) {
-                        profile.bioEmbedding = embedding;
-                        profile.embeddingUpdatedAt = new Date();
-                        await this.profileRepo.save(profile);
+                        // Use raw SQL to save embedding to vector column
+                        const vectorString = `[${embedding.join(',')}]`;
+                        await this.profileRepo.query(
+                            `UPDATE user_profiles 
+                             SET "bioEmbedding" = $1::vector, 
+                                 "embeddingUpdatedAt" = NOW() 
+                             WHERE user_id = $2`,
+                            [vectorString, profile.user_id]
+                        );
                         return { userId: profile.user_id, success: true };
                     }
                     return { userId: profile.user_id, success: false, reason: 'Empty profile' };
@@ -279,6 +376,7 @@ export class ProfileService {
                     const reason = result.status === 'rejected'
                         ? result.reason?.message || 'Unknown error'
                         : (result.value as any).reason || 'Failed';
+                    this.logger.error(`Reindex failed: ${reason}`);
                     errors.push(reason);
                 }
             }
@@ -291,7 +389,7 @@ export class ProfileService {
 
         this.logger.log(`Reindex complete: ${success}/${total} success, ${failed} failed`);
 
-        return { total, success, failed, errors: errors.slice(0, 10) }; // Limit error messages
+        return { total, success, failed, errors: errors.slice(0, 10) };
     }
 }
 

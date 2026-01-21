@@ -134,6 +134,54 @@ export const profileApi = {
     addPhoto: (url: string, isCover?: boolean) =>
         api.post<RecommendationUser>('/profile/photos', { url, isCover }),
 
+    uploadPhoto: (file: File, isCover?: boolean) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (isCover) formData.append('isCover', 'true');
+        return api.post<RecommendationUser>('/profile/photos/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
+
+    deletePhoto: (photoId: string) =>
+        api.delete<RecommendationUser>(`/profile/photos/${photoId}`),
+
     reorderPhotos: (photoIds: string[]) =>
         api.put<RecommendationUser>('/profile/photos/order', { photoIds }),
+
+    getStats: () =>
+        api.get<{ matches: number; likes: number; views: number }>('/profile/stats'),
 };
+
+// Hybrid Search Types
+export interface SearchFilters {
+    gender: 'MALE' | 'FEMALE' | null;
+    city: string | null;
+    intent: 'FRIEND' | 'DATE' | 'STUDY' | null;
+    semantic_text: string;
+}
+
+export interface SearchResult extends RecommendationUser {
+    matchScore: number;
+    matchReason?: string; // "Why we match" explanation
+}
+
+export interface SearchResponse {
+    query: string;
+    filters: SearchFilters;
+    count: number;
+    results: SearchResult[];
+}
+
+// Discover API for hybrid semantic search
+export const discoverApi = {
+    search: (query: string, limit: number = 10) =>
+        api.get<SearchResponse>(`/discover/search?q=${encodeURIComponent(query)}&limit=${limit}`),
+
+    getRecommendations: (cursor?: string, limit: number = 10) =>
+        api.get(`/discover/recommendations?${cursor ? `cursor=${cursor}&` : ''}limit=${limit}`),
+
+    swipe: (data: SwipeRequest) =>
+        api.post<SwipeResponse>('/discover/swipe', data),
+};
+

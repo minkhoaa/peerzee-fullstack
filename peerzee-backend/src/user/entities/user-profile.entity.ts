@@ -90,6 +90,14 @@ export class UserProfile {
   @Column({ nullable: true })
   education: string;
 
+  @ApiProperty({ description: 'Height in cm' })
+  @Column({ nullable: true })
+  height: string;
+
+  @ApiProperty({ description: 'Zodiac sign' })
+  @Column({ nullable: true })
+  zodiac: string;
+
   // Rich Profile Fields (JSONB)
   @ApiProperty({ description: 'Array of profile photos' })
   @Column({ type: 'jsonb', nullable: true, default: '[]' })
@@ -102,6 +110,10 @@ export class UserProfile {
   @ApiProperty({ description: 'Array of interest tags' })
   @Column({ type: 'jsonb', nullable: true, default: '[]' })
   tags: string[];
+
+  @ApiProperty({ description: 'AI-extracted hidden keywords for enriched vector search' })
+  @Column({ type: 'jsonb', nullable: true, default: '[]' })
+  hidden_keywords: string[];
 
   @ApiProperty({ description: 'Discovery preferences' })
   @Column({ type: 'jsonb', nullable: true, default: '{}' })
@@ -171,11 +183,16 @@ export class UserProfile {
 
   // Vector Embedding for Semantic Search (requires pgvector extension)
   // Using Google Gemini text-embedding-004 (768 dimensions)
+  // IMPORTANT: select: false to prevent TypeORM from loading/saving this field
+  // Use raw SQL for embedding operations since TypeORM can't handle pgvector type
   @ApiProperty({ description: 'Bio embedding vector for semantic search (768 dimensions - Gemini)' })
   @Column({
     type: 'float',
     array: true,
     nullable: true,
+    select: false, // Don't include in regular queries
+    insert: false, // Don't include in inserts (use raw SQL)
+    update: false, // Don't include in updates (use raw SQL)
     comment: 'vector(768) - Google Gemini text-embedding-004',
   })
   bioEmbedding: number[];
@@ -183,6 +200,10 @@ export class UserProfile {
   @ApiProperty({ description: 'Timestamp when embedding was last updated' })
   @Column({ type: 'timestamp', nullable: true })
   embeddingUpdatedAt: Date;
+
+  @ApiProperty({ description: 'Last time user was active (for recency scoring)' })
+  @Column({ type: 'timestamp', nullable: true, default: () => 'NOW()' })
+  lastActive: Date;
 
   // ============================================================================
 

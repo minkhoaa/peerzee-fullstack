@@ -4,13 +4,18 @@ import {
     Patch,
     Post,
     Put,
+    Delete,
     Body,
+    Param,
     Req,
     UseGuards,
+    UseInterceptors,
+    UploadedFile,
     HttpCode,
     HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { AuthGuard } from './guards/auth.guard';
 import { ProfileService } from './profile.service';
 import {
@@ -19,6 +24,9 @@ import {
     ReorderPhotosDto,
     ProfileResponseDto,
 } from './dto/profile.dto';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 interface AuthRequest extends Request {
     user: { user_id: string };
@@ -55,17 +63,78 @@ export class ProfileController {
     }
 
     /**
-     * Add a new photo to profile
+     * Add a new photo to profile (by URL)
      */
     @Post('photos')
     @HttpCode(HttpStatus.CREATED)
-    @ApiOperation({ summary: 'Add a new photo to profile' })
+    @ApiOperation({ summary: 'Add a new photo to profile by URL' })
     @ApiResponse({ status: 201, type: ProfileResponseDto })
     async addPhoto(
         @Req() req: AuthRequest,
         @Body() dto: AddPhotoDto,
     ): Promise<ProfileResponseDto> {
         return this.profileService.addPhoto(req.user.user_id, dto);
+    }
+
+    /**
+     * Upload photo file
+     */
+    @Post('photos/upload')
+    @HttpCode(HttpStatus.CREATED)
+    @ApiOperation({ summary: 'Upload a photo file' })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                file: { type: 'string', format: 'binary' },
+                isCover: { type: 'boolean' },
+            },
+        },
+    })
+    @ApiResponse({ status: 201, type: ProfileResponseDto })
+    @UseInterceptors(
+        FileInterceptor('file', {
+            storage: diskStorage({
+                destination: './uploads/photos',
+                filename: (req, file, cb) => {
+                    const uniqueName = `${uuidv4()}${extname(file.originalname)}`;
+                    cb(null, uniqueName);
+                },
+            }),
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/^image\/(jpeg|png|gif|webp)$/)) {
+                    cb(new Error('Only image files are allowed'), false);
+                } else {
+                    cb(null, true);
+                }
+            },
+            limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+        }),
+    )
+    async uploadPhoto(
+        @Req() req: AuthRequest,
+        @UploadedFile() file: Express.Multer.File,
+        @Body('isCover') isCover?: string,
+    ): Promise<ProfileResponseDto> {
+        const photoUrl = `/uploads/photos/${file.filename}`;
+        return this.profileService.addPhoto(req.user.user_id, {
+            url: photoUrl,
+            isCover: isCover === 'true',
+        });
+    }
+
+    /**
+     * Delete a photo
+     */
+    @Delete('photos/:photoId')
+    @ApiOperation({ summary: 'Delete a photo from profile' })
+    @ApiResponse({ status: 200, type: ProfileResponseDto })
+    async deletePhoto(
+        @Req() req: AuthRequest,
+        @Param('photoId') photoId: string,
+    ): Promise<ProfileResponseDto> {
+        return this.profileService.deletePhoto(req.user.user_id, photoId);
     }
 
     /**
@@ -80,4 +149,25 @@ export class ProfileController {
     ): Promise<ProfileResponseDto> {
         return this.profileService.reorderPhotos(req.user.user_id, dto);
     }
+
+    /**
+     * Get profile stats (matches, likes, views)
+     */
+    @Get('stats')
+    @ApiOperation({ summary: 'Get profile statistics' })
+    @ApiResponse({
+        status: 200,
+        schema: {
+            type: 'object',
+            properties: {
+                matches: { type: 'number' },
+                likes: { type: 'number' },
+                views: { type: 'number' },
+            },
+        },
+    })
+    async getStats(@Req() req: AuthRequest): Promise<{ matches: number; likes: number; views: number }> {
+        return this.profileService.getProfileStats(req.user.user_id);
+    }
 }
+

@@ -166,6 +166,18 @@ export class UpdateProfileDto {
     @IsString()
     location?: string;
 
+    @ApiPropertyOptional({ description: 'Height in cm' })
+    @IsOptional()
+    @IsNumber()
+    @Min(100)
+    @Max(250)
+    height?: number;
+
+    @ApiPropertyOptional({ description: 'Zodiac sign' })
+    @IsOptional()
+    @IsString()
+    zodiac?: string;
+
     @ApiPropertyOptional({ type: [ProfilePhotoDto] })
     @IsOptional()
     @IsArray()

@@ -26,7 +26,7 @@ import { AiModule } from './ai/ai.module';
       password: process.env.DB_PASSWORD || 'peerzee',
       database: process.env.DB_DATABASE || 'peerzee-db',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+      synchronize: false, // Disabled to preserve vector(768) column type from migration
       ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
     UserModule,
