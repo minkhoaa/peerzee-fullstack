@@ -37,6 +37,14 @@ export class Conversation {
   @Column({ type: 'jsonb', nullable: true, default: null })
   icebreaker: IcebreakerData | null;
 
+  // AI-generated contextual icebreaker suggestion
+  @Column({ name: 'icebreaker_suggestion', type: 'text', nullable: true })
+  icebreakerSuggestion: string | null;
+
+  // Flag to distinguish DM (1-1) from group conversations
+  @Column({ name: 'is_direct', type: 'boolean', default: true })
+  isDirect: boolean;
+
   @OneToMany(() => Participant, (p) => p.conversation)
   participants: Participant[];
 

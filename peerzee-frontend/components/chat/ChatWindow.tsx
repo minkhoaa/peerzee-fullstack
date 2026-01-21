@@ -31,6 +31,7 @@ interface Conversation {
     name?: string;
     lastMessage?: string;
     participantIds?: string[];
+    icebreakerSuggestion?: string; // AI-generated icebreaker
 }
 
 interface ChatWindowProps {
@@ -220,6 +221,11 @@ export default function ChatWindow({
     const IcebreakerWidget = () => {
         if (messages.length > 0) return null;
 
+        // Use AI-generated icebreaker if available, otherwise fallback
+        const icebreakerText = conversation.icebreakerSuggestion ||
+            "Hey! I noticed we matched. What got you interested in tech?";
+        const isAiGenerated = !!conversation.icebreakerSuggestion;
+
         return (
             <div className="flex-1 flex items-center justify-center p-8">
                 <div className="bg-[#202020] border border-[#2F2F2F] rounded-xl p-6 max-w-sm text-center">
@@ -230,18 +236,24 @@ export default function ChatWindow({
                     <p className="text-[#9B9A97] text-sm mb-4">
                         Start a conversation with {conversation.name || 'this person'}
                     </p>
+                    {isAiGenerated && (
+                        <div className="flex items-center justify-center gap-1 text-[10px] text-cyan-400 mb-2">
+                            <span>✨</span>
+                            <span>AI-generated for you</span>
+                        </div>
+                    )}
                     <div className="bg-[#191919] border border-[#2F2F2F] rounded-lg p-3 mb-4">
                         <p className="text-[#E3E3E3] text-sm italic">
-                            "Hey! I noticed we matched. What got you interested in tech?"
+                            "{icebreakerText}"
                         </p>
                     </div>
                     <button
                         className="w-full py-2.5 bg-[#2383E2] hover:bg-[#1a6bc2] text-white text-sm font-medium rounded-lg transition-colors"
                         onClick={() => {
-                            onSendIcebreaker("Hey! I noticed we matched. What got you interested in tech?");
+                            onSendIcebreaker(icebreakerText);
                         }}
                     >
-                        Send this question
+                        Gửi câu này ngay
                     </button>
                 </div>
             </div>

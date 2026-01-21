@@ -6,6 +6,7 @@ import { Message } from './entities/message.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MessageReaction } from './entities/message-reaction.entity';
 import { IceBreaker } from './entities/ice-breaker.entity';
+import { UserProfile } from '../user/entities/user-profile.entity';
 
 @Injectable()
 export class ChatService {
@@ -21,6 +22,8 @@ export class ChatService {
     private readonly reactionRepo: Repository<MessageReaction>,
     @InjectRepository(IceBreaker)
     private readonly iceBreakerRepo: Repository<IceBreaker>,
+    @InjectRepository(UserProfile)
+    private readonly profileRepo: Repository<UserProfile>,
   ) { }
 
   async isParticipants(user_id: string, conversation_id: string) {
@@ -36,6 +39,55 @@ export class ChatService {
       select: ['conversation_id', 'user_id'],
     });
     return rows.map((k) => k.conversation_id);
+  }
+
+  /**
+   * Find existing DM conversation between two users, or create a new one
+   * Returns the conversation with participant info
+   */
+  async findOrCreateDMConversation(userId: string, targetUserId: string): Promise<Conversation> {
+    // Find existing DM between these two users
+    const existingDM = await this.convRepo
+      .createQueryBuilder('c')
+      .innerJoin('c.participants', 'p1', 'p1.user_id = :userId', { userId })
+      .innerJoin('c.participants', 'p2', 'p2.user_id = :targetUserId', { targetUserId })
+      .where('c.isDirect = true')
+      .getOne();
+
+    if (existingDM) {
+      return existingDM;
+    }
+
+    // Get target user's display_name for conversation name
+    const targetProfile = await this.profileRepo.findOne({
+      where: { user_id: targetUserId },
+    });
+    const conversationName = targetProfile?.display_name || 'Chat';
+
+    // Create new DM conversation
+    return this.dataSource.transaction(async (manager) => {
+      const conversation = await manager.getRepository(Conversation).save({
+        type: 'direct',
+        name: conversationName,
+        isDirect: true,
+        lastMessageAt: null,
+        lastSeq: '0',
+      });
+
+      // Add both participants
+      await Promise.all([
+        manager.getRepository(Participant).save({
+          conversation_id: conversation.id,
+          user_id: userId,
+        }),
+        manager.getRepository(Participant).save({
+          conversation_id: conversation.id,
+          user_id: targetUserId,
+        }),
+      ]);
+
+      return conversation;
+    });
   }
 
   async createConversation(type: string, participantUserIds?: string[], name?: string) {
@@ -165,6 +217,13 @@ export class ChatService {
     message.readAt = new Date();
     await this.msgRepo.save(message);
     return { readAt: message.readAt };
+  }
+
+  /**
+   * Update conversation with AI-generated icebreaker suggestion
+   */
+  async updateConversationIcebreaker(conversationId: string, icebreaker: string): Promise<void> {
+    await this.convRepo.update(conversationId, { icebreakerSuggestion: icebreaker });
   }
 
   /**

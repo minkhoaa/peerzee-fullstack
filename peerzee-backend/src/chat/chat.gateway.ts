@@ -18,6 +18,7 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { TypingDto } from './dto/typing.dto';
 import { DeleteMessageDto, EditMessageDto } from './dto/edit-message.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
+import { PresenceService } from '../redis/presence.service';
 
 @WebSocketGateway({
   namespace: '/socket/chat',
@@ -32,6 +33,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly jwt: JwtService,
     private readonly chatService: ChatService,
     private readonly userService: UserService,
+    private readonly presenceService: PresenceService,
   ) { }
 
   async handleConnection(client: Socket) {
@@ -46,6 +48,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     }
     this.onlineUsers.get(userId)?.add(client.id);
     if (this.onlineUsers.get(userId)?.size === 1) {
+      // First socket connection - set online in Redis
+      await this.presenceService.setOnline(userId);
       this.server.emit('user:online', {
         userId,
         isOnline: true
@@ -55,14 +59,16 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     client.emit('user:online-list', onlineUserIds);
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     const userId: string = client.data.user_id;
     if (!userId) return;
     const userSockets = this.onlineUsers.get(userId);
     if (userSockets) {
       userSockets.delete(client.id);
       if (userSockets.size === 0) {
-        this.onlineUsers.delete(userId)
+        this.onlineUsers.delete(userId);
+        // Last socket disconnected - set offline in Redis & remove from matching pool
+        await this.presenceService.setOffline(userId);
         this.server.emit('user:online', {
           userId,
           isOnline: false
@@ -402,5 +408,45 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
       user_id: userId,
 
     });
+  }
+
+  // ==================== MATCHING POOL ====================
+
+  @SubscribeMessage('matching:join')
+  async handleMatchingJoin(@ConnectedSocket() client: Socket) {
+    const userId = client.data.user_id;
+    if (!userId) return { ok: false, message: 'Not authenticated' };
+
+    await this.presenceService.joinMatchingPool(userId);
+    const poolCount = await this.presenceService.getMatchingPoolCount();
+
+    // Notify user they joined the pool
+    client.emit('matching:status', {
+      inPool: true,
+      poolCount
+    });
+
+    return { ok: true, inPool: true, poolCount };
+  }
+
+  @SubscribeMessage('matching:leave')
+  async handleMatchingLeave(@ConnectedSocket() client: Socket) {
+    const userId = client.data.user_id;
+    if (!userId) return { ok: false, message: 'Not authenticated' };
+
+    await this.presenceService.leaveMatchingPool(userId);
+
+    client.emit('matching:status', {
+      inPool: false,
+      poolCount: 0
+    });
+
+    return { ok: true, inPool: false };
+  }
+
+  @SubscribeMessage('matching:pool-count')
+  async handleGetPoolCount(@ConnectedSocket() client: Socket) {
+    const count = await this.presenceService.getMatchingPoolCount();
+    return { ok: true, poolCount: count };
   }
 }

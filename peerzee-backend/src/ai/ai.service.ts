@@ -40,35 +40,48 @@ export class AiService {
     }
 
     /**
-     * Generate a fun icebreaker message for two matched users
-     * @param userA_Bio Bio of user A
-     * @param userB_Bio Bio of user B
-     * @returns Icebreaker message in Vietnamese
+     * Generate a contextual icebreaker for two matched users
+     * Uses profile data (bio, tags, intent) to create personalized conversation starter
      */
-    async generateIcebreaker(userA_Bio: string, userB_Bio: string): Promise<string> {
+    async generateIcebreaker(
+        profileA: { bio?: string; tags?: string[]; intentMode?: string; occupation?: string; display_name?: string },
+        profileB: { bio?: string; tags?: string[]; intentMode?: string; occupation?: string; display_name?: string }
+    ): Promise<string> {
         try {
-            const model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+            const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-            const prompt = `Generate a short, fun icebreaker (1 sentence) for two people with these bios:
+            const formatProfile = (p: typeof profileA, name: string) => {
+                const parts: string[] = [];
+                if (p.bio) parts.push(`Bio: "${p.bio}"`);
+                if (p.tags?.length) parts.push(`Interests: ${p.tags.join(', ')}`);
+                if (p.occupation) parts.push(`Job: ${p.occupation}`);
+                if (p.intentMode) parts.push(`Looking for: ${p.intentMode === 'DATE' ? 'Dating' : p.intentMode === 'STUDY' ? 'Study buddy' : 'Friendship'}`);
+                return parts.length > 0 ? parts.join('. ') : 'No profile info provided';
+            };
 
-Person A: ${userA_Bio || 'No bio provided'}
-Person B: ${userB_Bio || 'No bio provided'}
+            const prompt = `You are a witty, helpful dating/friendship coach (Wingman).
+
+Profile A: ${formatProfile(profileA, 'A')}
+Profile B: ${formatProfile(profileB, 'B')}
+
+Generate ONE short, friendly, and engaging icebreaker question (Vietnamese) that connects their shared interests or contrasts their differences interestingly.
 
 Requirements:
-- Keep it casual and friendly
-- Make it relevant to their shared interests if any
+- Keep it casual and under 30 words
+- Make it a question or conversation starter
 - Language: Vietnamese
+- Do NOT use quotes around the output
 - Just output the icebreaker, no explanation`;
 
             const result = await model.generateContent(prompt);
             const response = result.response;
-            const icebreaker = response.text().trim();
+            const icebreaker = response.text().trim().replace(/^["']|["']$/g, '');
 
+            this.logger.log(`Generated icebreaker for match`);
             return icebreaker;
         } catch (error) {
             this.logger.error('Failed to generate icebreaker', error);
-            // Return a default icebreaker if AI fails
-            return 'Chào bạn! Rất vui được kết nối với bạn! 👋';
+            return 'Hai bạn có vẻ rất hợp nhau, hãy thử chào nhau xem! 👋';
         }
     }
 

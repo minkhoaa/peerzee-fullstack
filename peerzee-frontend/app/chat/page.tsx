@@ -41,6 +41,7 @@ interface Conversation {
     name?: string;
     lastMessage?: string;
     participantIds?: string[];
+    icebreakerSuggestion?: string; // AI-generated icebreaker
 }
 
 const setPageTitle = (title: string) => {
@@ -243,7 +244,7 @@ export default function ChatPage() {
                     });
                 }
                 if (document.hidden) {
-                    notificationSound.current?.play().catch(() => {});
+                    notificationSound.current?.play().catch(() => { });
                     if (Notification.permission === "granted") {
                         new Notification("New Message", {
                             body: data.body?.slice(0, 50) || "Bạn có tin nhắn mới",
@@ -317,11 +318,11 @@ export default function ChatPage() {
                 prev.map((k) =>
                     k.id === data.message_id
                         ? {
-                              ...k,
-                              reactions: k.reactions?.filter(
-                                  (r) => !(r.emoji === data.emoji && r.user_id === data.user_id)
-                              ),
-                          }
+                            ...k,
+                            reactions: k.reactions?.filter(
+                                (r) => !(r.emoji === data.emoji && r.user_id === data.user_id)
+                            ),
+                        }
                         : k
                 )
             );

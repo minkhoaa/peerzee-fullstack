@@ -257,6 +257,40 @@ export class DiscoverService {
             conversation_id: conversation.id,
         });
 
+        // Generate AI icebreaker for the new match
+        try {
+            const currentUser = await this.userRepo.findOne({
+                where: { id: userId },
+                relations: ['profile'],
+            });
+
+            if (currentUser?.profile && targetUser?.profile) {
+                const icebreaker = await this.aiService.generateIcebreaker(
+                    {
+                        bio: currentUser.profile.bio,
+                        tags: currentUser.profile.tags as string[],
+                        intentMode: currentUser.profile.intentMode,
+                        occupation: currentUser.profile.occupation,
+                        display_name: currentUser.profile.display_name,
+                    },
+                    {
+                        bio: targetUser.profile.bio,
+                        tags: targetUser.profile.tags as string[],
+                        intentMode: targetUser.profile.intentMode,
+                        occupation: targetUser.profile.occupation,
+                        display_name: targetUser.profile.display_name,
+                    }
+                );
+
+                // Save icebreaker to conversation
+                await this.chatService.updateConversationIcebreaker(conversation.id, icebreaker);
+                this.logger.log(`Generated icebreaker for match: ${conversation.id}`);
+            }
+        } catch (error) {
+            this.logger.error('Failed to generate icebreaker for match', error);
+            // Don't fail the match if icebreaker generation fails
+        }
+
         // If message was sent, auto-insert as first message
         if (message?.trim()) {
             await this.chatService.chatMessage(conversation.id, userId, message.trim());

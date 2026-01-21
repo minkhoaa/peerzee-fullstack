@@ -12,6 +12,7 @@ import { DiscoverModule } from './discover/discover.module';
 import { NotificationModule } from './notification/notification.module';
 import { VideoDatingModule } from './video-dating/video-dating.module';
 import { AiModule } from './ai/ai.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AiModule } from './ai/ai.module';
       synchronize: false, // Disabled to preserve vector(768) column type from migration
       ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
+    RedisModule,
     UserModule,
     ChatModule,
     ConversationModule,
@@ -43,3 +45,4 @@ import { AiModule } from './ai/ai.module';
   providers: [AppService],
 })
 export class AppModule { }
+

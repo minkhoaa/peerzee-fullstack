@@ -14,9 +14,11 @@ import { extname } from 'path';
 import { diskStorage } from 'multer';
 import { UploadController } from './upload.controller';
 import { UserModule } from '../user/user.module';
+import { UserProfile } from '../user/entities/user-profile.entity';
+
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Conversation, Message, Participant, MessageReaction, IceBreaker]),
+    TypeOrmModule.forFeature([Conversation, Message, Participant, MessageReaction, IceBreaker, UserProfile]),
     JwtModule.register({}),
     UserModule,
     MulterModule.register({
@@ -34,3 +36,4 @@ import { UserModule } from '../user/user.module';
   exports: [ChatService],
 })
 export class ChatModule { }
+

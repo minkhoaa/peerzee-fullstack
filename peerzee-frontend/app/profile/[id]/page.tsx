@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Camera, Check, X, Heart, MessageCircle, Eye } from 'lucide-react';
-import api from '@/lib/api';
+import { ArrowLeft, Camera, Check, X, Heart, MessageCircle, Eye, Loader2 } from 'lucide-react';
+import api, { chatApi } from '@/lib/api';
 
 interface UserProfileData {
     id: string;
@@ -30,6 +30,7 @@ export default function UserProfilePage() {
     const [profile, setProfile] = useState<UserProfileData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [startingDM, setStartingDM] = useState(false);
 
     useEffect(() => {
         if (!userId) return;
@@ -57,6 +58,19 @@ export default function UserProfilePage() {
         if (profile.tags && profile.tags.length > 0) score += 20;
         if (profile.location) score += 10;
         return Math.min(score, 100);
+    };
+
+    // Start a DM conversation with this user
+    const handleStartDM = async () => {
+        if (startingDM) return;
+        setStartingDM(true);
+        try {
+            const res = await chatApi.startDM(userId);
+            router.push(`/chat?conversation=${res.data.conversationId}`);
+        } catch (err) {
+            console.error('Failed to start DM:', err);
+            setStartingDM(false);
+        }
     };
 
     const strength = calculateStrength();
@@ -302,10 +316,16 @@ export default function UserProfilePage() {
                         Like
                     </button>
                     <button
-                        className="flex-1 py-3 bg-[#252525] text-white rounded-xl hover:bg-[#303030] transition-colors flex items-center justify-center gap-2"
+                        onClick={handleStartDM}
+                        disabled={startingDM}
+                        className="flex-1 py-3 bg-[#252525] text-white rounded-xl hover:bg-[#303030] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                        <MessageCircle className="w-5 h-5" />
-                        Message
+                        {startingDM ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <MessageCircle className="w-5 h-5" />
+                        )}
+                        Nhắn tin
                     </button>
                 </div>
             </main>

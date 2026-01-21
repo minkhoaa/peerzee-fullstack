@@ -59,6 +59,10 @@ export const authApi = {
 };
 export const chatApi = {
     getConversations: () => api.get<Conversation[]>("/conversation"),
+    startDM: (targetUserId: string) =>
+        api.post<{ conversationId: string; isDirect: boolean; isNew: boolean }>(
+            `/chat/dm/${targetUserId}`
+        ),
 };
 
 // Rich Profile Types for Matching
