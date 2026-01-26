@@ -8,17 +8,21 @@ import { ProfileController } from './profile.controller';
 import { SeedController } from './seed.controller';
 import { ProfileService } from './profile.service';
 import { SeedService } from './seed.service';
+import { SpotifyService } from './spotify.service';
 import { UserProfile } from './entities/user-profile.entity';
 import { UserTag } from './entities/user-tag.entity';
 import { User } from './entities/user.entity';
 import { UserSession } from './entities/user-session.entity';
 import { ProfileTag } from './entities/profile-tag.entity';
 import { AiModule } from '../ai/ai.module';
+import { MusicModule } from '../music/music.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, UserTag, UserProfile, UserSession, ProfileTag]),
     AiModule,
+    MusicModule,
+    ConfigModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -29,7 +33,7 @@ import { AiModule } from '../ai/ai.module';
     }),
   ],
   controllers: [UserController, ProfileController, SeedController],
-  providers: [UserService, ProfileService, SeedService],
-  exports: [UserService, ProfileService, SeedService],
+  providers: [UserService, ProfileService, SeedService, SpotifyService],
+  exports: [UserService, ProfileService, SeedService, SpotifyService],
 })
 export class UserModule { }

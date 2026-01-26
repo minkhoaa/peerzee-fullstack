@@ -38,6 +38,8 @@ export interface DiscoverUser {
         languages?: string[];
         lookingFor?: string;
     };
+    // Distance from PostGIS
+    distance_km?: number;
 }
 
 interface PaginatedResponse {
@@ -64,10 +66,25 @@ interface SwipeResult {
 }
 
 // API functions
-const fetchRecommendations = async ({ pageParam }: { pageParam?: string }): Promise<PaginatedResponse> => {
+const fetchRecommendations = async ({ 
+    pageParam,
+    lat,
+    long,
+    radius
+}: { 
+    pageParam?: string;
+    lat?: number;
+    long?: number;
+    radius?: number;
+}): Promise<PaginatedResponse> => {
     const params = new URLSearchParams({ limit: '10' });
     if (pageParam) {
         params.set('cursor', pageParam);
+    }
+    if (lat !== undefined && long !== undefined) {
+        params.set('lat', lat.toString());
+        params.set('long', long.toString());
+        if (radius) params.set('radius', radius.toString());
     }
     const response = await api.get<PaginatedResponse>(`/discover/recommendations?${params.toString()}`);
     return response.data;
@@ -80,11 +97,17 @@ const submitSwipe = async (data: SwipeRequest): Promise<SwipeResult> => {
 
 /**
  * Hook for fetching recommendations with infinite scroll
+ * Optional location-based filtering
  */
-export function useDiscoverRecommendations() {
+export function useDiscoverRecommendations(location?: { lat: number; long: number; radius?: number }) {
     return useInfiniteQuery({
-        queryKey: ['discover', 'recommendations'],
-        queryFn: fetchRecommendations,
+        queryKey: ['discover', 'recommendations', location],
+        queryFn: ({ pageParam }) => fetchRecommendations({ 
+            pageParam,
+            lat: location?.lat,
+            long: location?.long,
+            radius: location?.radius
+        }),
         initialPageParam: undefined as string | undefined,
         getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
         staleTime: 1000 * 60 * 5, // 5 minutes
@@ -109,9 +132,10 @@ export function useSwipe() {
 
 /**
  * Combined hook for Discover page
+ * Optional location-based filtering
  */
-export function useDiscover() {
-    const recommendations = useDiscoverRecommendations();
+export function useDiscover(location?: { lat: number; long: number; radius?: number }) {
+    const recommendations = useDiscoverRecommendations(location);
     const swipe = useSwipe();
 
     // Flatten all pages into a single array

@@ -47,23 +47,62 @@ export class DiscoverController {
     /**
      * GET /discover/recommendations
      * Cursor-based pagination for infinite scroll
+     * Optional location-based filtering with Haversine formula
      */
     @Get('recommendations')
     @ApiOperation({ summary: 'Get recommended users with cursor pagination' })
     @ApiQuery({ name: 'cursor', required: false, description: 'Cursor for pagination' })
     @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results (default: 10)' })
+    @ApiQuery({ name: 'lat', required: false, type: Number, description: 'User latitude for distance-based search' })
+    @ApiQuery({ name: 'long', required: false, type: Number, description: 'User longitude for distance-based search' })
+    @ApiQuery({ name: 'radius', required: false, type: Number, description: 'Search radius in km (default: 50)' })
     @ApiResponse({ status: 200, description: 'Paginated list of recommended users' })
     async getRecommendations(
         @Request() req,
         @Query('cursor') cursor?: string,
         @Query('limit') limit?: string,
-    ): Promise<PaginatedRecommendationsDto> {
+        @Query('lat') lat?: string,
+        @Query('long') long?: string,
+        @Query('radius') radius?: string,
+    ): Promise<PaginatedRecommendationsDto | { data: DiscoverUserDto[]; total: number }> {
         try {
             const parsedLimit = limit ? parseInt(limit, 10) : 10;
+
+            // If lat/long provided, use dedicated location-based method
+            if (lat && long) {
+                const userLat = parseFloat(lat);
+                const userLong = parseFloat(long);
+                const radiusInKm = radius ? parseInt(radius, 10) : 50;
+
+                if (isNaN(userLat) || isNaN(userLong)) {
+                    throw new HttpException('Invalid lat/long parameters', HttpStatus.BAD_REQUEST);
+                }
+
+                this.logger.log(
+                    `Location-based search for user ${req.user.user_id}: (${userLat}, ${userLong}), radius: ${radiusInKm}km`,
+                );
+
+                const result = await this.discoverService.getRecommendationsByLocation(
+                    req.user.user_id,
+                    userLat,
+                    userLong,
+                    radiusInKm,
+                    Math.min(parsedLimit, 50),
+                );
+
+                return result;
+            }
+
+            // Default: cursor-based pagination with optional location filtering
+            // Uses user's profile location if available
+            const radiusInKm = radius ? parseInt(radius, 10) : undefined;
             const result = await this.discoverService.getRecommendations(
                 req.user.user_id,
                 cursor,
                 Math.min(parsedLimit, 50), // Max 50 per request
+                undefined, // userLat - will be read from profile
+                undefined, // userLong - will be read from profile
+                radiusInKm,
             );
             this.logger.log(
                 `Returning ${result.data.length} recommendations for user ${req.user.user_id}`,
@@ -100,17 +139,24 @@ export class DiscoverController {
     /**
      * GET /discover/search?q=...
      * Hybrid Semantic Search using natural language
+     * Optional location-based filtering with Haversine formula
      * Example: "Tìm bạn nữ học AI ở Hà Nội"
      */
     @Get('search')
     @ApiOperation({ summary: 'Search users with natural language query (Hybrid AI Search)' })
     @ApiQuery({ name: 'q', required: true, description: 'Natural language search query' })
     @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max results (default: 10)' })
+    @ApiQuery({ name: 'lat', required: false, type: Number, description: 'User latitude for distance filtering' })
+    @ApiQuery({ name: 'long', required: false, type: Number, description: 'User longitude for distance filtering' })
+    @ApiQuery({ name: 'radius', required: false, type: Number, description: 'Search radius in km' })
     @ApiResponse({ status: 200, description: 'Search results with match scores' })
     async search(
         @Request() req,
         @Query('q') query: string,
         @Query('limit') limit?: string,
+        @Query('lat') lat?: string,
+        @Query('long') long?: string,
+        @Query('radius') radius?: string,
     ) {
         if (!query?.trim()) {
             throw new HttpException('Query parameter "q" is required', HttpStatus.BAD_REQUEST);
@@ -118,10 +164,21 @@ export class DiscoverController {
 
         try {
             const parsedLimit = limit ? parseInt(limit, 10) : 10;
+            const userLat = lat ? parseFloat(lat) : undefined;
+            const userLong = long ? parseFloat(long) : undefined;
+            const radiusInKm = radius ? parseInt(radius, 10) : undefined;
+
+            if ((userLat !== undefined || userLong !== undefined) && (isNaN(userLat!) || isNaN(userLong!))) {
+                throw new HttpException('Invalid lat/long parameters', HttpStatus.BAD_REQUEST);
+            }
+
             const result = await this.discoverService.searchUsers(
                 query.trim(),
                 req.user.user_id,
                 Math.min(parsedLimit, 50),
+                userLat,
+                userLong,
+                radiusInKm,
             );
 
             return {

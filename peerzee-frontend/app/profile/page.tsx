@@ -6,7 +6,22 @@ import { ArrowLeft, Camera, Check, X, Pencil, Plus, Trash2, Loader2, MapPin, Rul
 import { profileApi } from '@/lib/api';
 import { searchLocations } from '@/lib/vietnam-locations';
 import { TagSelector } from '@/components/TagSelector';
+import { VibeMatch } from '@/components/VibeMatch';
 import { ZODIAC_SIGNS, EDUCATION_LEVELS, getTagDisplay } from '@/lib/profile-tags';
+
+interface MusicData {
+    trackId?: string;
+    song: string;
+    artist: string;
+    cover: string;
+    previewUrl?: string;
+    analysis?: {
+        mood: string;
+        color: string;
+        keywords: string[];
+        description: string;
+    };
+}
 
 interface UserProfile {
     id: string;
@@ -21,6 +36,7 @@ interface UserProfile {
     education?: string;
     tags?: string[];
     photos?: { id: string; url: string; order?: number }[];
+    spotify?: MusicData | { song: string; artist: string } | null;
 }
 
 export default function MyProfilePage() {
@@ -313,6 +329,20 @@ export default function MyProfilePage() {
                         </div>
                     )}
                 </div>
+
+                {/* Vibe Match Card - Music */}
+                <VibeMatch
+                    currentMusic={
+                        profile.spotify && 'cover' in profile.spotify
+                            ? profile.spotify as MusicData
+                            : profile.spotify
+                                ? { ...profile.spotify, cover: '', previewUrl: undefined }
+                                : null
+                    }
+                    onMusicSet={(musicData) => {
+                        setProfile((prev) => prev ? { ...prev, spotify: musicData } : prev);
+                    }}
+                />
 
                 {/* Photos Card */}
                 <div className="bg-[#1A1A1A] rounded-xl p-5">

@@ -13,7 +13,7 @@ import {
     MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { UserGender, AvailabilitySchedule } from '../entities/user-profile.entity';
+import { UserGender, AvailabilitySchedule, IntentMode } from '../entities/user-profile.entity';
 
 // ============================================================================
 // Profile Photo DTO
@@ -255,6 +255,67 @@ export class UpdateProfileDto {
 }
 
 // ============================================================================
+// Update Spotify DTO (for Vibe Match feature - Legacy manual input)
+// ============================================================================
+
+export class UpdateSpotifyDto {
+    @ApiProperty({ description: 'Song name' })
+    @IsString()
+    song: string;
+
+    @ApiProperty({ description: 'Artist name' })
+    @IsString()
+    artist: string;
+}
+
+// ============================================================================
+// Set Spotify Track DTO (for Vibe Match feature - Real Spotify API)
+// ============================================================================
+
+export class SetSpotifyTrackDto {
+    @ApiProperty({ description: 'Spotify Track ID', example: '4cOdK2wGLETKBW3PvgPWqT' })
+    @IsString()
+    spotifyTrackId: string;
+}
+
+// ============================================================================
+// Set Music DTO (for Vibe Match feature - iTunes + Gemini Audio Analysis)
+// ============================================================================
+
+export class SetMusicDto {
+    @ApiProperty({ description: 'Song name', example: 'Có Chắc Yêu Là Đây' })
+    @IsString()
+    song: string;
+
+    @ApiProperty({ description: 'Artist name', example: 'Sơn Tùng M-TP' })
+    @IsString()
+    artist: string;
+
+    @ApiProperty({ description: 'Audio preview URL from iTunes', example: 'https://audio-ssl.itunes.apple.com/...' })
+    @IsString()
+    previewUrl: string;
+
+    @ApiProperty({ description: 'Album cover URL', example: 'https://is1-ssl.mzstatic.com/...' })
+    @IsString()
+    cover: string;
+
+    @ApiProperty({ description: 'iTunes track ID', required: false })
+    @IsOptional()
+    @IsString()
+    trackId?: string;
+
+    @ApiProperty({ description: 'Album name', required: false })
+    @IsOptional()
+    @IsString()
+    album?: string;
+
+    @ApiProperty({ description: 'Genre', required: false })
+    @IsOptional()
+    @IsString()
+    genre?: string;
+}
+
+// ============================================================================
 // Photo Reorder DTO
 // ============================================================================
 
@@ -317,12 +378,26 @@ export class ProfileResponseDto {
     @ApiProperty({ type: [String] })
     tags: string[];
 
-    @ApiPropertyOptional()
-    spotify?: { song: string; artist: string };
+    @ApiPropertyOptional({ description: 'Spotify anthem with AI vibe analysis' })
+    spotify?: {
+        song: string;
+        artist: string;
+        analysis?: {
+            mood: string;
+            color: string;
+            keywords: string[];
+            quote: string;
+            match_vibe: string;
+        };
+        analyzedAt?: Date;
+    };
 
     @ApiPropertyOptional()
     instagram?: string;
 
     @ApiPropertyOptional({ type: DiscoverySettingsDto })
     discovery_settings?: DiscoverySettingsDto;
+
+    @ApiPropertyOptional({ enum: IntentMode })
+    intentMode?: IntentMode;
 }

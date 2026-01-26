@@ -318,6 +318,7 @@ export class ProfileService {
             spotify: profile.spotify || undefined,
             instagram: profile.instagram,
             discovery_settings: profile.discovery_settings,
+            intentMode: profile.intentMode,
         };
     }
 
@@ -390,6 +391,63 @@ export class ProfileService {
         this.logger.log(`Reindex complete: ${success}/${total} success, ${failed} failed`);
 
         return { total, success, failed, errors: errors.slice(0, 10) };
+    }
+
+    /**
+     * Update Spotify song and analyze music vibe with AI
+     * Used for "Vibe Match" feature (Legacy - manual input)
+     */
+    async updateSpotifyWithAnalysis(
+        userId: string,
+        dto: { song: string; artist: string },
+    ): Promise<{
+        song: string;
+        artist: string;
+        analysis: {
+            mood: string;
+            color: string;
+            keywords: string[];
+            quote: string;
+            description: string;
+            match_vibe: string;
+        };
+    }> {
+        this.logger.log(`Updating Spotify vibe for user ${userId}: "${dto.song}" by ${dto.artist}`);
+
+        // 1. Analyze music vibe with AI (no audio features for legacy)
+        const analysis = await this.aiService.analyzeMusicVibe(dto.song, dto.artist, null);
+
+        // 2. Build spotify data object
+        const spotifyData = {
+            song: dto.song,
+            artist: dto.artist,
+            analysis,
+        };
+
+        // 3. Update profile
+        await this.profileRepo.update(
+            { user_id: userId },
+            { spotify: spotifyData },
+        );
+
+        this.logger.log(`Saved Spotify vibe for user ${userId}: mood=${analysis.mood}, color=${analysis.color}`);
+
+        return spotifyData;
+    }
+
+    /**
+     * Update Spotify data with full track info from Spotify API
+     * Used for "Vibe Match" feature (Full Spotify integration)
+     */
+    async updateSpotifyData(userId: string, spotifyData: any): Promise<void> {
+        this.logger.log(`Saving full Spotify data for user ${userId}: "${spotifyData.song}" by ${spotifyData.artist}`);
+
+        await this.profileRepo.update(
+            { user_id: userId },
+            { spotify: spotifyData },
+        );
+
+        this.logger.log(`Saved Spotify data for user ${userId}: trackId=${spotifyData.trackId}, mood=${spotifyData.analysis?.mood}`);
     }
 }
 

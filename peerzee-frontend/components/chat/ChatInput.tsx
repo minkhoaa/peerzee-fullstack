@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Paperclip, Mic, Sparkles, ArrowUp, X, MicOff } from 'lucide-react';
+import { Paperclip, Mic, Wand2, ArrowUp, X, MicOff, Loader2 } from 'lucide-react';
+import { chatApi } from '@/lib/api';
 
 interface Message {
     id: string;
@@ -22,6 +23,7 @@ interface ChatInputProps {
     onClearFile: () => void;
     disabled?: boolean;
     userId?: string | null;
+    conversationId?: string | null;
 }
 
 /**
@@ -41,6 +43,7 @@ export default function ChatInput({
     onClearFile,
     disabled,
     userId,
+    conversationId,
 }: ChatInputProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -49,7 +52,13 @@ export default function ChatInput({
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const [showAIMenu, setShowAIMenu] = useState(false);
+    
+    // AI Suggestions state
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+    const [suggestionError, setSuggestionError] = useState<string | null>(null);
+    const [lastSuggestionTime, setLastSuggestionTime] = useState(0);
 
     // Auto-resize textarea
     useEffect(() => {
@@ -145,12 +154,60 @@ export default function ChatInput({
         }
     };
 
-    // AI suggestions (placeholder)
-    const aiSuggestions = [
-        { icon: '💡', label: 'Smart Reply', action: () => console.log('Smart reply') },
-        { icon: '✨', label: 'Improve message', action: () => console.log('Improve') },
-        { icon: '🎯', label: 'Make it shorter', action: () => console.log('Shorter') },
-    ];
+    // Fetch AI suggestions
+    const fetchSuggestions = async () => {
+        if (!conversationId) {
+            setSuggestionError('Không có conversation');
+            return;
+        }
+
+        // Rate limiting on client side too
+        const now = Date.now();
+        if (now - lastSuggestionTime < 10000) {
+            const waitTime = Math.ceil((10000 - (now - lastSuggestionTime)) / 1000);
+            setSuggestionError(`Đợi ${waitTime}s nữa nhé`);
+            return;
+        }
+
+        setLoadingSuggestions(true);
+        setSuggestionError(null);
+        setShowSuggestions(true);
+
+        try {
+            const response = await chatApi.suggestReply(conversationId);
+            setSuggestions(response.data.suggestions);
+            setLastSuggestionTime(Date.now());
+        } catch (error: unknown) {
+            console.error('Failed to fetch suggestions:', error);
+            const errorMessage = error && typeof error === 'object' && 'response' in error
+                ? (error.response as { data?: { message?: string } })?.data?.message || 'Không thể tạo gợi ý'
+                : 'Không thể tạo gợi ý';
+            setSuggestionError(errorMessage);
+        } finally {
+            setLoadingSuggestions(false);
+        }
+    };
+
+    // Handle suggestion click
+    const handleSuggestionClick = (suggestion: string) => {
+        onChange(suggestion);
+        setShowSuggestions(false);
+        textareaRef.current?.focus();
+    };
+
+    // Close suggestions when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('.suggestions-container')) {
+                setShowSuggestions(false);
+            }
+        };
+        if (showSuggestions) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showSuggestions]);
 
     return (
         <div className="p-4">
@@ -262,32 +319,87 @@ export default function ChatInput({
 
                     {/* Right Icons */}
                     <div className="flex items-center gap-1 pb-1">
-                        {/* AI Magic Button */}
-                        <div className="relative">
+                        {/* AI Magic Wand Button */}
+                        <div className="relative suggestions-container">
                             <button
                                 type="button"
-                                onClick={() => setShowAIMenu(!showAIMenu)}
-                                className="p-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition-colors"
-                                title="AI Smart Replies"
+                                onClick={fetchSuggestions}
+                                disabled={loadingSuggestions || !conversationId}
+                                className="p-2 text-purple-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Gợi ý tin nhắn"
                             >
-                                <Sparkles className="w-5 h-5" />
+                                {loadingSuggestions ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Wand2 className="w-5 h-5" />
+                                )}
                             </button>
-                            {showAIMenu && (
-                                <div className="absolute bottom-full right-0 mb-2 bg-[#202020] border border-[#2F2F2F] rounded-xl shadow-lg overflow-hidden min-w-[180px]">
-                                    <div className="px-3 py-2 border-b border-[#2F2F2F]">
-                                        <span className="text-xs font-medium text-[#9B9A97]">AI Assistant</span>
-                                    </div>
-                                    {aiSuggestions.map((suggestion, i) => (
+                            
+                            {/* Suggestions Popover */}
+                            {showSuggestions && (
+                                <div className="absolute bottom-full right-0 mb-2 bg-[#1A1A1A] border border-[#2F2F2F] rounded-xl shadow-xl overflow-hidden min-w-[280px] max-w-[350px]">
+                                    {/* Header */}
+                                    <div className="px-4 py-3 border-b border-[#2F2F2F] flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Wand2 className="w-4 h-4 text-purple-400" />
+                                            <span className="text-sm font-medium text-white">Gợi ý tin nhắn</span>
+                                        </div>
                                         <button
-                                            key={i}
                                             type="button"
-                                            onClick={() => { suggestion.action(); setShowAIMenu(false); }}
-                                            className="w-full px-3 py-2.5 text-left text-sm text-[#E3E3E3] hover:bg-[#2F2F2F] transition-colors flex items-center gap-2"
+                                            onClick={() => setShowSuggestions(false)}
+                                            className="p-1 text-[#9B9A97] hover:text-white hover:bg-[#2F2F2F] rounded transition-colors"
                                         >
-                                            <span>{suggestion.icon}</span>
-                                            <span>{suggestion.label}</span>
+                                            <X className="w-4 h-4" />
                                         </button>
-                                    ))}
+                                    </div>
+                                    
+                                    {/* Content */}
+                                    <div className="p-2">
+                                        {loadingSuggestions ? (
+                                            <div className="flex items-center justify-center gap-3 py-6">
+                                                <Loader2 className="w-5 h-5 text-purple-400 animate-spin" />
+                                                <span className="text-sm text-[#9B9A97]">AI đang suy nghĩ...</span>
+                                            </div>
+                                        ) : suggestionError ? (
+                                            <div className="py-4 px-3 text-center">
+                                                <p className="text-sm text-red-400">{suggestionError}</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={fetchSuggestions}
+                                                    className="mt-2 text-xs text-purple-400 hover:text-purple-300"
+                                                >
+                                                    Thử lại
+                                                </button>
+                                            </div>
+                                        ) : suggestions.length > 0 ? (
+                                            <div className="space-y-1">
+                                                {suggestions.map((suggestion, i) => (
+                                                    <button
+                                                        key={i}
+                                                        type="button"
+                                                        onClick={() => handleSuggestionClick(suggestion)}
+                                                        className="w-full px-3 py-2.5 text-left text-sm text-[#E3E3E3] hover:bg-purple-500/10 hover:text-white rounded-lg transition-colors group"
+                                                    >
+                                                        <span className="inline-flex items-center gap-2">
+                                                            <span className="text-purple-400 group-hover:text-purple-300">💬</span>
+                                                            <span className="line-clamp-2">{suggestion}</span>
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="py-4 text-center text-sm text-[#9B9A97]">
+                                                Bấm để tạo gợi ý
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Footer */}
+                                    <div className="px-3 py-2 border-t border-[#2F2F2F] bg-[#151515]">
+                                        <p className="text-xs text-[#6B6A67] text-center">
+                                            ✨ Gợi ý dựa trên lịch sử chat & profile đối phương
+                                        </p>
+                                    </div>
                                 </div>
                             )}
                         </div>

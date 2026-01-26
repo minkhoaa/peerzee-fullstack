@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Search, Sparkles, MapPin, Users, GraduationCap, Heart, Filter, X } from 'lucide-react';
 import { discoverApi, SearchResponse, SearchResult } from '@/lib/api';
+import { LocationButton } from '@/components/discover/LocationButton';
 
 /**
  * AI Search Page - Hybrid Semantic Search
@@ -16,6 +17,8 @@ export default function SearchPage() {
     const [results, setResults] = useState<SearchResult[]>([]);
     const [filters, setFilters] = useState<SearchResponse['filters'] | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [userLocation, setUserLocation] = useState<{ lat: number; long: number } | null>(null);
+    const [searchRadius, setSearchRadius] = useState<number>(20); // Default 20km
 
     // Sample queries for inspiration
     const sampleQueries = [
@@ -29,12 +32,14 @@ export default function SearchPage() {
     const handleSearch = useCallback(async () => {
         if (!query.trim()) return;
 
-
         setIsLoading(true);
         setError(null);
 
         try {
-            const response = await discoverApi.search(query);
+            // Include location if available
+            const response = userLocation
+                ? await discoverApi.search(query, 10, userLocation.lat, userLocation.long, searchRadius)
+                : await discoverApi.search(query);
             setResults(response.data.results);
             setFilters(response.data.filters);
         } catch (err: unknown) {
@@ -43,7 +48,7 @@ export default function SearchPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [query]);
+    }, [query, userLocation, searchRadius]);
 
     // Handle sample query click
     const handleSampleClick = (sample: string) => {
@@ -78,6 +83,44 @@ export default function SearchPage() {
 
             {/* Search Input */}
             <div className="max-w-2xl mx-auto px-4 py-4">
+                {/* Location Controls */}
+                <div className="flex items-center justify-between mb-3 gap-3">
+                    <div className="flex items-center gap-2 flex-1">
+                        <p className="text-[#9B9A97] text-xs">Bán kính tìm kiếm:</p>
+                        <select
+                            value={searchRadius}
+                            onChange={(e) => setSearchRadius(Number(e.target.value))}
+                            className="px-2 py-1 bg-[#252525] border border-[#2F2F2F] rounded-lg text-[#E3E3E3] text-xs focus:outline-none focus:border-purple-500/50"
+                        >
+                            <option value={5}>5 km</option>
+                            <option value={10}>10 km</option>
+                            <option value={20}>20 km</option>
+                            <option value={50}>50 km</option>
+                            <option value={100}>100 km</option>
+                        </select>
+                    </div>
+                    <LocationButton 
+                        className="text-xs" 
+                        onLocationUpdate={(lat, long) => setUserLocation({ lat, long })}
+                    />
+                </div>
+
+                {/* Location Status */}
+                {userLocation && (
+                    <div className="mb-3 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-green-400" />
+                        <p className="text-xs text-green-400">
+                            Đang tìm trong bán kính {searchRadius}km từ vị trí của bạn
+                        </p>
+                        <button
+                            onClick={() => setUserLocation(null)}
+                            className="ml-auto p-1 hover:bg-green-500/20 rounded"
+                        >
+                            <X className="w-3 h-3 text-green-400" />
+                        </button>
+                    </div>
+                )}
+
                 <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9B9A97]" />
                     <input
@@ -215,9 +258,18 @@ export default function SearchPage() {
                                         {user.age && (
                                             <span className="text-[#9B9A97] text-sm">{user.age}</span>
                                         )}
-                                        {/* Match Score */}
-                                        <span className="ml-auto px-2 py-0.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 text-xs font-medium rounded-full">
-                                            {user.matchScore}% match
+                                        {/* Distance Badge (if location-based search) */}
+                                        {user.distance_km !== undefined && (
+                                            <span className="ml-auto px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs font-medium rounded-full flex items-center gap-1">
+                                                <MapPin className="w-3 h-3" />
+                                                {user.distance_km < 1 
+                                                    ? `${Math.round(user.distance_km * 1000)}m`
+                                                    : `${user.distance_km.toFixed(1)}km`}
+                                            </span>
+                                        )}
+                                        {/* Match Score - Fixed bug */}
+                                        <span className={`${user.distance_km !== undefined ? '' : 'ml-auto'} px-2 py-0.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 text-xs font-medium rounded-full`}>
+                                            {Math.min(100, Math.round(user.matchScore || 0))}% Match
                                         </span>
                                     </div>
                                     {user.occupation && (

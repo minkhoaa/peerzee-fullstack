@@ -1,0 +1,107 @@
+'use client';
+
+import React, { useState } from 'react';
+import { MapPin, Loader2, CheckCircle } from 'lucide-react';
+
+interface LocationButtonProps {
+    onLocationUpdate?: (lat: number, long: number) => void;
+    className?: string;
+}
+
+export function LocationButton({ onLocationUpdate, className = '' }: LocationButtonProps) {
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const updateLocation = async () => {
+        if (!navigator.geolocation) {
+            setStatus('error');
+            setErrorMsg('Trình duyệt không hỗ trợ định vị');
+            return;
+        }
+
+        setStatus('loading');
+        setErrorMsg('');
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+
+                try {
+                    const token = localStorage.getItem('token');
+                    const res = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'}/profile/me`,
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ latitude, longitude }),
+                        }
+                    );
+
+                    if (!res.ok) throw new Error('Failed to update');
+
+                    setStatus('success');
+                    onLocationUpdate?.(latitude, longitude);
+
+                    // Reset to idle after 2s
+                    setTimeout(() => setStatus('idle'), 2000);
+                } catch {
+                    setStatus('error');
+                    setErrorMsg('Không thể cập nhật vị trí');
+                }
+            },
+            (error) => {
+                setStatus('error');
+                if (error.code === error.PERMISSION_DENIED) {
+                    setErrorMsg('Bạn đã từ chối quyền định vị');
+                } else {
+                    setErrorMsg('Không thể xác định vị trí');
+                }
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    };
+
+    if (status === 'error') {
+        return (
+            <button
+                onClick={updateLocation}
+                className={`flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl transition-all border border-red-500/20 ${className}`}
+            >
+                <MapPin className="w-4 h-4" />
+                <span className="text-sm font-medium">{errorMsg || 'Thử lại'}</span>
+            </button>
+        );
+    }
+
+    if (status === 'success') {
+        return (
+            <div className={`flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-400 rounded-xl border border-green-500/20 ${className}`}>
+                <CheckCircle className="w-4 h-4" />
+                <span className="text-sm font-medium">Đã cập nhật</span>
+            </div>
+        );
+    }
+
+    return (
+        <button
+            onClick={updateLocation}
+            disabled={status === 'loading'}
+            className={`flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all border border-blue-500/20 disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
+        >
+            {status === 'loading' ? (
+                <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm font-medium">Đang cập nhật...</span>
+                </>
+            ) : (
+                <>
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm font-medium">Cập nhật vị trí</span>
+                </>
+            )}
+        </button>
+    );
+}

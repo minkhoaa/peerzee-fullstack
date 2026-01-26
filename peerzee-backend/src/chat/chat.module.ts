@@ -15,12 +15,14 @@ import { diskStorage } from 'multer';
 import { UploadController } from './upload.controller';
 import { UserModule } from '../user/user.module';
 import { UserProfile } from '../user/entities/user-profile.entity';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Conversation, Message, Participant, MessageReaction, IceBreaker, UserProfile]),
     JwtModule.register({}),
     UserModule,
+    AiModule,
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',

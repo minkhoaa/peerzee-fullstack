@@ -55,12 +55,23 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                             {user.display_name}
                             {user.age && <span className="ml-2 font-normal">{user.age}</span>}
                         </h2>
-                        {user.location && (
-                            <p className="text-sm text-[#9B9A97] flex items-center gap-1 mt-0.5">
-                                <MapPin className="w-3.5 h-3.5" />
-                                {user.location}
-                            </p>
-                        )}
+                        <div className="flex items-center gap-2 mt-0.5">
+                            {user.location && (
+                                <p className="text-sm text-[#9B9A97] flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5" />
+                                    {user.location}
+                                </p>
+                            )}
+                            {/* Distance badge from PostGIS */}
+                            {user.distance_km !== undefined && user.distance_km !== null && (
+                                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full flex items-center gap-1">
+                                    <MapPin className="w-3 h-3" />
+                                    {user.distance_km < 1
+                                        ? `${Math.round(user.distance_km * 1000)}m`
+                                        : `${user.distance_km.toFixed(1)}km`}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
 

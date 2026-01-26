@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Video, VideoOff, Mic, MicOff, SkipForward, Flag, X, Users, Heart, BookOpen, UserPlus, User } from 'lucide-react';
 import { useVideoDating, VideoDatingState } from '@/hooks/useVideoDating';
+import { BlindDateOverlay } from '@/components/video-dating/BlindDateOverlay';
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 type GenderPref = 'male' | 'female' | 'all';
@@ -30,6 +31,13 @@ export default function VideoDatingPage() {
         queueSize,
         withVideo,
         localStream,
+        // 🎬 AI DATING HOST: Blind Date features
+        blindDate,
+        requestNewTopic,
+        reportActivity,
+        requestReveal,
+        acceptReveal,
+        // Core actions
         connect,
         disconnect,
         joinQueue,
@@ -241,7 +249,17 @@ export default function VideoDatingPage() {
     );
 
     const renderVideoCall = () => (
-        <div className="h-full flex flex-col overflow-hidden">
+        <div className="h-full flex flex-col overflow-hidden relative">
+            {/* 🎬 AI DATING HOST: Blind Date Overlay */}
+            {blindDate && (
+                <BlindDateOverlay
+                    blindDate={blindDate}
+                    onRequestTopic={requestNewTopic}
+                    onRequestReveal={requestReveal}
+                    onAcceptReveal={acceptReveal}
+                />
+            )}
+
             {/* Split Screen Video Container - horizontal */}
             <div className="flex-1 min-h-0 flex flex-row gap-2">
                 {/* Remote Video (left half) */}
@@ -250,7 +268,11 @@ export default function VideoDatingPage() {
                         ref={remoteVideoRef}
                         autoPlay
                         playsInline
-                        className={`w-full h-full object-cover ${!remoteHasVideo ? 'opacity-0' : ''}`}
+                        className={`w-full h-full object-cover transition-all duration-1000 ${!remoteHasVideo ? 'opacity-0' : ''}`}
+                        style={{
+                            // 🎬 AI DATING HOST: Dynamic blur effect
+                            filter: blindDate ? `blur(${blindDate.blurLevel}px)` : 'none',
+                        }}
                     />
 
                     {/* Remote camera off placeholder */}

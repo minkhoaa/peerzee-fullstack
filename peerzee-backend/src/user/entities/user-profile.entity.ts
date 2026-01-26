@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, Index } from 'typeorm';
 import { User } from './user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -40,6 +40,23 @@ export interface AvailabilitySchedule {
   weekendMorning?: boolean;
   weekendAfternoon?: boolean;
   weekendEvening?: boolean;
+}
+
+// Music Vibe Analysis (AI-generated)
+export interface MusicVibeAnalysis {
+  mood: string;           // e.g., 'Chill', 'Energetic', 'Melancholic', 'Romantic'
+  color: string;          // Hex code representing the mood
+  keywords: string[];     // 3 adjectives describing listener's personality
+  quote: string;          // A short meaningful line or vibe description
+  match_vibe: string;     // What kind of person/music matches this vibe
+}
+
+// Extended Spotify data with AI analysis
+export interface SpotifyData {
+  song: string;
+  artist: string;
+  analysis?: MusicVibeAnalysis;
+  analyzedAt?: Date;
 }
 
 // Profile Properties (Notion Database Properties style)
@@ -119,15 +136,15 @@ export class UserProfile {
   @Column({ type: 'jsonb', nullable: true, default: '{}' })
   discovery_settings: DiscoverySettings;
 
-  @ApiProperty({ description: 'Spotify anthem' })
+  @ApiProperty({ description: 'Spotify anthem with AI vibe analysis' })
   @Column({ type: 'jsonb', nullable: true })
-  spotify: { song: string; artist: string } | null;
+  spotify: SpotifyData | null;
 
   @ApiProperty({ description: 'Instagram handle' })
   @Column({ nullable: true })
   instagram: string;
 
-  // Location coordinates (for distance-based matching)
+  // Location coordinates (for distance-based matching using Haversine formula)
   @ApiProperty({ description: 'Latitude coordinate' })
   @Column({ type: 'float', nullable: true })
   latitude: number;
@@ -135,6 +152,20 @@ export class UserProfile {
   @ApiProperty({ description: 'Longitude coordinate' })
   @Column({ type: 'float', nullable: true })
   longitude: number;
+
+  // DEPRECATED: PostGIS Location Point (kept for backward compatibility)
+  // Now using pure Haversine formula with latitude/longitude columns
+  // This column can be removed in a future migration
+  @ApiProperty({ description: 'DEPRECATED: PostGIS geometry point (use latitude/longitude instead)' })
+  @Index({ spatial: true })
+  @Column({
+    type: 'geometry',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+    select: false, // Don't include in regular queries
+  })
+  locationPoint: string; // TypeORM stores as WKT string or GeoJSON
 
   // Intent Mode (Bumble-style: DATE, STUDY, FRIEND)
   @ApiProperty({ description: 'User intent mode', enum: IntentMode, default: IntentMode.DATE })

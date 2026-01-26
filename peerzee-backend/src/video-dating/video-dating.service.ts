@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { VideoSession } from './entities/video-session.entity';
@@ -11,12 +11,36 @@ export interface QueueEntry {
     gender?: string;
     displayName?: string;
     joinedAt: Date;
+    // Location for Haversine matching
+    latitude?: number;
+    longitude?: number;
+}
+
+/**
+ * 🎬 AI DATING HOST: Active Session State
+ * Tracks the "game state" of each blind date session
+ */
+export interface ActiveBlindSession {
+    sessionId: string;
+    participants: [string, string]; // User IDs
+    blurLevel: number; // Starts at 20px, decreases over time
+    startTime: Date;
+    topicHistory: string[];
+    currentTopic: string;
+    lastActivityTime: Date; // For silence detection
+    introMessage: string;
+    revealTriggered: boolean; // Has the full reveal happened?
 }
 
 @Injectable()
 export class VideoDatingService {
+    private readonly logger = new Logger(VideoDatingService.name);
+
     // In-memory queue (for simplicity, could use Redis in production)
     private queue: Map<string, QueueEntry> = new Map();
+
+    // 🎬 AI DATING HOST: Track active blind date sessions
+    private blindSessions: Map<string, ActiveBlindSession> = new Map();
 
     constructor(
         @InjectRepository(VideoSession)
@@ -90,6 +114,121 @@ export class VideoDatingService {
         return this.sessionRepo.save(session);
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // 🎬 AI DATING HOST: Blind Session Management
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Initialize a blind date session with AI host features
+     */
+    initBlindSession(
+        sessionId: string,
+        user1Id: string,
+        user2Id: string,
+        introMessage: string,
+        initialTopic: string,
+    ): ActiveBlindSession {
+        const session: ActiveBlindSession = {
+            sessionId,
+            participants: [user1Id, user2Id],
+            blurLevel: 20, // Start with high blur (20px)
+            startTime: new Date(),
+            topicHistory: [initialTopic],
+            currentTopic: initialTopic,
+            lastActivityTime: new Date(),
+            introMessage,
+            revealTriggered: false,
+        };
+        this.blindSessions.set(sessionId, session);
+        this.logger.log(`Initialized blind session ${sessionId} with blur level ${session.blurLevel}`);
+        return session;
+    }
+
+    /**
+     * Get blind session state
+     */
+    getBlindSession(sessionId: string): ActiveBlindSession | undefined {
+        return this.blindSessions.get(sessionId);
+    }
+
+    /**
+     * Update blur level (decrease over time or based on engagement)
+     * Returns new blur level
+     */
+    decreaseBlur(sessionId: string, amount: number = 3): number {
+        const session = this.blindSessions.get(sessionId);
+        if (session) {
+            session.blurLevel = Math.max(0, session.blurLevel - amount);
+            this.logger.log(`Session ${sessionId} blur decreased to ${session.blurLevel}`);
+
+            // Check if fully revealed
+            if (session.blurLevel === 0 && !session.revealTriggered) {
+                session.revealTriggered = true;
+                this.logger.log(`Session ${sessionId} FULLY REVEALED! 🎉`);
+            }
+
+            return session.blurLevel;
+        }
+        return 0;
+    }
+
+    /**
+     * Add a new topic to session history
+     */
+    addTopic(sessionId: string, topic: string): void {
+        const session = this.blindSessions.get(sessionId);
+        if (session) {
+            session.topicHistory.push(topic);
+            session.currentTopic = topic;
+            session.lastActivityTime = new Date();
+        }
+    }
+
+    /**
+     * Update activity timestamp (when users are talking)
+     */
+    updateActivity(sessionId: string): void {
+        const session = this.blindSessions.get(sessionId);
+        if (session) {
+            session.lastActivityTime = new Date();
+        }
+    }
+
+    /**
+     * Check if session has been silent too long (>10 seconds)
+     */
+    isSessionSilent(sessionId: string, thresholdMs: number = 10000): boolean {
+        const session = this.blindSessions.get(sessionId);
+        if (!session) return false;
+
+        const silenceDuration = Date.now() - session.lastActivityTime.getTime();
+        return silenceDuration > thresholdMs;
+    }
+
+    /**
+     * Get session duration in seconds
+     */
+    getSessionDuration(sessionId: string): number {
+        const session = this.blindSessions.get(sessionId);
+        if (!session) return 0;
+        return Math.floor((Date.now() - session.startTime.getTime()) / 1000);
+    }
+
+    /**
+     * Cleanup blind session
+     */
+    cleanupBlindSession(sessionId: string): void {
+        this.blindSessions.delete(sessionId);
+        this.logger.log(`Cleaned up blind session ${sessionId}`);
+    }
+
+    /**
+     * Get all active blind sessions (for the game loop)
+     */
+    getActiveBlindSessions(): Map<string, ActiveBlindSession> {
+        return this.blindSessions;
+    }
+
     async endSession(sessionId: string): Promise<void> {
         const session = await this.sessionRepo.findOne({ where: { id: sessionId } });
         if (session) {
@@ -100,6 +239,8 @@ export class VideoDatingService {
             }
             await this.sessionRepo.save(session);
         }
+        // Also cleanup blind session state
+        this.cleanupBlindSession(sessionId);
     }
 
     async reportSession(sessionId: string): Promise<void> {

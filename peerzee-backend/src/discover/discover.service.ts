@@ -51,6 +51,8 @@ export interface DiscoverUserDto {
         languages?: string[];
         lookingFor?: string;
     };
+    // Distance-based matching
+    distance_km?: number;
 }
 
 export interface SwipeResult {
@@ -92,18 +94,26 @@ export class DiscoverService {
      * Excludes: current user, already swiped users
      * CRUCIAL: Only shows users with same intentMode
      * Uses cursor-based pagination for infinite scroll
+     * Optionally filters by distance using Haversine formula
      */
     async getRecommendations(
         userId: string,
         cursor?: string,
         limit: number = 10,
+        userLat?: number,
+        userLong?: number,
+        radiusInKm?: number,
     ): Promise<{ data: DiscoverUserDto[]; nextCursor: string | null; hasMore: boolean }> {
-        // First, get current user's intentMode
+        // First, get current user's intentMode and location
         const currentUser = await this.userRepo.findOne({
             where: { id: userId },
             relations: ['profile'],
         });
         const userIntentMode = currentUser?.profile?.intentMode || 'DATE';
+
+        // Use user's location if not provided
+        const lat = userLat ?? currentUser?.profile?.latitude;
+        const long = userLong ?? currentUser?.profile?.longitude;
 
         // Build query with exclusion using LEFT JOIN (avoids subquery syntax issues)
         const queryBuilder = this.userRepo
@@ -121,41 +131,170 @@ export class DiscoverService {
             // CRUCIAL: Filter by same intentMode
             .andWhere('profile.intentMode = :intentMode', { intentMode: userIntentMode });
 
+        // Add location-based filtering if coordinates provided
+        if (lat && long && radiusInKm) {
+            // Haversine formula for distance calculation
+            queryBuilder
+                .addSelect(
+                    `(6371 * acos(
+                        cos(radians(:lat)) * cos(radians(profile.latitude)) * 
+                        cos(radians(profile.longitude) - radians(:long)) + 
+                        sin(radians(:lat)) * sin(radians(profile.latitude))
+                    ))`,
+                    'distance'
+                )
+                .andWhere('profile.latitude IS NOT NULL')
+                .andWhere('profile.longitude IS NOT NULL')
+                .andWhere(
+                    `(6371 * acos(
+                        cos(radians(:lat)) * cos(radians(profile.latitude)) * 
+                        cos(radians(profile.longitude) - radians(:long)) + 
+                        sin(radians(:lat)) * sin(radians(profile.latitude))
+                    )) <= :radius`
+                )
+                .setParameters({ lat, long, radius: radiusInKm });
+        }
+
         // Cursor-based pagination (cursor = last user ID)
         if (cursor) {
             queryBuilder.andWhere('user.id > :cursor', { cursor });
         }
 
-        // Order by ID for consistent pagination
-        queryBuilder.orderBy('user.id', 'ASC').limit(limit + 1); // Fetch one extra to check hasMore
+        // Order by distance if location-based, otherwise by ID
+        if (lat && long && radiusInKm) {
+            queryBuilder.orderBy('distance', 'ASC').addOrderBy('user.id', 'ASC');
+        } else {
+            queryBuilder.orderBy('user.id', 'ASC');
+        }
 
-        const users = await queryBuilder.getMany();
+        queryBuilder.limit(limit + 1); // Fetch one extra to check hasMore
+
+        const rawResults = await queryBuilder.getRawAndEntities();
+        const users = rawResults.entities;
 
         // Check if there are more results
         const hasMore = users.length > limit;
         const actualUsers = hasMore ? users.slice(0, limit) : users;
         const nextCursor = hasMore ? actualUsers[actualUsers.length - 1]?.id : null;
 
-        // Map to DTO (including profileProperties)
-        const data: DiscoverUserDto[] = actualUsers.map((user) => ({
-            id: user.id,
-            display_name: user.profile?.display_name || user.email.split('@')[0],
-            bio: user.profile?.bio || undefined,
-            location: user.profile?.location || undefined,
-            age: user.profile?.age || undefined,
-            occupation: user.profile?.occupation || undefined,
-            education: user.profile?.education || undefined,
-            photos: (user.profile?.photos as ProfilePhoto[]) || [],
-            prompts: (user.profile?.prompts as ProfilePrompt[]) || [],
-            tags: (user.profile?.tags as string[]) || [],
-            spotify: user.profile?.spotify || undefined,
-            instagram: user.profile?.instagram || undefined,
-            // Rich Profile additions
-            intentMode: user.profile?.intentMode || 'DATE',
-            profileProperties: user.profile?.profileProperties || {},
-        }));
+        // Map to DTO (including profileProperties and distance)
+        const data: DiscoverUserDto[] = actualUsers.map((user, index) => {
+            const rawRow = rawResults.raw[index];
+            const distance = rawRow?.distance ? parseFloat(rawRow.distance) : undefined;
+
+            return {
+                id: user.id,
+                display_name: user.profile?.display_name || user.email.split('@')[0],
+                bio: user.profile?.bio || undefined,
+                location: user.profile?.location || undefined,
+                age: user.profile?.age || undefined,
+                occupation: user.profile?.occupation || undefined,
+                education: user.profile?.education || undefined,
+                photos: (user.profile?.photos as ProfilePhoto[]) || [],
+                prompts: (user.profile?.prompts as ProfilePrompt[]) || [],
+                tags: (user.profile?.tags as string[]) || [],
+                spotify: user.profile?.spotify || undefined,
+                instagram: user.profile?.instagram || undefined,
+                // Rich Profile additions
+                intentMode: user.profile?.intentMode || 'DATE',
+                profileProperties: user.profile?.profileProperties || {},
+                // Distance from Haversine
+                distance_km: distance ? parseFloat(distance.toFixed(2)) : undefined,
+            };
+        });
 
         return { data, nextCursor, hasMore };
+    }
+
+    /**
+     * Get recommendations using Haversine formula distance-based filtering
+     * Pure SQL calculation without PostGIS dependency
+     * Returns users sorted by distance (nearest first)
+     */
+    async getRecommendationsByLocation(
+        userId: string,
+        userLat: number,
+        userLong: number,
+        radiusInKm: number = 50,
+        limit: number = 20,
+    ): Promise<{ data: DiscoverUserDto[]; total: number }> {
+        // First, get current user's intentMode
+        const currentUser = await this.userRepo.findOne({
+            where: { id: userId },
+            relations: ['profile'],
+        });
+        const userIntentMode = currentUser?.profile?.intentMode || 'DATE';
+
+        // Build query with Haversine formula
+        const queryBuilder = this.userRepo
+            .createQueryBuilder('user')
+            .leftJoinAndSelect('user.profile', 'profile')
+            .leftJoin(
+                UserSwipe,
+                'swipe',
+                'swipe.target_id = user.id AND swipe.swiper_id = :userId',
+                { userId },
+            )
+            // Haversine formula for distance calculation (in km)
+            .addSelect(
+                `ROUND(
+                    CAST(
+                        (6371 * acos(
+                            cos(radians(:lat)) * cos(radians(profile.latitude)) * 
+                            cos(radians(profile.longitude) - radians(:long)) + 
+                            sin(radians(:lat)) * sin(radians(profile.latitude))
+                        )) AS numeric
+                    ), 2
+                )`,
+                'distance'
+            )
+            .where('user.id != :userId', { userId })
+            .andWhere('user.status = :status', { status: 'active' })
+            .andWhere('swipe.id IS NULL') // Exclude already swiped users
+            .andWhere('profile."intentMode" = :intentMode', { intentMode: userIntentMode })
+            .andWhere('profile.latitude IS NOT NULL')
+            .andWhere('profile.longitude IS NOT NULL')
+            // Filter by radius using Haversine
+            .andWhere(
+                `(6371 * acos(
+                    cos(radians(:lat)) * cos(radians(profile.latitude)) * 
+                    cos(radians(profile.longitude) - radians(:long)) + 
+                    sin(radians(:lat)) * sin(radians(profile.latitude))
+                )) <= :radius`
+            )
+            .setParameters({ lat: userLat, long: userLong, radius: radiusInKm })
+            .orderBy('distance', 'ASC')
+            .limit(limit);
+
+        const rawResults = await queryBuilder.getRawAndEntities();
+
+        this.logger.log(`Found ${rawResults.entities.length} users within ${radiusInKm}km of (${userLat}, ${userLong})`);
+
+        // Map to DTO with distance
+        const data: DiscoverUserDto[] = rawResults.entities.map((user, index) => {
+            const rawRow = rawResults.raw[index];
+            const distance = rawRow?.distance ? parseFloat(rawRow.distance) : undefined;
+
+            return {
+                id: user.id,
+                display_name: user.profile?.display_name || user.email?.split('@')[0] || 'User',
+                bio: user.profile?.bio || undefined,
+                location: user.profile?.location || undefined,
+                age: user.profile?.age || undefined,
+                occupation: user.profile?.occupation || undefined,
+                education: user.profile?.education || undefined,
+                photos: (user.profile?.photos as ProfilePhoto[]) || [],
+                prompts: (user.profile?.prompts as ProfilePrompt[]) || [],
+                tags: (user.profile?.tags as string[]) || [],
+                spotify: user.profile?.spotify || undefined,
+                instagram: user.profile?.instagram || undefined,
+                intentMode: user.profile?.intentMode || 'DATE',
+                profileProperties: user.profile?.profileProperties || {},
+                distance_km: distance,
+            };
+        });
+
+        return { data, total: rawResults.entities.length };
     }
 
     /**
@@ -315,6 +454,9 @@ export class DiscoverService {
         query: string,
         currentUserId: string,
         limit: number = 10,
+        userLat?: number,
+        userLong?: number,
+        radiusInKm?: number,
     ): Promise<{
         filters: SearchFilters;
         results: (DiscoverUserDto & { matchScore: number })[];
@@ -352,6 +494,37 @@ export class DiscoverService {
         }
         if (filters.intent) {
             queryBuilder.andWhere('profile."intentMode" = :intent', { intent: filters.intent });
+        }
+
+        // Optional location-based filtering with Haversine
+        if (userLat !== undefined && userLong !== undefined && radiusInKm) {
+            queryBuilder
+                .andWhere('profile.latitude IS NOT NULL')
+                .andWhere('profile.longitude IS NOT NULL')
+                .andWhere(
+                    `(6371 * acos(
+                        cos(radians(:lat)) * cos(radians(profile.latitude)) * 
+                        cos(radians(profile.longitude) - radians(:long)) + 
+                        sin(radians(:lat)) * sin(radians(profile.latitude))
+                    )) <= :radius`
+                )
+                .setParameter('lat', userLat)
+                .setParameter('long', userLong)
+                .setParameter('radius', radiusInKm);
+
+            // Add distance calculation
+            queryBuilder.addSelect(
+                `ROUND(
+                    CAST(
+                        (6371 * acos(
+                            cos(radians(:lat)) * cos(radians(profile.latitude)) * 
+                            cos(radians(profile.longitude) - radians(:long)) + 
+                            sin(radians(:lat)) * sin(radians(profile.latitude))
+                        )) AS numeric
+                    ), 2
+                )`,
+                'distance_km'
+            );
         }
 
         // WEIGHTED HYBRID SCORE
@@ -458,6 +631,7 @@ export class DiscoverService {
         const results = rawResults.entities.map((profile, index) => {
             const rawRow = rawResults.raw[index];
             const weightedScore = rawRow?.weightedScore ? parseFloat(rawRow.weightedScore) : 0;
+            const distance = rawRow?.distance_km ? parseFloat(rawRow.distance_km) : undefined;
 
             return {
                 id: profile.user_id,
@@ -476,10 +650,14 @@ export class DiscoverService {
                 profileProperties: profile.profileProperties || {},
                 matchScore: Math.round(weightedScore * 100),
                 matchReason: generateMatchReason(profile, filters), // NEW: Why we match
+                distance_km: distance,
             };
         });
 
-        this.logger.log(`Found ${results.length} results for query: "${query}"`);
+        const locationInfo = userLat !== undefined && userLong !== undefined && radiusInKm
+            ? ` within ${radiusInKm}km`
+            : '';
+        this.logger.log(`Found ${results.length} results for query: "${query}"${locationInfo}`);
 
         return { filters, results };
     }

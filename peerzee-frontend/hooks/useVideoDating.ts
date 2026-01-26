@@ -9,6 +9,16 @@ interface MatchInfo {
   isInitiator: boolean;
 }
 
+// 🎬 AI DATING HOST: Blind Date State
+export interface BlindDateState {
+  introMessage: string;
+  currentTopic: string;
+  blurLevel: number;
+  topicNumber: number;
+  isRescue: boolean;
+  revealRequested: boolean;
+}
+
 export function useVideoDating() {
   const [state, setState] = useState<VideoDatingState>('idle');
   const [matchInfo, setMatchInfo] = useState<MatchInfo | null>(null);
@@ -18,6 +28,9 @@ export function useVideoDating() {
   const [remoteHasVideo, setRemoteHasVideo] = useState(false);
   const [queueSize, setQueueSize] = useState(0);
   const [withVideo, setWithVideo] = useState(true);
+
+  // 🎬 AI DATING HOST: Blind Date state
+  const [blindDate, setBlindDate] = useState<BlindDateState | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
@@ -200,12 +213,44 @@ export function useVideoDating() {
       }
     });
 
-    socket.on('match:found', (data: MatchInfo) => {
+    socket.on('match:found', (data: MatchInfo & { blindDate?: { introMessage: string; initialTopic: string; blurLevel: number } }) => {
       setMatchInfo(data);
       setState('matched');
 
+      // 🎬 AI DATING HOST: Initialize blind date state
+      if (data.blindDate) {
+        setBlindDate({
+          introMessage: data.blindDate.introMessage,
+          currentTopic: data.blindDate.initialTopic,
+          blurLevel: data.blindDate.blurLevel,
+          topicNumber: 1,
+          isRescue: false,
+          revealRequested: false,
+        });
+      }
+
       // Media already acquired in joinQueue, just setup peer connection
       setupPeerConnection(socket, data.sessionId, data.isInitiator);
+    });
+
+    // 🎬 AI DATING HOST: Blur update event
+    socket.on('blind:blur_update', (data: { blurLevel: number; message: string }) => {
+      setBlindDate(prev => prev ? { ...prev, blurLevel: data.blurLevel } : prev);
+    });
+
+    // 🎬 AI DATING HOST: New topic event
+    socket.on('blind:new_topic', (data: { topic: string; isRescue: boolean; topicNumber: number }) => {
+      setBlindDate(prev => prev ? {
+        ...prev,
+        currentTopic: data.topic,
+        topicNumber: data.topicNumber,
+        isRescue: data.isRescue,
+      } : prev);
+    });
+
+    // 🎬 AI DATING HOST: Reveal requested
+    socket.on('blind:reveal_requested', () => {
+      setBlindDate(prev => prev ? { ...prev, revealRequested: true } : prev);
     });
 
     socket.on('call:offer', async (data: { sessionId: string; offer: RTCSessionDescriptionInit }) => {
@@ -317,12 +362,43 @@ export function useVideoDating() {
     if (socketRef.current) {
       socketRef.current.emit('call:report', { reason });
       cleanup();
+      setBlindDate(null);
       setState('idle');
     }
   }, [cleanup]);
 
+  // 🎬 AI DATING HOST: Request new topic
+  const requestNewTopic = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.emit('blind:request_topic');
+    }
+  }, []);
+
+  // 🎬 AI DATING HOST: Report activity (user is speaking)
+  const reportActivity = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.emit('blind:activity');
+    }
+  }, []);
+
+  // 🎬 AI DATING HOST: Request early reveal
+  const requestReveal = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.emit('blind:request_reveal');
+    }
+  }, []);
+
+  // 🎬 AI DATING HOST: Accept reveal request
+  const acceptReveal = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.emit('blind:accept_reveal');
+      setBlindDate(prev => prev ? { ...prev, revealRequested: false } : prev);
+    }
+  }, []);
+
   const disconnect = useCallback(() => {
     cleanup();
+    setBlindDate(null);
     socketRef.current?.disconnect();
     socketRef.current = null;
     setState('idle');
@@ -344,6 +420,13 @@ export function useVideoDating() {
     remoteHasVideo,
     queueSize,
     withVideo,
+    // 🎬 AI DATING HOST: Blind Date state and actions
+    blindDate,
+    requestNewTopic,
+    reportActivity,
+    requestReveal,
+    acceptReveal,
+    // Core actions
     connect,
     disconnect,
     joinQueue,

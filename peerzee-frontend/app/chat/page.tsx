@@ -699,6 +699,7 @@ export default function ChatPage() {
                             onClearFile={handleClearFile}
                             disabled={!activeConversation}
                             userId={userId}
+                            conversationId={activeConversation?.id || null}
                         />
                     </>
                 ) : (

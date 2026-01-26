@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, MessageCircle, Settings, Heart, Video, Search, X, Sparkles, MapPin, Users, GraduationCap, Filter } from 'lucide-react';
 import { ProfileCardStack } from '@/components/discover';
 import ModeSwitcher from '@/components/discover/ModeSwitcher';
+import { LocationRequest } from '@/components/discover/LocationRequest';
 import { useDiscover } from '@/hooks/useDiscover';
 import { useMatchContext } from '@/components/MatchProvider';
 import api, { discoverApi, SearchResult, SearchResponse } from '@/lib/api';
@@ -19,7 +20,14 @@ type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 export default function DiscoverPage() {
     const router = useRouter();
     const { isConnected } = useMatchContext();
-    const { users, isLoading, refetch, swipe, hasNextPage, fetchNextPage } = useDiscover();
+
+    // Location state - must be declared before useDiscover hook
+    const [hasLocation, setHasLocation] = useState<boolean | null>(null);
+    const [userCoords, setUserCoords] = useState<{ lat: number; long: number } | null>(null);
+
+    const { users, isLoading, refetch, swipe, hasNextPage, fetchNextPage } = useDiscover(
+        userCoords ? { lat: userCoords.lat, long: userCoords.long, radius: 50 } : undefined
+    );
 
     // Intent Mode state
     const [intentMode, setIntentMode] = useState<IntentMode>('DATE');
@@ -54,13 +62,31 @@ export default function DiscoverPage() {
                 if (profileRes.data?.profile?.intentMode) {
                     setIntentMode(profileRes.data.profile.intentMode);
                 }
+                // Check if user has location set
+                if (profileRes.data?.profile?.latitude && profileRes.data?.profile?.longitude) {
+                    setHasLocation(true);
+                    setUserCoords({
+                        lat: profileRes.data.profile.latitude,
+                        long: profileRes.data.profile.longitude,
+                    });
+                } else {
+                    setHasLocation(false);
+                }
                 setLikersCount(likersRes.data?.count || 0);
             } catch (e) {
                 console.error('Failed to load data:', e);
+                setHasLocation(false);
             }
         };
         loadData();
     }, []);
+
+    // Handle location grant
+    const handleLocationGranted = (coords: { lat: number; long: number }) => {
+        setHasLocation(true);
+        setUserCoords(coords);
+        refetch(); // Refetch recommendations with new location
+    };
 
     // Handle mode change
     const handleModeChange = useCallback(async (mode: IntentMode) => {
@@ -363,8 +389,8 @@ export default function DiscoverPage() {
                                         <div className="h-1.5 bg-[#252525] rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full rounded-full transition-all ${user.matchScore >= 70 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' :
-                                                        user.matchScore >= 40 ? 'bg-gradient-to-r from-amber-500 to-amber-400' :
-                                                            'bg-gray-500'
+                                                    user.matchScore >= 40 ? 'bg-gradient-to-r from-amber-500 to-amber-400' :
+                                                        'bg-gray-500'
                                                     }`}
                                                 style={{ width: `${user.matchScore}%` }}
                                             />
@@ -385,6 +411,24 @@ export default function DiscoverPage() {
                         onModeChange={handleModeChange}
                         isLoading={isChangingMode}
                     />
+
+                    {/* Location Request Banner */}
+                    {hasLocation === false && (
+                        <div className="mt-3">
+                            <LocationRequest
+                                onLocationGranted={handleLocationGranted}
+                                compact={true}
+                            />
+                        </div>
+                    )}
+
+                    {/* Show distance info when location enabled */}
+                    {hasLocation === true && userCoords && (
+                        <div className="mt-2 flex items-center justify-center gap-1 text-xs text-[#9B9A97]">
+                            <MapPin className="w-3 h-3 text-green-500" />
+                            <span>Tìm kiếm trong bán kính 50km</span>
+                        </div>
+                    )}
                 </div>
             )}
 

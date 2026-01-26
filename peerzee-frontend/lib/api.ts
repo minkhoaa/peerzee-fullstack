@@ -63,6 +63,8 @@ export const chatApi = {
         api.post<{ conversationId: string; isDirect: boolean; isNew: boolean }>(
             `/chat/dm/${targetUserId}`
         ),
+    suggestReply: (conversationId: string) =>
+        api.post<{ suggestions: string[] }>('/chat/suggest-reply', { conversationId }),
 };
 
 // Rich Profile Types for Matching
@@ -155,7 +157,18 @@ export const profileApi = {
 
     getStats: () =>
         api.get<{ matches: number; likes: number; views: number }>('/profile/stats'),
+
+    analyzeProfile: () =>
+        api.post<ProfileAnalysisResult>('/profile/analyze'),
 };
+
+// AI Profile Doctor Types
+export interface ProfileAnalysisResult {
+    score: number;
+    roast: string;
+    advice: string;
+    improved_bios: string[];
+}
 
 // Hybrid Search Types
 export interface SearchFilters {
@@ -168,6 +181,7 @@ export interface SearchFilters {
 export interface SearchResult extends RecommendationUser {
     matchScore: number;
     matchReason?: string; // "Why we match" explanation
+    distance_km?: number; // Distance in kilometers (if location-based search)
 }
 
 export interface SearchResponse {
@@ -179,11 +193,23 @@ export interface SearchResponse {
 
 // Discover API for hybrid semantic search
 export const discoverApi = {
-    search: (query: string, limit: number = 10) =>
-        api.get<SearchResponse>(`/discover/search?q=${encodeURIComponent(query)}&limit=${limit}`),
+    search: (query: string, limit: number = 10, lat?: number, long?: number, radius?: number) => {
+        let url = `/discover/search?q=${encodeURIComponent(query)}&limit=${limit}`;
+        if (lat !== undefined && long !== undefined) {
+            url += `&lat=${lat}&long=${long}`;
+            if (radius) url += `&radius=${radius}`;
+        }
+        return api.get<SearchResponse>(url);
+    },
 
-    getRecommendations: (cursor?: string, limit: number = 10) =>
-        api.get(`/discover/recommendations?${cursor ? `cursor=${cursor}&` : ''}limit=${limit}`),
+    getRecommendations: (cursor?: string, limit: number = 10, lat?: number, long?: number, radius?: number) => {
+        let url = `/discover/recommendations?${cursor ? `cursor=${cursor}&` : ''}limit=${limit}`;
+        if (lat !== undefined && long !== undefined) {
+            url += `&lat=${lat}&long=${long}`;
+            if (radius) url += `&radius=${radius}`;
+        }
+        return api.get(url);
+    },
 
     swipe: (data: SwipeRequest) =>
         api.post<SwipeResponse>('/discover/swipe', data),

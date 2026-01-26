@@ -258,4 +258,55 @@ export class ChatService {
     const shuffled = defaultPrompts.sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
   }
+
+  /**
+   * Get conversation context for AI reply suggestions
+   * Returns last N messages and partner's profile
+   */
+  async getConversationContext(conversationId: string, currentUserId: string, messageLimit: number = 10) {
+    // Get conversation with participants
+    const conversation = await this.convRepo.findOne({
+      where: { id: conversationId },
+      relations: ['participants'],
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    // Find partner's user_id
+    const partnerParticipant = conversation.participants.find(p => p.user_id !== currentUserId);
+    if (!partnerParticipant) {
+      throw new NotFoundException('Partner not found in conversation');
+    }
+
+    // Get last N messages
+    const messages = await this.msgRepo.find({
+      where: { conversation_id: conversationId, isDeleted: false },
+      order: { seq: 'DESC' },
+      take: messageLimit,
+    });
+
+    // Reverse to get chronological order
+    const chatHistory = messages.reverse().map(msg => ({
+      sender: msg.sender_id,
+      body: msg.body || '',
+    }));
+
+    // Get partner's profile
+    const partnerProfile = await this.profileRepo.findOne({
+      where: { user_id: partnerParticipant.user_id },
+    });
+
+    return {
+      chatHistory,
+      partnerProfile: partnerProfile ? {
+        display_name: partnerProfile.display_name,
+        bio: partnerProfile.bio,
+        occupation: partnerProfile.occupation,
+        tags: partnerProfile.tags,
+      } : {},
+      partnerId: partnerParticipant.user_id,
+    };
+  }
 }
