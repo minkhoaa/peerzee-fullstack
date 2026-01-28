@@ -11,6 +11,11 @@ export interface QueueEntry {
     gender?: string;
     displayName?: string;
     joinedAt: Date;
+    // AI-based matching data
+    embedding?: number[];  // 768-dim vector for similarity
+    bio?: string;
+    tags?: string[];
+    age?: number;
     // Location for Haversine matching
     latitude?: number;
     longitude?: number;
@@ -65,53 +70,134 @@ export class VideoDatingService {
     }
 
     /**
-     * Find a compatible match for the given user
+     * 🤖 AI-POWERED MATCHING: Find best match using vector similarity
      * Match criteria:
-     * - Same intentMode
-     * - Compatible gender preferences (if both specify 'all' or match each other's criteria)
-     * - Not the same user
+     * 1. Same intentMode (hard filter)
+     * 2. Gender preference compatible (hard filter)
+     * 3. Highest embedding cosine similarity (AI ranking)
      */
     findMatch(userId: string): QueueEntry | null {
+        const currentUser = this.queue.get(userId);
+        if (!currentUser) {
+            this.logger.debug(`findMatch: User ${userId} not in queue`);
+            return null;
+        }
+
+        if (!currentUser.embedding) {
+            this.logger.warn(`findMatch: User ${userId} has no embedding, falling back to first match`);
+            // Fallback to simple matching if no embedding
+            return this.findSimpleMatch(userId);
+        }
+
+        this.logger.debug(`findMatch: 🤖 AI matching for user ${userId}, intentMode=${currentUser.intentMode}`);
+        this.logger.debug(`findMatch: Current queue size: ${this.queue.size}`);
+
+        let bestMatch: QueueEntry | null = null;
+        let bestSimilarity = -1;
+
+        for (const [candidateId, candidate] of this.queue.entries()) {
+            if (candidateId === userId) {
+                continue;
+            }
+
+            // Hard filter: Same intent mode
+            if (candidate.intentMode !== currentUser.intentMode) {
+                continue;
+            }
+
+            // Hard filter: Gender preference compatibility
+            const userPref = currentUser.genderPreference;
+            const candidatePref = candidate.genderPreference;
+            const userGender = currentUser.gender || 'unknown';
+            const candidateGender = candidate.gender || 'unknown';
+
+            const bothAcceptAll = userPref === 'all' && candidatePref === 'all';
+            const userWantsCandidate = userPref === 'all' || userPref === candidateGender;
+            const candidateWantsUser = candidatePref === 'all' || candidatePref === userGender;
+
+            if (!bothAcceptAll && !(userWantsCandidate && candidateWantsUser)) {
+                continue;
+            }
+
+            // Calculate cosine similarity if candidate has embedding
+            if (candidate.embedding) {
+                const similarity = this.cosineSimilarity(currentUser.embedding, candidate.embedding);
+                this.logger.debug(`findMatch: Candidate ${candidateId} similarity: ${similarity.toFixed(3)}`);
+
+                if (similarity > bestSimilarity) {
+                    bestSimilarity = similarity;
+                    bestMatch = candidate;
+                }
+            } else {
+                // Candidate without embedding gets default score
+                if (bestSimilarity < 0.5) {
+                    bestMatch = candidate;
+                    bestSimilarity = 0.5;
+                }
+            }
+        }
+
+        if (bestMatch) {
+            this.logger.log(`✅ AI MATCH FOUND: User ${userId} matched with ${bestMatch.userId} (similarity: ${bestSimilarity.toFixed(3)})`);
+            return bestMatch;
+        }
+
+        this.logger.debug(`❌ NO MATCH FOUND for user ${userId}`);
+        return null;
+    }
+
+    /**
+     * Fallback simple matching when embeddings not available
+     */
+    private findSimpleMatch(userId: string): QueueEntry | null {
         const currentUser = this.queue.get(userId);
         if (!currentUser) return null;
 
         for (const [candidateId, candidate] of this.queue.entries()) {
             if (candidateId === userId) continue;
-
-            // Same intent mode
             if (candidate.intentMode !== currentUser.intentMode) continue;
 
-            // Gender preference compatibility (simplified - 'all' matches everyone)
             const userPref = currentUser.genderPreference;
             const candidatePref = candidate.genderPreference;
 
-            // Both have 'all' preference - match
             if (userPref === 'all' && candidatePref === 'all') {
                 return candidate;
             }
-
-            // Check if preferences match
-            const userGender = currentUser.gender || 'unknown';
-            const candidateGender = candidate.gender || 'unknown';
-
-            const userWantsCandidate = userPref === 'all' || userPref === candidateGender;
-            const candidateWantsUser = candidatePref === 'all' || candidatePref === userGender;
-
-            if (userWantsCandidate && candidateWantsUser) {
-                return candidate;
-            }
         }
-
         return null;
     }
 
+    /**
+     * Calculate cosine similarity between two vectors
+     */
+    private cosineSimilarity(vecA: number[], vecB: number[]): number {
+        if (vecA.length !== vecB.length) {
+            this.logger.error('Vector dimension mismatch');
+            return 0;
+        }
+
+        let dotProduct = 0;
+        let normA = 0;
+        let normB = 0;
+
+        for (let i = 0; i < vecA.length; i++) {
+            dotProduct += vecA[i] * vecB[i];
+            normA += vecA[i] * vecA[i];
+            normB += vecB[i] * vecB[i];
+        }
+
+        const denominator = Math.sqrt(normA) * Math.sqrt(normB);
+        return denominator === 0 ? 0 : dotProduct / denominator;
+    }
+
     async createSession(user1Id: string, user2Id: string, intentMode: string): Promise<VideoSession> {
+        const em = this.em.fork();
         const session = new VideoSession();
         session.user1Id = user1Id;
         session.user2Id = user2Id;
         session.intentMode = intentMode;
         session.status = 'active';
-        await this.em.persistAndFlush(session);
+        await em.persistAndFlush(session);
         return session;
     }
 
@@ -231,14 +317,16 @@ export class VideoDatingService {
     }
 
     async endSession(sessionId: string): Promise<void> {
-        const session = await this.sessionRepo.findOne({ id: sessionId });
+        const em = this.em.fork();
+        const sessionRepo = em.getRepository(VideoSession);
+        const session = await sessionRepo.findOne({ id: sessionId });
         if (session) {
             session.status = 'ended';
             session.endedAt = new Date();
             if (session.startedAt) {
                 session.durationSeconds = Math.floor((session.endedAt.getTime() - session.startedAt.getTime()) / 1000);
             }
-            await this.em.persistAndFlush(session);
+            await em.persistAndFlush(session);
         }
         // Also cleanup blind session state
         this.cleanupBlindSession(sessionId);

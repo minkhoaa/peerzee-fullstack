@@ -25,10 +25,10 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
     return (
         <div
             ref={cardRef}
-            className="w-full h-full bg-[#202020] border border-[#2F2F2F] rounded-2xl overflow-hidden flex flex-col"
+            className="w-full h-full bg-[#FDF0F1] rounded-[40px] shadow-xl shadow-[#CD6E67]/15 overflow-hidden flex flex-col"
         >
-            {/* Cover Image - 30% height */}
-            <div className="relative h-[30%] min-h-[180px] flex-shrink-0">
+            {/* Cover Image - 40% height */}
+            <div className="relative h-[40%] min-h-[240px] flex-shrink-0">
                 <img
                     src={coverPhoto}
                     alt={user.display_name}
@@ -36,14 +36,14 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                     onClick={() => user.photos?.[0]?.id && onContentClick?.(user.photos[0].id, 'photo')}
                 />
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#202020] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#FDF0F1] via-transparent to-transparent" />
             </div>
 
-            {/* Scrollable Body - 70% */}
+            {/* Scrollable Body - 60% */}
             <div className="flex-1 overflow-y-auto px-5 pb-5 -mt-8 relative z-10">
                 {/* Avatar + Name + Age + Location */}
                 <div className="flex items-end gap-4 mb-4">
-                    <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-[#2F2F2F] bg-[#191919] flex-shrink-0">
+                    <div className="w-20 h-20 rounded-[20px] overflow-hidden border-4 border-white bg-[#ECC8CD] shadow-md flex-shrink-0">
                         <img
                             src={user.photos?.[1]?.url || coverPhoto}
                             alt={user.display_name}
@@ -51,20 +51,20 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                         />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h2 className="text-2xl font-semibold text-[#E3E3E3] truncate">
+                        <h2 className="text-2xl font-black text-[#3E3229] truncate">
                             {user.display_name}
-                            {user.age && <span className="ml-2 font-normal">{user.age}</span>}
+                            {user.age && <span className="ml-2 font-extrabold">{user.age}</span>}
                         </h2>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center gap-2 mt-1">
                             {user.location && (
-                                <p className="text-sm text-[#9B9A97] flex items-center gap-1">
+                                <p className="text-sm text-[#7A6862] font-semibold flex items-center gap-1">
                                     <MapPin className="w-3.5 h-3.5" />
                                     {user.location}
                                 </p>
                             )}
                             {/* Distance badge from PostGIS */}
                             {user.distance_km !== undefined && user.distance_km !== null && (
-                                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full flex items-center gap-1">
+                                <span className="px-2 py-1 bg-[#ECC8CD] text-[#3E3229] text-xs rounded-full flex items-center gap-1 font-bold shadow-sm">
                                     <MapPin className="w-3 h-3" />
                                     {user.distance_km < 1
                                         ? `${Math.round(user.distance_km * 1000)}m`
@@ -78,14 +78,14 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                 {/* Occupation & Education */}
                 <div className="space-y-2 mb-5">
                     {user.occupation && (
-                        <div className="flex items-center gap-2 text-sm text-[#9B9A97]">
-                            <Briefcase className="w-4 h-4 flex-shrink-0" />
+                        <div className="flex items-center gap-2 text-sm text-[#7A6862] font-semibold">
+                            <Briefcase className="w-4 h-4 flex-shrink-0 text-[#CD6E67]" />
                             <span className="truncate">{user.occupation}</span>
                         </div>
                     )}
                     {user.education && (
-                        <div className="flex items-center gap-2 text-sm text-[#9B9A97]">
-                            <GraduationCap className="w-4 h-4 flex-shrink-0" />
+                        <div className="flex items-center gap-2 text-sm text-[#7A6862] font-semibold">
+                            <GraduationCap className="w-4 h-4 flex-shrink-0 text-[#CD6E67]" />
                             <span className="truncate">{user.education}</span>
                         </div>
                     )}
@@ -99,7 +99,7 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                 {/* Tags / Vibes */}
                 {user.tags && user.tags.length > 0 && (
                     <div className="mb-5">
-                        <h3 className="text-xs font-medium text-[#9B9A97] uppercase tracking-wider mb-2">
+                        <h3 className="text-xs font-extrabold text-[#7A6862] uppercase tracking-wider mb-3">
                             My Vibe
                         </h3>
                         <div className="flex flex-wrap gap-2">
@@ -107,7 +107,7 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                                 <button
                                     key={idx}
                                     onClick={() => onContentClick?.(`tag-${idx}`, 'vibe')}
-                                    className="px-3 py-1.5 text-sm bg-[#191919] text-[#E3E3E3] rounded-lg border border-[#2F2F2F] hover:border-[#505050] transition-colors"
+                                    className="px-3 py-2 text-sm bg-white text-[#3E3229] font-bold rounded-[15px] shadow-sm hover:bg-[#CD6E67] hover:text-white transition-all"
                                 >
                                     {tag}
                                 </button>
@@ -119,10 +119,10 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                 {/* Bio */}
                 {user.bio && (
                     <div className="mb-5">
-                        <h3 className="text-xs font-medium text-[#9B9A97] uppercase tracking-wider mb-2">
+                        <h3 className="text-xs font-extrabold text-[#7A6862] uppercase tracking-wider mb-3">
                             About Me
                         </h3>
-                        <p className="text-sm text-[#E3E3E3] leading-relaxed">
+                        <p className="text-sm text-[#3E3229] font-semibold leading-relaxed">
                             {user.bio}
                         </p>
                     </div>
@@ -135,25 +135,25 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                             <button
                                 key={prompt.id || idx}
                                 onClick={() => onContentClick?.(prompt.id || `prompt-${idx}`, 'prompt')}
-                                className="w-full text-left p-4 bg-[#191919] rounded-xl border border-[#2F2F2F] hover:border-[#505050] transition-colors"
+                                className="w-full text-left p-4 bg-white rounded-[20px] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all"
                             >
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-lg">{prompt.emoji || '💬'}</span>
-                                    <span className="text-xs font-medium text-[#9B9A97]">
+                                    <span className="text-xs font-extrabold text-[#7A6862] uppercase tracking-wide">
                                         {prompt.question}
                                     </span>
                                 </div>
-                                <p className="text-sm text-[#E3E3E3]">{prompt.answer}</p>
+                                <p className="text-sm text-[#3E3229] font-semibold">{prompt.answer}</p>
                             </button>
                         ))}
                     </div>
                 )}
 
                 {/* Spotify & Instagram */}
-                <div className="flex items-center gap-4 text-xs text-[#9B9A97]">
+                <div className="flex items-center gap-4 text-xs text-[#7A6862] font-semibold">
                     {user.spotify && (
                         <div className="flex items-center gap-1.5">
-                            <Music className="w-3.5 h-3.5 text-green-400" />
+                            <Music className="w-4 h-4 text-[#CD6E67]" />
                             <span className="truncate max-w-[120px]">
                                 {user.spotify.song}
                             </span>
@@ -161,7 +161,7 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                     )}
                     {user.instagram && (
                         <div className="flex items-center gap-1.5">
-                            <Instagram className="w-3.5 h-3.5 text-pink-400" />
+                            <Instagram className="w-4 h-4 text-[#CD6E67]" />
                             <span>{user.instagram}</span>
                         </div>
                     )}

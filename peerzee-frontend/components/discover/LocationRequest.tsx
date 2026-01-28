@@ -93,12 +93,12 @@ export function LocationRequest({ onLocationUpdate, onLocationGranted, currentLo
     // Success state - compact display
     if (status === 'success' && coords) {
         return (
-            <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-xl">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-green-400 text-sm font-medium">Đã bật định vị</span>
+            <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-[20px] border-l-4 border-[#CD6E67] shadow-sm">
+                <CheckCircle className="w-5 h-5 text-[#CD6E67]" />
+                <span className="text-[#3E3229] text-sm font-bold">Đã bật định vị</span>
                 <button
                     onClick={requestLocation}
-                    className="ml-auto text-xs text-green-400 hover:text-green-300 flex items-center gap-1"
+                    className="ml-auto text-xs text-[#CD6E67] hover:text-[#B55B55] flex items-center gap-1 font-extrabold uppercase tracking-wide hover:underline"
                 >
                     <Navigation className="w-3 h-3" />
                     Cập nhật
@@ -110,14 +110,14 @@ export function LocationRequest({ onLocationUpdate, onLocationGranted, currentLo
     // Error/Denied state
     if (status === 'error' || status === 'denied') {
         return (
-            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
+            <div className="p-4 bg-[#FDF0F1] rounded-[20px] border-l-4 border-red-400 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
                     <AlertCircle className="w-5 h-5 text-red-400" />
-                    <span className="text-red-400 font-medium">{errorMessage}</span>
+                    <span className="text-[#3E3229] font-bold">{errorMessage}</span>
                 </div>
                 <button
                     onClick={requestLocation}
-                    className="w-full py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-sm rounded-lg transition-colors"
+                    className="w-full py-2 bg-white hover:bg-red-50 text-red-500 text-sm font-bold rounded-full transition-colors shadow-sm"
                 >
                     Thử lại
                 </button>
@@ -128,10 +128,10 @@ export function LocationRequest({ onLocationUpdate, onLocationGranted, currentLo
     // Requesting state
     if (status === 'requesting') {
         return (
-            <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+            <div className="p-4 bg-[#FDF0F1] rounded-[20px] border-l-4 border-[#CD6E67] shadow-sm">
                 <div className="flex items-center justify-center gap-3">
-                    <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
-                    <span className="text-blue-400 font-medium">Đang xác định vị trí...</span>
+                    <Loader2 className="w-5 h-5 text-[#CD6E67] animate-spin" />
+                    <span className="text-[#3E3229] font-bold">Đang xác định vị trí...</span>
                 </div>
             </div>
         );
@@ -142,11 +142,13 @@ export function LocationRequest({ onLocationUpdate, onLocationGranted, currentLo
         return (
             <button
                 onClick={requestLocation}
-                className="w-full px-3 py-2 bg-blue-500/10 border border-blue-500/30 hover:border-blue-400/50 rounded-xl transition-all flex items-center gap-2"
+                className="w-full px-4 py-4 bg-[#FDF0F1] rounded-[20px] border-l-8 border-[#CD6E67] shadow-sm hover:shadow-md transition-all flex items-center justify-between"
             >
-                <MapPin className="w-4 h-4 text-blue-400" />
-                <span className="text-blue-400 text-sm font-medium">Bật định vị để tìm gần bạn</span>
-                <Navigation className="w-4 h-4 text-blue-400 ml-auto" />
+                <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-[#CD6E67]" />
+                    <span className="text-[#3E3229] text-sm font-bold">Bật định vị để tìm gần bạn</span>
+                </div>
+                <span className="text-[#CD6E67] font-extrabold uppercase tracking-wide hover:underline text-xs">BẬT</span>
             </button>
         );
     }
@@ -154,20 +156,20 @@ export function LocationRequest({ onLocationUpdate, onLocationGranted, currentLo
     return (
         <button
             onClick={requestLocation}
-            className="w-full p-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 hover:border-blue-400/50 rounded-xl transition-all group"
+            className="w-full p-5 bg-[#FDF0F1] rounded-[30px] shadow-lg shadow-[#CD6E67]/10 hover:shadow-xl hover:shadow-[#CD6E67]/15 transition-all group border-l-8 border-[#CD6E67]"
         >
-            <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <MapPin className="w-5 h-5 text-blue-400" />
+            <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#CD6E67] flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+                    <MapPin className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left flex-1">
-                    <p className="text-white font-medium">📍 Bật Định Vị</p>
-                    <p className="text-[#9B9A97] text-sm">
+                    <p className="text-[#3E3229] font-black text-lg">📍 Bật Định Vị</p>
+                    <p className="text-[#7A6862] text-sm font-semibold">
                         Tìm người dùng gần bạn, xem khoảng cách
                     </p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                    <Navigation className="w-4 h-4 text-white" />
+                <div className="w-10 h-10 rounded-full bg-[#CD6E67] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                    <Navigation className="w-5 h-5 text-white" />
                 </div>
             </div>
         </button>

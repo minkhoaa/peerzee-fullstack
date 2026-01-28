@@ -70,8 +70,8 @@ const Icons = {
 };
 
 /**
- * ChatWindow - Soft Light Mode with floating bubble messages
- * Clean, airy design with rose accent colors
+ * ChatWindow - Cozy Clay Theme with Claymorphism Bubbles
+ * Warm, soft, romantic design inspired by ToyWorld
  */
 export default function ChatWindow({
     conversation,
@@ -204,11 +204,11 @@ export default function ChatWindow({
         return (
             <div className="px-5 py-2 flex items-center gap-2">
                 <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-1.5 h-1.5 bg-[#CD6E67] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 bg-[#CD6E67] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 bg-[#CD6E67] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-                <span className="text-xs text-zinc-500">
+                <span className="text-xs text-[#7A6862] font-medium">
                     {typingUsers.length === 1
                         ? `${userNames[typingUsers[0]] || 'Someone'} is typing`
                         : `${typingUsers.length} people typing`}
@@ -228,27 +228,27 @@ export default function ChatWindow({
 
         return (
             <div className="flex-1 flex items-center justify-center p-8">
-                <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-rose-500/10 rounded-3xl p-6 max-w-sm text-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-rose-500/30">
-                        <Wand2 className="w-6 h-6 text-white" />
+                <div className="bg-white rounded-[30px] shadow-lg shadow-[#CD6E67]/20 p-8 max-w-sm text-center">
+                    <div className="w-16 h-16 rounded-full bg-[#CD6E67] flex items-center justify-center mx-auto mb-5 shadow-md shadow-[#CD6E67]/30">
+                        <Wand2 className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-zinc-900 font-bold text-lg mb-2">Break the ice! 🧊</h3>
-                    <p className="text-zinc-600 text-sm mb-4">
+                    <h3 className="text-[#3E3229] font-extrabold text-xl mb-3">Break the ice! 🧊</h3>
+                    <p className="text-[#7A6862] text-sm mb-4">
                         Start a conversation with {conversation.name || 'this person'}
                     </p>
                     {isAiGenerated && (
-                        <div className="flex items-center justify-center gap-1 text-[10px] text-rose-600 mb-2">
+                        <div className="flex items-center justify-center gap-1 text-[10px] text-[#CD6E67] font-bold mb-2">
                             <span>✨</span>
                             <span>AI-generated for you</span>
                         </div>
                     )}
-                    <div className="bg-white/50 backdrop-blur-sm border border-white/50 rounded-2xl p-3 mb-4">
-                        <p className="text-zinc-800 text-sm italic">
+                    <div className="bg-[#F3DDE0] rounded-[20px] p-4 mb-5">
+                        <p className="text-[#3E3229] text-sm italic font-medium">
                             "{icebreakerText}"
                         </p>
                     </div>
                     <button
-                        className="w-full py-2.5 bg-gradient-to-r from-rose-500 to-rose-400 hover:scale-[1.02] active:scale-[0.98] text-white text-sm font-medium rounded-full shadow-lg shadow-rose-500/30 transition-all"
+                        className="w-full py-3 bg-[#CD6E67] hover:bg-[#B55B55] hover:scale-105 active:scale-95 text-white text-sm font-bold rounded-full shadow-md shadow-[#CD6E67]/30 transition-all"
                         onClick={() => {
                             onSendIcebreaker(icebreakerText);
                         }}
@@ -262,22 +262,22 @@ export default function ChatWindow({
 
     return (
         <div className="flex-1 flex flex-col min-w-0 bg-transparent">
-            {/* Header - Glassmorphism style */}
-            <div className="h-16 border-b border-white/40 bg-white/60 backdrop-blur-md shadow-sm shadow-rose-500/5 flex items-center px-6 justify-between shrink-0 sticky top-0 z-10">
+            {/* Header - Cozy Clay style */}
+            <div className="h-18 border-b border-[#ECC8CD]/50 bg-transparent flex items-center px-6 justify-between shrink-0 sticky top-0 z-10">
                 {/* Left - User Info */}
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white font-semibold text-sm border border-zinc-100 shadow-sm">
+                        <div className="w-14 h-14 rounded-full bg-[#CD6E67] flex items-center justify-center text-white font-extrabold text-base border-2 border-white shadow-md shadow-[#CD6E67]/20">
                             {conversation.name?.slice(0, 1)?.toUpperCase() || '?'}
                         </div>
                         {/* Status dot */}
                         {isOnline && (
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
                         )}
                     </div>
                     <div>
-                        <h2 className="text-zinc-900 font-semibold text-base">{conversation.name || 'Unknown'}</h2>
-                        <p className={`text-xs ${isOnline ? 'text-green-600' : 'text-zinc-400'}`}>
+                        <h2 className="text-[#3E3229] font-extrabold text-base">{conversation.name || 'Unknown'}</h2>
+                        <p className={`text-xs font-medium ${isOnline ? 'text-green-600' : 'text-[#7A6862]'}`}>
                             {isOnline ? '● Online' : 'Offline'}
                         </p>
                     </div>
@@ -294,15 +294,15 @@ export default function ChatWindow({
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
                                 placeholder="Search messages..."
-                                className="px-3 py-1.5 text-sm bg-white border border-zinc-200 rounded-full text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-200 w-48"
+                                className="px-4 py-2 text-sm bg-[#F3DDE0] border-none rounded-full text-[#3E3229] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#CD6E67] w-48"
                                 autoFocus
                             />
-                            <button onClick={() => { setShowSearchBar(false); setSearchQuery(''); }} className="p-1.5 text-zinc-400 hover:text-zinc-900">
+                            <button onClick={() => { setShowSearchBar(false); setSearchQuery(''); }} className="p-2 text-[#7A6862] hover:text-[#3E3229] rounded-full hover:bg-[#F3DDE0] transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
                     ) : (
-                        <button onClick={() => setShowSearchBar(true)} className="p-2 text-zinc-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
+                        <button onClick={() => setShowSearchBar(true)} className="p-2 text-[#7A6862] hover:text-[#CD6E67] hover:bg-[#F3DDE0] rounded-full transition-colors">
                             <Search className="w-5 h-5" />
                         </button>
                     )}
@@ -312,14 +312,14 @@ export default function ChatWindow({
                         <>
                             <button
                                 onClick={onStartAudioCall}
-                                className="p-2 text-zinc-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                className="p-2 text-[#7A6862] hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
                                 title="Audio Call"
                             >
                                 <Phone className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={onStartVideoCall}
-                                className="p-2 text-zinc-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                className="p-2 text-[#7A6862] hover:text-[#CD6E67] hover:bg-[#F3DDE0] rounded-full transition-colors"
                                 title="Video Call"
                             >
                                 <Video className="w-5 h-5" />
@@ -328,14 +328,14 @@ export default function ChatWindow({
                     ) : (
                         <button
                             onClick={onEndCall}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors animate-pulse"
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors animate-pulse"
                             title="End Call"
                         >
                             <Phone className="w-5 h-5" />
                         </button>
                     )}
 
-                    <button className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors">
+                    <button className="p-2 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors">
                         <MoreHorizontal className="w-5 h-5" />
                     </button>
                 </div>
@@ -350,12 +350,12 @@ export default function ChatWindow({
                         <div
                             key={m.id}
                             id={`message-${m.id}`}
-                            className={`flex ${getMessageSpacing(index)} ${m.sender_id === userId ? 'justify-end' : 'justify-start'} ${highlightedMessageId === m.id ? 'animate-pulse bg-rose-100 -mx-2 px-2 rounded-lg' : ''}`}
+                            className={`flex ${getMessageSpacing(index)} ${m.sender_id === userId ? 'justify-end' : 'justify-start'} ${highlightedMessageId === m.id ? 'animate-pulse bg-[#F8E3E6] -mx-2 px-2 rounded-lg' : ''}`}
                         >
                             {/* Deleted Message */}
                             {m.isDeleted ? (
                                 <div className="flex items-center justify-center w-full">
-                                    <span className="text-sm text-zinc-400 italic">Message deleted</span>
+                                    <span className="text-sm text-[#7A6862] italic font-medium">Message deleted</span>
                                 </div>
                             ) : editingMessageId === m.id ? (
                                 /* Editing State */
@@ -363,15 +363,15 @@ export default function ChatWindow({
                                     <textarea
                                         value={editContent}
                                         onChange={(e) => setEditContent(e.target.value)}
-                                        className="w-full px-3 py-2 text-sm bg-white border border-zinc-200 rounded-2xl text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-200 resize-none"
+                                        className="w-full px-4 py-3 text-sm bg-white border-none rounded-[20px] text-[#3E3229] focus:outline-none focus:ring-2 focus:ring-[#CD6E67] resize-none shadow-sm"
                                         rows={2}
                                         autoFocus
                                     />
                                     <div className="flex gap-2 justify-end">
-                                        <button onClick={() => { setEditingMessageId(null); setEditContent(''); }} className="px-3 py-1.5 text-xs text-zinc-600 hover:text-zinc-900 transition-colors">
+                                        <button onClick={() => { setEditingMessageId(null); setEditContent(''); }} className="px-4 py-2 text-xs font-bold text-[#7A6862] hover:text-[#3E3229] transition-colors">
                                             Cancel
                                         </button>
-                                        <button onClick={handleEditSubmit} className="px-3 py-1.5 text-xs bg-rose-500 text-white rounded-full hover:bg-rose-600 transition-colors">
+                                        <button onClick={handleEditSubmit} className="px-4 py-2 text-xs bg-[#CD6E67] text-white font-bold rounded-full hover:bg-[#B55B55] shadow-sm shadow-[#CD6E67]/30 transition-colors">
                                             Save
                                         </button>
                                     </div>
@@ -381,7 +381,7 @@ export default function ChatWindow({
                                 <div className="flex flex-col max-w-[70%]">
                                     {/* Sender name - show above first message in group for other users */}
                                     {m.sender_id !== userId && isFirstInMessageGroup(index) && (
-                                        <span className="text-xs text-zinc-500 mb-1 ml-9">
+                                        <span className="text-xs text-[#7A6862] font-medium mb-1 ml-9">
                                             {getSenderName(m.sender_id)}
                                         </span>
                                     )}
@@ -391,28 +391,28 @@ export default function ChatWindow({
                                         {m.sender_id !== userId && (
                                             <div className="shrink-0 mb-0.5">
                                                 {shouldShowAvatar(index) ? (
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-zinc-300 to-zinc-400 flex items-center justify-center text-white text-xs font-medium border border-zinc-100 shadow-sm">
+                                                    <div className="w-9 h-9 rounded-full bg-[#CD6E67] flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-sm">
                                                         {getSenderName(m.sender_id).slice(0, 1).toUpperCase()}
                                                     </div>
                                                 ) : (
-                                                    <div className="w-8 h-8" />
+                                                    <div className="w-9 h-9" />
                                                 )}
                                             </div>
                                         )}
 
                                         {/* Message Bubble */}
                                         <div className={`relative ${getBubbleRadius(m, index)} ${m.sender_id === userId
-                                            ? 'bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-300/40'
-                                            : 'bg-white/80 backdrop-blur-sm border border-white/50 text-zinc-900 shadow-md'
+                                            ? 'bg-[#CD6E67] text-white shadow-md shadow-[#CD6E67]/30'
+                                            : 'bg-white text-[#3E3229] shadow-sm shadow-[#ECC8CD]'
                                             } transition-all duration-200`}>
 
                                             {/* Quoted Reply */}
                                             {m.replyTo && (
                                                 <div className={`mx-2 mt-2 px-3 py-2 rounded-lg text-xs border-l-2 ${m.sender_id === userId
-                                                    ? 'bg-rose-600 border-white/30'
-                                                    : 'bg-zinc-50 border-zinc-200'
+                                                    ? 'bg-[#B55B55] border-white/50'
+                                                    : 'bg-[#F3DDE0] border-[#CD6E67]'
                                                     }`}>
-                                                    <p className="font-medium mb-0.5 opacity-70">
+                                                    <p className="font-semibold mb-0.5 opacity-80">
                                                         {m.replyTo.sender_id === userId ? 'You' : getSenderName(m.replyTo.sender_id)}
                                                     </p>
                                                     <p className="truncate opacity-80">
@@ -452,7 +452,7 @@ export default function ChatWindow({
 
                                             {/* Edited indicator */}
                                             {m.isEdited && (
-                                                <span className={`absolute -bottom-4 text-[10px] text-zinc-400 ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>edited</span>
+                                                <span className={`absolute -bottom-4 text-[10px] text-[#7A6862] font-medium ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>edited</span>
                                             )}
 
                                             {/* Reactions */}
@@ -467,11 +467,11 @@ export default function ChatWindow({
                                             {/* Read status */}
                                             {m.sender_id === userId && index === messages.length - 1 && (
                                                 <div className="absolute -bottom-5 right-0 flex items-center gap-1">
-                                                    <span className={m.readAt ? 'text-rose-500' : 'text-zinc-400'}>
+                                                    <span className={m.readAt ? 'text-[#CD6E67]' : 'text-[#7A6862]'}>
                                                         {m.readAt ? Icons.doubleCheck : Icons.singleCheck}
                                                     </span>
                                                     {m.readAt && (
-                                                        <span className="text-[10px] text-rose-500">Seen</span>
+                                                        <span className="text-[10px] text-[#CD6E67] font-medium">Seen</span>
                                                     )}
                                                 </div>
                                             )}
@@ -481,7 +481,7 @@ export default function ChatWindow({
                                         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={() => onReply(m)}
-                                                className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
+                                                className="p-1.5 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
                                                 title="Reply"
                                             >
                                                 <Reply className="w-4 h-4" />
@@ -490,17 +490,17 @@ export default function ChatWindow({
                                             <div className="relative">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setOpenEmojiPickerId(openEmojiPickerId === m.id ? null : m.id); }}
-                                                    className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
+                                                    className="p-1.5 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
                                                 >
                                                     <Smile className="w-4 h-4" />
                                                 </button>
                                                 {openEmojiPickerId === m.id && (
-                                                    <div className={`absolute bottom-full mb-1 z-50 bg-white border border-zinc-100 rounded-xl shadow-lg p-1.5 flex gap-0.5 ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>
+                                                    <div className={`absolute bottom-full mb-1 z-50 bg-white rounded-[20px] shadow-lg shadow-[#CD6E67]/20 p-2 flex gap-1 ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>
                                                         {['👍', '❤️', '😂', '😮', '😢'].map(emoji => (
                                                             <button
                                                                 key={emoji}
                                                                 onClick={() => { onReaction(m.id, emoji); setOpenEmojiPickerId(null); }}
-                                                                className="text-sm hover:bg-zinc-100 rounded p-1.5 hover:scale-110 transition-transform"
+                                                                className="text-sm hover:bg-[#F3DDE0] rounded-full p-1.5 hover:scale-110 transition-transform"
                                                             >
                                                                 {emoji}
                                                             </button>
@@ -513,21 +513,21 @@ export default function ChatWindow({
                                                 <div className="relative">
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === m.id ? null : m.id); }}
-                                                        className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
+                                                        className="p-1.5 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
                                                     >
                                                         <MoreVertical className="w-4 h-4" />
                                                     </button>
                                                     {openMenuId === m.id && (
-                                                        <div className="absolute top-full mt-1 right-0 z-50 bg-white border border-zinc-100 rounded-xl shadow-lg overflow-hidden min-w-[100px]">
+                                                        <div className="absolute top-full mt-1 right-0 z-50 bg-white rounded-[20px] shadow-lg shadow-[#CD6E67]/20 overflow-hidden min-w-[100px]">
                                                             <button
                                                                 onClick={() => { setEditingMessageId(m.id); setEditContent(m.body); setOpenMenuId(null); }}
-                                                                className="w-full px-3 py-2 text-xs text-left text-zinc-800 hover:bg-zinc-50 transition-colors"
+                                                                className="w-full px-4 py-2.5 text-xs text-left text-[#3E3229] font-medium hover:bg-[#F3DDE0] transition-colors"
                                                             >
                                                                 Edit
                                                             </button>
                                                             <button
                                                                 onClick={() => { onDeleteMessage(m); setOpenMenuId(null); }}
-                                                                className="w-full px-3 py-2 text-xs text-left text-red-500 hover:bg-red-50 transition-colors"
+                                                                className="w-full px-4 py-2.5 text-xs text-left text-red-500 font-medium hover:bg-red-50 transition-colors"
                                                             >
                                                                 Delete
                                                             </button>

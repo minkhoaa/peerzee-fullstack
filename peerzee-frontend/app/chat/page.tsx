@@ -644,7 +644,7 @@ export default function ChatPage() {
     const isOtherOnline = onlineUsers.has(otherUserId);
 
     return (
-        <div className="flex w-full h-[100dvh] overflow-hidden antialiased">
+        <div className="h-screen w-full bg-[#ECC8CD] p-6 flex gap-6 overflow-hidden font-[family-name:var(--font-nunito)]">
             {/* Sidebar */}
             <ChatSidebar
                 conversations={conversations}
@@ -663,7 +663,7 @@ export default function ChatPage() {
             />
 
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col min-w-0 h-full relative">
+            <div className="flex-1 h-full bg-[#FDF0F1]/60 backdrop-blur-md rounded-[40px] shadow-xl shadow-[#CD6E67]/10 flex flex-col relative overflow-hidden">
                 {activeConversation ? (
                     <>
                         <ChatWindow
@@ -704,8 +704,8 @@ export default function ChatPage() {
                     </>
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-20 h-20 rounded-full bg-white shadow-lg shadow-[#CD6E67]/20 flex items-center justify-center mb-5">
+                            <svg className="w-10 h-10 text-[#CD6E67]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
@@ -714,20 +714,20 @@ export default function ChatPage() {
                                 />
                             </svg>
                         </div>
-                        <p className="text-zinc-500 text-sm">Select a conversation to start chatting</p>
+                        <p className="text-[#7A6862] text-base font-medium">Select a conversation to start chatting</p>
                     </div>
                 )}
             </div>
 
             {/* New Chat Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-2xl w-96 border border-zinc-100 shadow-2xl">
-                        <div className="flex justify-between items-center mb-5">
-                            <h3 className="font-semibold text-lg text-zinc-900">New Chat</h3>
+                <div className="fixed inset-0 bg-[#3E3229]/30 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-[#FDF0F1] p-8 rounded-[30px] w-96 shadow-2xl shadow-[#CD6E67]/20">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-extrabold text-2xl text-[#3E3229]">New Chat</h3>
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
+                                className="p-2 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -739,7 +739,7 @@ export default function ChatPage() {
                             value={newConvName}
                             onChange={(e) => setNewConvName(e.target.value)}
                             placeholder="Conversation name"
-                            className="w-full px-4 py-3 text-sm border border-zinc-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-rose-200 focus:border-transparent mb-3 placeholder-zinc-400 text-zinc-800"
+                            className="w-full px-5 py-3 text-sm border-none rounded-full bg-[#F3DDE0] text-[#3E3229] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#CD6E67] mb-3"
                         />
 
                         <div className="relative mb-4">
@@ -747,10 +747,10 @@ export default function ChatPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search by email..."
-                                className="w-full px-4 py-3 text-sm border border-zinc-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-rose-200 focus:border-transparent placeholder-zinc-400 text-zinc-800"
+                                className="w-full px-5 py-3 text-sm border-none rounded-full bg-[#F3DDE0] text-[#3E3229] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#CD6E67]"
                             />
                             {searchResults.length > 0 && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-xl shadow-lg max-h-40 overflow-y-auto z-10">
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-[20px] shadow-lg shadow-[#CD6E67]/10 max-h-40 overflow-y-auto z-10">
                                     {searchResults.map((user) => (
                                         <div
                                             key={user.id}
@@ -759,25 +759,25 @@ export default function ChatPage() {
                                                 setSearchQuery(user.email);
                                                 setSearchResults([]);
                                             }}
-                                            className="px-4 py-3 text-sm cursor-pointer hover:bg-zinc-50 border-b border-zinc-100 last:border-b-0 transition-colors text-zinc-800"
+                                            className="px-5 py-3 text-sm cursor-pointer hover:bg-[#F8E3E6] border-b border-[#ECC8CD]/30 last:border-b-0 transition-colors text-[#3E3229]"
                                         >
-                                            <div className="font-medium">{user.email}</div>
+                                            <div className="font-semibold">{user.email}</div>
                                             {user.fullName && user.fullName !== "string" && (
-                                                <div className="text-xs text-zinc-500">{user.fullName}</div>
+                                                <div className="text-xs text-[#7A6862]">{user.fullName}</div>
                                             )}
                                         </div>
                                     ))}
                                 </div>
                             )}
                             {searching && (
-                                <div className="absolute top-full left-0 right-0 mt-2 px-4 py-3 text-xs text-zinc-500 bg-white border border-zinc-200 rounded-xl shadow-lg">
+                                <div className="absolute top-full left-0 right-0 mt-2 px-5 py-3 text-xs text-[#7A6862] bg-white rounded-[20px] shadow-lg shadow-[#CD6E67]/10">
                                     Searching...
                                 </div>
                             )}
                         </div>
 
                         {newUserId && (
-                            <div className="flex items-center gap-2 text-xs text-green-600 mb-4">
+                            <div className="flex items-center gap-2 text-xs text-green-600 mb-4 font-medium">
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path
                                         fillRule="evenodd"
@@ -792,13 +792,13 @@ export default function ChatPage() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="flex-1 py-3 text-sm font-medium border border-zinc-200 rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
+                                className="flex-1 py-3 text-sm font-bold border-none rounded-full text-[#7A6862] bg-white hover:bg-[#F3DDE0] transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleCreateConversation}
-                                className="flex-1 py-3 text-sm font-medium bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors"
+                                className="flex-1 py-3 text-sm font-bold bg-[#CD6E67] text-white rounded-full hover:bg-[#B55B55] shadow-md shadow-[#CD6E67]/30 transition-all"
                             >
                                 Create
                             </button>

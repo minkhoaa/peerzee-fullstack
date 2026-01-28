@@ -137,11 +137,9 @@ export class ProfileService {
                 });
 
                 if (embedding.length > 0) {
-                    // Use raw SQL to update vector column
-                    await this.em.getConnection().execute(
-                        `UPDATE user_profiles SET "bioEmbedding" = $1::vector, "embeddingUpdatedAt" = $2 WHERE id = $3`,
-                        [JSON.stringify(embedding), new Date(), profile.id]
-                    );
+                    profile.bioEmbedding = embedding;
+                    profile.embeddingUpdatedAt = new Date();
+                    await this.em.persistAndFlush(profile);
                     this.logger.log(`Embedding saved for user ${userId}`);
                 }
             } catch (error) {
@@ -265,20 +263,20 @@ export class ProfileService {
         // Query matches count
         const matchesCount = await this.em.getConnection().execute<any[]>(
             `SELECT COUNT(*) FROM user_swipes 
-             WHERE target_id = $1 AND action = 'LIKE' 
-             AND EXISTS (SELECT 1 FROM user_swipes s2 WHERE s2.user_id = $1 AND s2.target_id = user_swipes.user_id AND s2.action = 'LIKE')`,
-            [userId]
+             WHERE target_id = ? AND action = 'LIKE' 
+             AND EXISTS (SELECT 1 FROM user_swipes s2 WHERE s2.user_id = ? AND s2.target_id = user_swipes.user_id AND s2.action = 'LIKE')`,
+            [userId, userId]
         );
 
         // Query likes received
         const likesCount = await this.em.getConnection().execute<any[]>(
-            `SELECT COUNT(*) FROM user_swipes WHERE target_id = $1 AND action = 'LIKE'`,
+            `SELECT COUNT(*) FROM user_swipes WHERE target_id = ? AND action = 'LIKE'`,
             [userId]
         );
 
         // Views would require a profile_views table - for now return estimated
         const viewsCount = await this.em.getConnection().execute<any[]>(
-            `SELECT COUNT(DISTINCT user_id) FROM user_swipes WHERE target_id = $1`,
+            `SELECT COUNT(DISTINCT user_id) FROM user_swipes WHERE target_id = ?`,
             [userId]
         );
 
@@ -309,6 +307,7 @@ export class ProfileService {
             instagram: profile.instagram,
             discovery_settings: profile.discovery_settings,
             intentMode: profile.intentMode,
+            bioEmbedding: profile.bioEmbedding,
         };
     }
 
@@ -343,15 +342,9 @@ export class ProfileService {
                 batch.map(async (profile) => {
                     const embedding = await this.aiService.generateProfileEmbedding(profile);
                     if (embedding.length > 0) {
-                        // Use raw SQL to save embedding to vector column
-                        const vectorString = `[${embedding.join(',')}]`;
-                        await this.em.getConnection().execute(
-                            `UPDATE user_profiles 
-                             SET "bioEmbedding" = $1::vector, 
-                                 "embeddingUpdatedAt" = NOW() 
-                             WHERE user_id = $2`,
-                            [vectorString, profile.user.id]
-                        );
+                        profile.bioEmbedding = embedding;
+                        profile.embeddingUpdatedAt = new Date();
+                        await this.em.persistAndFlush(profile);
                         return { userId: profile.user.id, success: true };
                     }
                     return { userId: profile.user.id, success: false, reason: 'Empty profile' };

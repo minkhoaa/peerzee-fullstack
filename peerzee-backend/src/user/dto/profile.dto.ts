@@ -400,4 +400,7 @@ export class ProfileResponseDto {
 
     @ApiPropertyOptional({ enum: IntentMode })
     intentMode?: IntentMode;
+
+    @ApiPropertyOptional({ type: [Number] })
+    bioEmbedding?: number[];
 }

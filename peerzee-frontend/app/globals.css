@@ -2,6 +2,11 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Font Family Definitions */
+.font-nunito {
+  font-family: var(--font-nunito);
+}
+
 /* Dreamy Glass Background - Animated Mesh Gradient */
 body {
     background-color: #FDF4F5; /* Very pale pink base */

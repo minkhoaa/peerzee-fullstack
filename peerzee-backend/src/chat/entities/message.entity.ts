@@ -26,10 +26,10 @@ export class Message {
   @Property({ type: 'bigint' })
   seq: string;
 
-  @Property({ type: 'timestamptz', onCreate: () => new Date() })
+  @Property({ type: 'timestamptz', onCreate: () => new Date(), nullable: true, fieldName: 'created_at' })
   createdAt: Date = new Date();
 
-  @Property({ type: 'timestamptz', onCreate: () => new Date(), onUpdate: () => new Date() })
+  @Property({ type: 'timestamptz', onCreate: () => new Date(), onUpdate: () => new Date(), nullable: true, fieldName: 'updated_at' })
   updatedAt: Date = new Date();
 
   @Property({ type: 'boolean', default: false })

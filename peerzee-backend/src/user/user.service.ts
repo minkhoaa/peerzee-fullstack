@@ -68,7 +68,7 @@ export class UserService {
   async login(dto: LoginDto) {
     // Use raw SQL to get password_hash since MikroORM lazy loads protected fields
     const users = await this.em.getConnection().execute<any[]>(
-      `SELECT id, email, password_hash FROM users WHERE email = $1`,
+      `SELECT id, email, password_hash FROM users WHERE email = ?`,
       [dto.email]
     );
 
@@ -186,10 +186,10 @@ export class UserService {
       `SELECT u.id, u.email, p.display_name
        FROM users u
        LEFT JOIN user_profiles p ON u.id = p.user_id
-       WHERE u.id != $1
-       AND (u.email ILIKE $2 OR p.display_name ILIKE $2)
+       WHERE u.id != ?
+       AND (u.email ILIKE ? OR p.display_name ILIKE ?)
        LIMIT 10`,
-      [currentUserId, `%${query}%`]
+      [currentUserId, `%${query}%`, `%${query}%`]
     );
 
     return users.map((u) => ({

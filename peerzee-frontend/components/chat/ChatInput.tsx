@@ -27,8 +27,8 @@ interface ChatInputProps {
 }
 
 /**
- * ChatInput - Floating island input bar with Soft Light Mode design
- * Pill-shaped with soft shadows and rose accent send button
+ * ChatInput - Cozy Clay floating input with pill-shaped design
+ * Warm pink colors and rounded edges inspired by ToyWorld
  */
 export default function ChatInput({
     value,
@@ -210,21 +210,21 @@ export default function ChatInput({
     }, [showSuggestions]);
 
     return (
-        <div className="p-4 bg-white border-t border-zinc-100">
+        <div className="p-4 bg-transparent">
             {/* Reply Preview */}
             {replyingTo && (
-                <div className="mb-2 mx-2 px-3 py-2 bg-zinc-50 border border-zinc-100 rounded-2xl flex items-center gap-3">
-                    <div className="flex-1 min-w-0 border-l-2 border-rose-500 pl-3">
-                        <p className="text-xs font-medium text-zinc-600">
+                <div className="mb-3 mx-4 px-4 py-3 bg-white rounded-[20px] shadow-sm flex items-center gap-3">
+                    <div className="flex-1 min-w-0 border-l-2 border-[#CD6E67] pl-3">
+                        <p className="text-xs font-bold text-[#7A6862]">
                             Replying to {replyingTo.sender_id === userId ? 'yourself' : 'message'}
                         </p>
-                        <p className="text-sm text-zinc-800 truncate">
+                        <p className="text-sm text-[#3E3229] truncate">
                             {replyingTo.body?.slice(0, 60)}{replyingTo.body && replyingTo.body.length > 60 ? '...' : ''}
                         </p>
                     </div>
                     <button
                         onClick={onCancelReply}
-                        className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
+                        className="p-2 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -233,14 +233,14 @@ export default function ChatInput({
 
             {/* File Preview */}
             {selectedFile && (
-                <div className="mb-2 mx-2 px-3 py-2 bg-zinc-50 border border-zinc-100 rounded-2xl flex items-center gap-3">
+                <div className="mb-3 mx-4 px-4 py-3 bg-white rounded-[20px] shadow-sm flex items-center gap-3">
                     {previewUrl && (
-                        <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-lg" />
+                        <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-xl" />
                     )}
-                    <span className="text-sm text-zinc-800 flex-1 truncate">{selectedFile.name}</span>
+                    <span className="text-sm text-[#3E3229] font-medium flex-1 truncate">{selectedFile.name}</span>
                     <button
                         onClick={onClearFile}
-                        className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-[#7A6862] hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -249,24 +249,24 @@ export default function ChatInput({
 
             {/* Recording UI */}
             {isRecording ? (
-                <div className="m-2 p-3 bg-zinc-100 rounded-[24px] border border-zinc-200 flex items-center gap-4">
+                <div className="mx-4 mb-4 p-4 bg-white rounded-full shadow-lg shadow-[#CD6E67]/20 flex items-center gap-4">
                     <div className="flex items-center gap-3 flex-1">
                         <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-zinc-800 font-mono text-sm">{formatTime(recordingTime)}</span>
-                        <div className="flex-1 h-1 bg-zinc-200 rounded-full overflow-hidden">
+                        <span className="text-[#3E3229] font-mono text-sm font-bold">{formatTime(recordingTime)}</span>
+                        <div className="flex-1 h-2 bg-[#F3DDE0] rounded-full overflow-hidden">
                             <div className="h-full bg-red-500 animate-pulse" style={{ width: '60%' }} />
                         </div>
                     </div>
                     <button
                         onClick={cancelRecording}
-                        className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-[#7A6862] hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                         title="Cancel"
                     >
                         <X className="w-5 h-5" />
                     </button>
                     <button
                         onClick={stopRecording}
-                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
+                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md shadow-red-500/30 transition-all hover:scale-105"
                         title="Send voice message"
                     >
                         <ArrowUp className="w-5 h-5" />
@@ -274,7 +274,7 @@ export default function ChatInput({
                 </div>
             ) : (
                 /* Main Input Container - Floating Island */
-                <form onSubmit={handleSubmit} className="m-2 p-2 bg-zinc-100 rounded-[24px] flex items-center gap-2 focus-within:ring-2 focus-within:ring-rose-100 focus-within:bg-white transition-all">
+                <form onSubmit={handleSubmit} className="mx-4 mb-4 p-2 bg-white rounded-full shadow-lg shadow-[#CD6E67]/10 flex items-center gap-2 focus-within:ring-2 focus-within:ring-[#CD6E67] transition-all">
                     {/* Hidden file input */}
                     <input
                         type="file"
@@ -289,7 +289,7 @@ export default function ChatInput({
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-200 transition-colors"
+                            className="w-10 h-10 rounded-full flex items-center justify-center text-[#7A6862] hover:bg-[#F3DDE0] hover:text-[#3E3229] transition-colors"
                             title="Attach file"
                         >
                             <Paperclip className="w-5 h-5" />
@@ -297,7 +297,7 @@ export default function ChatInput({
                         <button
                             type="button"
                             onClick={startRecording}
-                            className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-200 transition-colors"
+                            className="w-10 h-10 rounded-full flex items-center justify-center text-[#7A6862] hover:bg-[#F3DDE0] hover:text-[#3E3229] transition-colors"
                             title="Voice message"
                             disabled={disabled}
                         >
@@ -312,7 +312,7 @@ export default function ChatInput({
                         onChange={(e) => onChange(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder={replyingTo ? 'Type your reply...' : 'Type a message...'}
-                        className="flex-1 bg-transparent text-zinc-800 placeholder-zinc-400 text-sm resize-none focus:outline-none min-h-[36px] max-h-[150px] py-2"
+                        className="flex-1 bg-transparent text-[#3E3229] placeholder-[#9CA3AF] text-sm resize-none focus:outline-none min-h-[36px] max-h-[150px] py-2"
                         rows={1}
                         disabled={disabled}
                     />
@@ -325,7 +325,7 @@ export default function ChatInput({
                                 type="button"
                                 onClick={fetchSuggestions}
                                 disabled={loadingSuggestions || !conversationId}
-                                className="w-10 h-10 rounded-full flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-10 h-10 rounded-full flex items-center justify-center text-[#CD6E67] hover:text-white hover:bg-[#CD6E67] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Gợi ý tin nhắn"
                             >
                                 {loadingSuggestions ? (
@@ -337,66 +337,66 @@ export default function ChatInput({
                             
                             {/* Suggestions Popover */}
                             {showSuggestions && (
-                                <div className="absolute bottom-full right-0 mb-2 bg-white border border-zinc-100 rounded-2xl shadow-xl overflow-hidden min-w-[280px] max-w-[350px]">
+                                <div className="absolute bottom-full right-0 mb-2 bg-white rounded-[25px] shadow-xl shadow-[#CD6E67]/20 overflow-hidden min-w-[280px] max-w-[350px]">
                                     {/* Header */}
-                                    <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
+                                    <div className="px-5 py-4 border-b border-[#ECC8CD]/30 flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <Wand2 className="w-4 h-4 text-rose-500" />
-                                            <span className="text-sm font-medium text-zinc-900">Gợi ý tin nhắn</span>
+                                            <Wand2 className="w-4 h-4 text-[#CD6E67]" />
+                                            <span className="text-sm font-bold text-[#3E3229]">Gợi ý tin nhắn</span>
                                         </div>
                                         <button
                                             type="button"
                                             onClick={() => setShowSuggestions(false)}
-                                            className="p-1 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded transition-colors"
+                                            className="p-1 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
                                     </div>
                                     
                                     {/* Content */}
-                                    <div className="p-2">
+                                    <div className="p-3">
                                         {loadingSuggestions ? (
                                             <div className="flex items-center justify-center gap-3 py-6">
-                                                <Loader2 className="w-5 h-5 text-rose-500 animate-spin" />
-                                                <span className="text-sm text-zinc-600">AI đang suy nghĩ...</span>
+                                                <Loader2 className="w-5 h-5 text-[#CD6E67] animate-spin" />
+                                                <span className="text-sm text-[#7A6862] font-medium">AI đang suy nghĩ...</span>
                                             </div>
                                         ) : suggestionError ? (
                                             <div className="py-4 px-3 text-center">
-                                                <p className="text-sm text-red-500">{suggestionError}</p>
+                                                <p className="text-sm text-red-500 font-medium">{suggestionError}</p>
                                                 <button
                                                     type="button"
                                                     onClick={fetchSuggestions}
-                                                    className="mt-2 text-xs text-rose-500 hover:text-rose-600"
+                                                    className="mt-2 text-xs text-[#CD6E67] hover:text-[#B55B55] font-bold"
                                                 >
                                                     Thử lại
                                                 </button>
                                             </div>
                                         ) : suggestions.length > 0 ? (
-                                            <div className="space-y-1">
+                                            <div className="space-y-2">
                                                 {suggestions.map((suggestion, i) => (
                                                     <button
                                                         key={i}
                                                         type="button"
                                                         onClick={() => handleSuggestionClick(suggestion)}
-                                                        className="w-full px-3 py-2.5 text-left text-sm text-zinc-800 hover:bg-rose-50 hover:text-zinc-900 rounded-xl transition-colors group"
+                                                        className="w-full px-4 py-3 text-left text-sm text-[#3E3229] hover:bg-[#F8E3E6] rounded-[18px] transition-colors group"
                                                     >
                                                         <span className="inline-flex items-center gap-2">
-                                                            <span className="text-rose-500 group-hover:text-rose-600">💬</span>
-                                                            <span className="line-clamp-2">{suggestion}</span>
+                                                            <span className="text-[#CD6E67]">💬</span>
+                                                            <span className="line-clamp-2 font-medium">{suggestion}</span>
                                                         </span>
                                                     </button>
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="py-4 text-center text-sm text-zinc-500">
+                                            <div className="py-4 text-center text-sm text-[#7A6862]">
                                                 Bấm để tạo gợi ý
                                             </div>
                                         )}
                                     </div>
                                     
                                     {/* Footer */}
-                                    <div className="px-3 py-2 border-t border-zinc-100 bg-zinc-50">
-                                        <p className="text-xs text-zinc-500 text-center">
+                                    <div className="px-4 py-3 border-t border-[#ECC8CD]/30 bg-[#FDF0F1]">
+                                        <p className="text-xs text-[#7A6862] text-center font-medium">
                                             ✨ Gợi ý dựa trên lịch sử chat & profile đối phương
                                         </p>
                                     </div>
@@ -408,7 +408,7 @@ export default function ChatInput({
                         <button
                             type="submit"
                             disabled={disabled || (!value.trim() && !selectedFile)}
-                            className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 shadow-lg shadow-rose-200 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            className="w-10 h-10 rounded-full bg-[#CD6E67] text-white flex items-center justify-center hover:bg-[#B55B55] shadow-md shadow-[#CD6E67]/30 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                             title="Send message"
                         >
                             <ArrowUp className="w-5 h-5" />

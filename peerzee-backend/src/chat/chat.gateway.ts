@@ -7,6 +7,7 @@ import {
   MessageBody,
   SubscribeMessage,
 } from '@nestjs/websockets';
+import { MikroORM, RequestContext } from '@mikro-orm/core';
 import { ChatService } from './chat.service';
 import { UserService } from '../user/user.service';
 import { NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
@@ -34,29 +35,42 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly chatService: ChatService,
     private readonly userService: UserService,
     private readonly presenceService: PresenceService,
+    private readonly orm: MikroORM,
   ) { }
 
   async handleConnection(client: Socket) {
-    const userId: string = client.data.user_id;
-    await client.join(userId);
-    const convIds = await this.chatService.getConversationIdsOfUser(userId);
-    for (const id of convIds) {
-      await client.join(id);
-    }
-    if (!this.onlineUsers.has(userId)) {
-      this.onlineUsers.set(userId, new Set());
-    }
-    this.onlineUsers.get(userId)?.add(client.id);
-    if (this.onlineUsers.get(userId)?.size === 1) {
-      // First socket connection - set online in Redis
-      await this.presenceService.setOnline(userId);
-      this.server.emit('user:online', {
-        userId,
-        isOnline: true
-      });
-    }
-    const onlineUserIds = Array.from(this.onlineUsers.keys());
-    client.emit('user:online-list', onlineUserIds);
+    // Wrap in RequestContext to allow DB access via ChatService
+    await RequestContext.create(this.orm.em, async () => {
+      const userId: string = client.data.user_id;
+      if (!userId) return; // Wait, client.data.user_id might be undefined here if middleware ran before? 
+      // Actually middleware runs during handshake, and handleConnection runs after.
+      // But verify logic is in afterInit(middleware).
+
+      await client.join(userId);
+      try {
+        const convIds = await this.chatService.getConversationIdsOfUser(userId);
+        for (const id of convIds) {
+          await client.join(id);
+        }
+      } catch (err) {
+        console.error('Error in handleConnection:', err);
+      }
+
+      if (!this.onlineUsers.has(userId)) {
+        this.onlineUsers.set(userId, new Set());
+      }
+      this.onlineUsers.get(userId)?.add(client.id);
+      if (this.onlineUsers.get(userId)?.size === 1) {
+        // First socket connection - set online in Redis
+        await this.presenceService.setOnline(userId);
+        this.server.emit('user:online', {
+          userId,
+          isOnline: true
+        });
+      }
+      const onlineUserIds = Array.from(this.onlineUsers.keys());
+      client.emit('user:online-list', onlineUserIds);
+    });
   }
 
   async handleDisconnect(client: Socket) {
@@ -129,74 +143,78 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @ConnectedSocket() socket,
     @MessageBody() dto: JoinDto,
   ) {
-    const user_id = socket.data.user_id;
-    console.log(`[JOIN] User ${user_id} joining room ${dto.conversation_id}`);
-    await socket.join(dto.conversation_id);
-    var massages = await this.chatService.getMessages(dto.conversation_id);
-    console.log(`[JOIN] Socket rooms:`, Array.from(socket.rooms));
-    return massages;
+    return RequestContext.create(this.orm.em, async () => {
+      const user_id = socket.data.user_id;
+      console.log(`[JOIN] User ${user_id} joining room ${dto.conversation_id}`);
+      await socket.join(dto.conversation_id);
+      var massages = await this.chatService.getMessages(dto.conversation_id);
+      console.log(`[JOIN] Socket rooms:`, Array.from(socket.rooms));
+      return massages;
+    });
   }
   @SubscribeMessage('conversation:send')
   async sendMessage(
     @ConnectedSocket() socket,
     @MessageBody() dto: SendMessageDto,
   ) {
-    const user_id = socket.data.user_id;
-    console.log(`[SEND] user_id from socket: ${user_id}`);
-    console.log(`[SEND] dto:`, dto);
+    return RequestContext.create(this.orm.em, async () => {
+      const user_id = socket.data.user_id;
+      console.log(`[SEND] user_id from socket: ${user_id}`);
+      console.log(`[SEND] dto:`, dto);
 
-    if (!user_id) {
-      return {
-        ok: false,
-        message: 'User not authenticated - user_id is missing from socket',
-      };
-    }
+      if (!user_id) {
+        return {
+          ok: false,
+          message: 'User not authenticated - user_id is missing from socket',
+        };
+      }
 
-    try {
-      const msg = await this.chatService.chatMessage(
-        dto.conversation_id,
-        user_id,
-        dto.body,
-        dto.fileUrl,
-        dto.fileName,
-        dto.fileType,
-        dto.reply_to_id,
-      );
-      const roomSockets = await this.server
-        .in(dto.conversation_id)
-        .fetchSockets();
-      console.log(
-        `[SEND] Emitting to room ${dto.conversation_id}, sockets in room: ${roomSockets.length}`,
-      );
-      roomSockets.forEach((s) => console.log(`  - Socket: ${s.id}`));
+      try {
+        const msg = await this.chatService.chatMessage(
+          dto.conversation_id,
+          user_id,
+          dto.body,
+          dto.fileUrl,
+          dto.fileName,
+          dto.fileType,
+          dto.reply_to_id,
+        );
+        const roomSockets = await this.server
+          .in(dto.conversation_id)
+          .fetchSockets();
+        console.log(
+          `[SEND] Emitting to room ${dto.conversation_id}, sockets in room: ${roomSockets.length}`,
+        );
+        roomSockets.forEach((s) => console.log(`  - Socket: ${s.id}`));
 
-      this.server.to(dto.conversation_id).emit('message:new', {
-        id: msg.id,
-        conversation_id: msg.conversation?.id,
-        sender_id: msg.sender_id,
-        body: msg.body,
-        seq: msg.seq,
-        createdAt: msg.createdAt,
-        updatedAt: msg.updatedAt,
-        fileUrl: msg.fileUrl,
-        fileName: msg.fileName,
-        fileType: msg.fileType,
-        reply_to_id: msg.replyTo?.id,
-        replyTo: msg.replyTo ? {
-          id: msg.replyTo.id,
-          body: msg.replyTo.body,
-          sender_id: msg.replyTo.sender_id,
-        } : null,
-      });
+        this.server.to(dto.conversation_id).emit('message:new', {
+          id: msg.id,
+          conversation_id: msg.conversation?.id,
+          sender_id: msg.sender_id,
+          body: msg.body,
+          seq: msg.seq,
+          createdAt: msg.createdAt,
+          updatedAt: msg.updatedAt,
+          fileUrl: msg.fileUrl,
+          fileName: msg.fileName,
+          fileType: msg.fileType,
+          reply_to_id: msg.replyTo?.id,
+          replyTo: msg.replyTo ? {
+            id: msg.replyTo.id,
+            body: msg.replyTo.body,
+            sender_id: msg.replyTo.sender_id,
+          } : null,
+        });
 
-      var massages = await this.chatService.getMessages(dto.conversation_id);
+        var massages = await this.chatService.getMessages(dto.conversation_id);
 
-      return massages;
-    } catch (error: any) {
-      console.error(`[SEND ERROR]`, error.message);
-      console.error(`[SEND ERROR] Stack:`, error.stack);
-      return { ok: false, message: error.message || 'Failed to send message' };
-    }
+        return massages;
+      } catch (error: any) {
+        console.error(`[SEND ERROR]`, error.message);
+        console.error(`[SEND ERROR] Stack:`, error.stack);
+        return { ok: false, message: error.message || 'Failed to send message' };
+      }
+    });
   }
 
   @SubscribeMessage('conversation:messages')
@@ -205,22 +223,24 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @MessageBody()
     dto: { conversation_id: string; limit?: number; before_seq?: string },
   ) {
-    const user_id = socket.data.user_id;
-    if (!user_id) {
-      return { ok: false, message: 'Not authenticated' };
-    }
+    return RequestContext.create(this.orm.em, async () => {
+      const user_id = socket.data.user_id;
+      if (!user_id) {
+        return { ok: false, message: 'Not authenticated' };
+      }
 
-    // Check if user is participant
-    const isParticipant = await this.chatService.isParticipants(
-      user_id,
-      dto.conversation_id,
-    );
-    if (!isParticipant) {
-      return { ok: false, message: 'Not a participant of this conversation' };
-    }
+      // Check if user is participant
+      const isParticipant = await this.chatService.isParticipants(
+        user_id,
+        dto.conversation_id,
+      );
+      if (!isParticipant) {
+        return { ok: false, message: 'Not a participant of this conversation' };
+      }
 
-    const messages = await this.chatService.getMessages(dto.conversation_id);
-    return { ok: true, messages };
+      const messages = await this.chatService.getMessages(dto.conversation_id);
+      return { ok: true, messages };
+    });
   }
 
   @SubscribeMessage('typing:start')
@@ -228,21 +248,23 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: TypingDto,
   ) {
-    const user_id = socket.data.user_id;
-    if (!user_id) return;
+    return RequestContext.create(this.orm.em, async () => {
+      const user_id = socket.data.user_id;
+      if (!user_id) return;
 
-    // Get display_name
-    let display_name = 'Someone';
-    try {
-      const user = await this.userService.getUserProfile(user_id);
-      display_name = user.profile?.display_name || user.email || 'Someone';
-    } catch { }
+      // Get display_name
+      let display_name = 'Someone';
+      try {
+        const user = await this.userService.getUserProfile(user_id);
+        display_name = user.profile?.display_name || user.email || 'Someone';
+      } catch { }
 
-    socket.to(dto.conversation_id).emit('typing:update', {
-      conversation_id: dto.conversation_id,
-      user_id: user_id,
-      display_name: display_name,
-      isTyping: true,
+      socket.to(dto.conversation_id).emit('typing:update', {
+        conversation_id: dto.conversation_id,
+        user_id: user_id,
+        display_name: display_name,
+        isTyping: true,
+      });
     });
   }
 

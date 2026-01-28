@@ -115,7 +115,7 @@ export class DiscoverService {
 
         let distanceCalc = 'NULL as distance';
         let distanceFilter = '';
-        const params: any[] = [userId, userIntentMode, userId, 'active']; // $1, $2, $3, $4
+        const params: any[] = [userId, 'active', userIntentMode, userId]; // u.id != ?, u.status = ?, p.intentMode = ?, s.swiper_id = ?
 
         // Add location-based filtering if coordinates provided
         if (lat && long && radiusInKm) {
@@ -149,12 +149,12 @@ export class DiscoverService {
             SELECT u.id, u.email, p.*, ${distanceCalc}
             FROM users u
             LEFT JOIN user_profiles p ON u.id = p.user_id
-            WHERE u.id != $1
-            AND u.status = $4
-            AND p."intentMode" = $2
+            WHERE u.id != ?
+            AND u.status = ?
+            AND p."intentMode" = ?
             AND NOT EXISTS (
                 SELECT 1 FROM user_swipes s 
-                WHERE s.target_id = u.id AND s.swiper_id = $3
+                WHERE s.target_id = u.id AND s.swiper_id = ?
             )
             ${distanceFilter}
             ${cursorFilter}

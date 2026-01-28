@@ -12,7 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { EntityRepository } from '@mikro-orm/core';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { VideoDatingService } from './video-dating.service';
 import { JoinQueueDto } from './dto/join-queue.dto';
 import { AiService } from '../ai/ai.service';
@@ -49,6 +49,7 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         private readonly aiService: AiService,
         @InjectRepository(UserProfile)
         private readonly profileRepo: EntityRepository<UserProfile>,
+        private readonly em: EntityManager,
     ) { }
 
     /**
@@ -57,6 +58,33 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
     afterInit() {
         this.logger.log('🎬 VideoDatingGateway initialized - Starting AI Host Game Loop');
         this.startGameLoop();
+    }
+
+    /**
+     * 🤖 Build rich profile text for embedding generation
+     */
+    private buildProfileText(profile: UserProfile): string {
+        const parts: string[] = [];
+
+        if (profile.bio) parts.push(profile.bio);
+        if (profile.occupation) parts.push(`Works as ${profile.occupation}`);
+        if (profile.education) parts.push(`Studies at ${profile.education}`);
+        if (profile.tags && profile.tags.length > 0) {
+            parts.push(`Interests: ${profile.tags.join(', ')}`);
+        }
+        if (profile.prompts && profile.prompts.length > 0) {
+            profile.prompts.forEach(p => {
+                parts.push(`${p.question}: ${p.answer}`);
+            });
+        }
+        if (profile.spotify?.song) {
+            parts.push(`Favorite music: ${profile.spotify.song} by ${profile.spotify.artist}`);
+        }
+        if (profile.intentMode) {
+            parts.push(`Looking for: ${profile.intentMode.toLowerCase()}`);
+        }
+
+        return parts.join('. ');
     }
 
     /**
@@ -101,9 +129,11 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
 
                 if (shouldRotateTopic && blindSession.topicHistory.length < 10) {
                     try {
+                        const em = this.em.fork();
+                        const profileRepo = em.getRepository(UserProfile);
                         const [profileA, profileB] = await Promise.all([
-                            this.profileRepo.findOne({ user: { id: blindSession.participants[0] } }),
-                            this.profileRepo.findOne({ user: { id: blindSession.participants[1] } }),
+                            profileRepo.findOne({ user: { id: blindSession.participants[0] } }),
+                            profileRepo.findOne({ user: { id: blindSession.participants[1] } }),
                         ]);
 
                         if (profileA && profileB) {
@@ -215,27 +245,56 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
             return { ok: false, error: 'Already in a video session' };
         }
 
-        // Add to queue
+        // 🤖 AI MATCHING: Fetch profile and generate embedding
+        const em = this.em.fork();
+        const profileRepo = em.getRepository(UserProfile);
+        const profile = await profileRepo.findOne({ user: { id: userId } });
+
+        let embedding: number[] | undefined;
+        if (profile) {
+            // Generate embedding from profile content
+            const profileText = this.buildProfileText(profile);
+            try {
+                embedding = await this.aiService.generateEmbedding(profileText);
+                this.logger.debug(`Generated embedding for user ${userId} (${embedding.length} dimensions)`);
+            } catch (error) {
+                this.logger.error(`Failed to generate embedding for ${userId}:`, error);
+            }
+        }
+
+        // Add to queue with AI data
         this.videoDatingService.addToQueue({
             userId,
             socketId: client.id,
             intentMode: dto.intentMode,
             genderPreference: dto.genderPreference || 'all',
+            gender: profile?.gender,
+            displayName: profile?.display_name,
+            embedding,
+            bio: profile?.bio,
+            tags: profile?.tags,
+            age: profile?.age,
+            latitude: profile?.latitude,
+            longitude: profile?.longitude,
             joinedAt: new Date(),
         });
 
-        this.logger.log(`User ${userId} joined queue (${dto.intentMode})`);
+        this.logger.log(`User ${userId} joined queue (intentMode=${dto.intentMode}, hasEmbedding=${!!embedding})`);
 
         // Broadcast updated queue size to all connected clients
         this.broadcastQueueSize();
 
-        // Try to find a match
+        // Try to find AI-powered match
+        this.logger.debug(`🤖 Attempting AI match for user ${userId}...`);
         const match = this.videoDatingService.findMatch(userId);
 
         if (match) {
+            this.logger.log(`Match found! Creating session between ${userId} and ${match.userId}`);
             await this.createVideoSession(userId, client.id, match.userId, match.socketId, dto.intentMode);
             // Broadcast again after match (queue size decreased)
             this.broadcastQueueSize();
+        } else {
+            this.logger.debug(`No match found for user ${userId}, staying in queue`);
         }
 
         return { ok: true, inQueue: true };
@@ -437,9 +496,11 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         }
 
         try {
+            const em = this.em.fork();
+            const profileRepo = em.getRepository(UserProfile);
             const [profileA, profileB] = await Promise.all([
-                this.profileRepo.findOne({ user: { id: blindSession.participants[0] } }),
-                this.profileRepo.findOne({ user: { id: blindSession.participants[1] } }),
+                profileRepo.findOne({ user: { id: blindSession.participants[0] } }),
+                profileRepo.findOne({ user: { id: blindSession.participants[1] } }),
             ]);
 
             if (!profileA || !profileB) {
@@ -530,6 +591,53 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
     /**
      * User accepts reveal request
      */
+    @SubscribeMessage('chat:message')
+    handleChatMessage(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { message: string },
+    ) {
+        const userId = client.data.userId;
+        this.logger.debug(`[CHAT] Received message from user ${userId}: "${data.message}"`);
+        
+        if (!userId) {
+            this.logger.error('[CHAT] User not authenticated');
+            return { ok: false, error: 'Not authenticated' };
+        }
+
+        const sessionId = this.userSessions.get(userId);
+        if (!sessionId) {
+            this.logger.error(`[CHAT] User ${userId} not in a session`);
+            return { ok: false, error: 'Not in a session' };
+        }
+
+        const session = this.activeSessions.get(sessionId);
+        if (!session) {
+            this.logger.error(`[CHAT] Session ${sessionId} not found in activeSessions`);
+            return { ok: false, error: 'Session not found' };
+        }
+
+        // Determine partner socket
+        const partnerSocketId = session.user1Id === userId ? session.user2 : session.user1;
+        const partnerId = session.user1Id === userId ? session.user2Id : session.user1Id;
+        
+        this.logger.log(`[CHAT] Forwarding message from ${userId} to partner ${partnerId} (socket: ${partnerSocketId})`);
+
+        // Broadcast message to partner
+        this.server.to(partnerSocketId).emit('chat:message', {
+            sender: 'stranger',
+            content: data.message,
+            timestamp: new Date(),
+        });
+
+        // Update last activity for blind session
+        const blindSession = this.videoDatingService.getBlindSession(sessionId);
+        if (blindSession) {
+            this.videoDatingService.updateActivity(sessionId);
+        }
+
+        return { ok: true };
+    }
+
     @SubscribeMessage('blind:accept_reveal')
     async handleAcceptReveal(@ConnectedSocket() client: Socket) {
         const userId = client.data.userId;
@@ -587,14 +695,66 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         this.userSessions.set(user1Id, session.id);
         this.userSessions.set(user2Id, session.id);
 
-        // 🎬 AI DATING HOST: Generate intro and first topic
-        let introMessage = 'Chào mừng đến với Peerzee Blind Date! 🎭';
-        let initialTopic = 'Nếu có 1 tỷ đồng, bạn sẽ mở quán cafe hay đầu tư crypto?';
+        // 🚀 OPTIMIZATION: Send match notification immediately with default messages
+        // Initialize blind session with placeholders
+        const defaultIntro = 'Chào mừng đến với Peerzee! Hãy bắt đầu trò chuyện! 👋';
+        const defaultTopic = 'Hãy giới thiệu về bản thân bạn đi! 😊';
 
+        this.videoDatingService.initBlindSession(
+            session.id,
+            user1Id,
+            user2Id,
+            defaultIntro,
+            defaultTopic,
+        );
+
+        // Emit match event immediately so WebRTC can start
+        const matchPayload = {
+            sessionId: session.id,
+            blindDate: {
+                introMessage: defaultIntro,
+                initialTopic: defaultTopic,
+                blurLevel: 20,
+            },
+        };
+
+        this.server.to(user1SocketId).emit('match:found', {
+            ...matchPayload,
+            partnerId: user2Id,
+            isInitiator: true,
+        });
+
+        this.server.to(user2SocketId).emit('match:found', {
+            ...matchPayload,
+            partnerId: user1Id,
+            isInitiator: false,
+        });
+
+        this.logger.log(`🎬 Match created: ${user1Id} <-> ${user2Id} (instant match notification sent)`);
+
+        // 🎬 Generate AI content in background (non-blocking)
+        this.generateAIContentAsync(session.id, user1Id, user2Id, user1SocketId, user2SocketId).catch(err => {
+            this.logger.error(`Failed to generate AI content for session ${session.id}:`, err);
+        });
+    }
+
+    /**
+     * Generate personalized AI intro and topic in background
+     * Updates users when ready
+     */
+    private async generateAIContentAsync(
+        sessionId: string,
+        user1Id: string,
+        user2Id: string,
+        user1SocketId: string,
+        user2SocketId: string,
+    ) {
         try {
+            const em = this.em.fork();
+            const profileRepo = em.getRepository(UserProfile);
             const [profileA, profileB] = await Promise.all([
-                this.profileRepo.findOne({ user: { id: user1Id } }),
-                this.profileRepo.findOne({ user: { id: user2Id } }),
+                profileRepo.findOne({ user: { id: user1Id } }),
+                profileRepo.findOne({ user: { id: user2Id } }),
             ]);
 
             if (profileA && profileB) {
@@ -631,48 +791,33 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
                         false,
                     ),
                 ]);
-                introMessage = intro;
-                initialTopic = topic;
+
+                // Update blind session with personalized content
+                const blindSession = this.videoDatingService.getBlindSession(sessionId);
+                if (blindSession) {
+                    blindSession.introMessage = intro;
+                    blindSession.currentTopic = topic;
+                    blindSession.topicHistory = [topic];
+
+                    // Notify users with personalized content
+                    this.server.to(user1SocketId).emit('blind:content_updated', {
+                        sessionId,
+                        introMessage: intro,
+                        currentTopic: topic,
+                    });
+                    this.server.to(user2SocketId).emit('blind:content_updated', {
+                        sessionId,
+                        introMessage: intro,
+                        currentTopic: topic,
+                    });
+
+                    this.logger.log(`✨ AI content generated for session ${sessionId}`);
+                }
             }
         } catch (error) {
-            this.logger.error('Failed to generate AI intro/topic, using defaults', error);
+            this.logger.error(`Failed to generate AI content:`, error);
+            // Users already have default content, so matching still works
         }
-
-        // Initialize blind session state
-        this.videoDatingService.initBlindSession(
-            session.id,
-            user1Id,
-            user2Id,
-            introMessage,
-            initialTopic,
-        );
-
-        // Notify both users with blind date info
-        const matchPayload = {
-            sessionId: session.id,
-            partnerId: user2Id,
-            isInitiator: true,
-            // 🎬 Blind Date specific
-            blindDate: {
-                introMessage,
-                initialTopic,
-                blurLevel: 20,
-            },
-        };
-
-        this.server.to(user1SocketId).emit('match:found', {
-            ...matchPayload,
-            partnerId: user2Id,
-            isInitiator: true,
-        });
-
-        this.server.to(user2SocketId).emit('match:found', {
-            ...matchPayload,
-            partnerId: user1Id,
-            isInitiator: false,
-        });
-
-        this.logger.log(`🎬 Blind Date session created: ${user1Id} <-> ${user2Id} (blur: 20px)`);
     }
 
     private handleUserDisconnectFromSession(userId: string, sessionId: string) {

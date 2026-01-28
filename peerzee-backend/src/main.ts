@@ -5,7 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { DataSource } from 'typeorm';
+import { MikroORM } from '@mikro-orm/core';
 import { seedIceBreakers } from './seeds/ice-breakers.seed';
 
 async function bootstrap() {
@@ -55,8 +55,8 @@ async function bootstrap() {
   await app.listen(port);
 
   // Run seeds
-  const dataSource = app.get(DataSource);
-  await seedIceBreakers(dataSource);
+  const orm = app.get(MikroORM);
+  await seedIceBreakers(orm.em);
 
   console.log(`Application running on port ${port}`);
 }

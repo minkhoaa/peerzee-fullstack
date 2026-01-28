@@ -1,4 +1,4 @@
-import { DataSource } from 'typeorm';
+import { EntityManager } from '@mikro-orm/core';
 import { IceBreaker } from '../chat/entities/ice-breaker.entity';
 
 const iceBreakers = [
@@ -42,51 +42,32 @@ const iceBreakers = [
 ];
 
 
-export async function seedIceBreakers(dataSource: DataSource) {
-    const queryRunner = dataSource.createQueryRunner();
-    await queryRunner.connect();
+export async function seedIceBreakers(em: EntityManager) {
+    const fork = em.fork();
 
     try {
-        // Check if table exists
-        const tableExists = await queryRunner.hasTable('ice_breakers');
-
-        if (!tableExists) {
-            console.log('Table "ice_breakers" does not exist. Creating it...');
-            await queryRunner.query(`
-                CREATE TABLE "ice_breakers" (
-                    "id" uuid NOT NULL DEFAULT gen_random_uuid(),
-                    "prompt" text NOT NULL,
-                    "category" character varying NOT NULL DEFAULT 'general',
-                    "isActive" boolean NOT NULL DEFAULT true,
-                    "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                    CONSTRAINT "PK_ice_breakers_id" PRIMARY KEY ("id")
-                )
-            `);
-            console.log('Table "ice_breakers" created successfully.');
-        }
-    } catch (err) {
-        console.error('Error checking/creating ice_breakers table:', err);
-    } finally {
-        await queryRunner.release();
-    }
-
-    const repo = dataSource.getRepository(IceBreaker);
-
-    // Check if already seeded
-    try {
-        const count = await repo.count();
+        // Check if already seeded
+        const count = await fork.count(IceBreaker);
         if (count > 0) {
-            console.log(`Ice breakers already seeded (${count} entries). Skipping...`);
+            console.log(`✅ Ice breakers already seeded (${count} entries). Skipping...`);
             return;
         }
 
         // Insert all ice breakers
-        const entities = iceBreakers.map(ib => repo.create({ ...ib, isActive: true }));
-        await repo.save(entities);
+        const entities = iceBreakers.map(ib => {
+            const entity = fork.create(IceBreaker, {
+                prompt: ib.prompt,
+                category: ib.category,
+                isActive: true,
+                createdAt: new Date(),
+            });
+            return entity;
+        });
+        await fork.persistAndFlush(entities);
 
-        console.log(`Seeded ${entities.length} ice breakers!`);
+        console.log(`✅ Seeded ${entities.length} ice breakers!`);
     } catch (error) {
-        console.error('Error seeding ice breakers:', error);
+        console.error('❌ Error seeding ice breakers:', error);
     }
 }
 

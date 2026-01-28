@@ -162,54 +162,54 @@ export default function DiscoverPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#191919]">
+        <div className="min-h-screen bg-[#ECC8CD]">
             {/* Header */}
-            <header className="sticky top-0 z-30 bg-[#191919]/95 backdrop-blur-lg border-b border-[#2F2F2F]">
-                <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+            <header className="sticky top-0 z-30 bg-[#FDF0F1]/95 backdrop-blur-lg border-b border-[#CD6E67]/10 shadow-sm">
+                <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
                     <button
                         onClick={() => router.back()}
-                        className="p-2 -ml-2 text-[#9B9A97] hover:text-[#E3E3E3] rounded-lg hover:bg-[#202020] transition-colors"
+                        className="p-2 -ml-2 text-[#7A6862] hover:text-[#3E3229] rounded-full hover:bg-[#ECC8CD]/50 transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>
 
-                    <h1 className="text-lg font-semibold text-[#E3E3E3]">Discover</h1>
+                    <h1 className="text-lg font-extrabold text-[#3E3229]">Discover</h1>
 
                     <div className="flex items-center gap-1">
                         <button
                             onClick={() => router.push('/likers')}
-                            className="relative p-2 text-[#9B9A97] hover:text-pink-400 rounded-lg hover:bg-[#202020] transition-colors"
+                            className="relative p-2 text-[#7A6862] hover:text-[#CD6E67] rounded-full hover:bg-white transition-all hover:scale-110"
                             title="Who Liked You"
                         >
                             <Heart className="w-5 h-5" />
                             {likersCount > 0 && (
-                                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#CD6E67] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
                                     {likersCount > 9 ? '9+' : likersCount}
                                 </span>
                             )}
                         </button>
                         <button
                             onClick={() => router.push('/video-dating')}
-                            className="p-2 text-[#9B9A97] hover:text-purple-400 rounded-lg hover:bg-[#202020] transition-colors"
+                            className="p-2 text-[#7A6862] hover:text-[#CD6E67] rounded-full hover:bg-white transition-all hover:scale-110"
                             title="Video Chat"
                         >
                             <Video className="w-5 h-5" />
                         </button>
                         <button
                             onClick={() => setShowSearch(!showSearch)}
-                            className={`p-2 rounded-lg hover:bg-[#202020] transition-colors ${showSearch ? 'text-cyan-400' : 'text-[#9B9A97] hover:text-cyan-400'}`}
+                            className={`p-2 rounded-full hover:bg-white transition-all hover:scale-110 ${showSearch ? 'text-[#CD6E67] bg-white' : 'text-[#7A6862]'}`}
                             title="AI Search"
                         >
                             <Sparkles className="w-5 h-5" />
                         </button>
-                        <div className={`w-2 h-2 rounded-full mx-1 ${isConnected ? 'bg-green-400' : 'bg-[#9B9A97]'}`} />
+                        <div className={`w-2 h-2 rounded-full mx-1 ${isConnected ? 'bg-green-400' : 'bg-[#7A6862]'}`} />
                         <button
                             onClick={() => router.push('/chat')}
-                            className="p-2 text-[#9B9A97] hover:text-[#E3E3E3] rounded-lg hover:bg-[#202020] transition-colors"
+                            className="p-2 text-[#7A6862] hover:text-[#CD6E67] rounded-full hover:bg-white transition-all hover:scale-110"
                         >
                             <MessageCircle className="w-5 h-5" />
                         </button>
-                        <button className="p-2 text-[#9B9A97] hover:text-[#E3E3E3] rounded-lg hover:bg-[#202020] transition-colors">
+                        <button className="p-2 text-[#7A6862] hover:text-[#CD6E67] rounded-full hover:bg-white transition-all hover:scale-110">
                             <Settings className="w-5 h-5" />
                         </button>
                     </div>
@@ -218,24 +218,24 @@ export default function DiscoverPage() {
 
             {/* AI Search Panel */}
             {showSearch && (
-                <div className="max-w-lg mx-auto px-4 py-3 border-b border-[#2F2F2F]">
+                <div className="max-w-4xl mx-auto px-4 py-4 bg-[#FDF0F1]/50 border-b border-[#CD6E67]/10">
                     {/* Search Input */}
                     <div className="relative mb-3">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B9A97]" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A6862]" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyPress={handleSearchKeyPress}
                             placeholder="Mô tả người bạn muốn tìm..."
-                            className="w-full pl-10 pr-16 py-2 bg-transparent border border-[#2F2F2F] rounded-md text-sm text-[#E3E3E3] placeholder:text-[#9B9A97] focus:outline-none focus:border-[#505050] transition-colors"
+                            className="w-full pl-10 pr-20 py-3 bg-white border-2 border-[#ECC8CD] rounded-full text-sm text-[#3E3229] placeholder:text-[#7A6862] focus:outline-none focus:border-[#CD6E67] transition-colors shadow-sm"
                         />
                         <button
                             onClick={handleSearch}
                             disabled={isSearching || !searchQuery.trim()}
-                            className={`absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs rounded transition-colors ${searchQuery.trim() && !isSearching
-                                ? 'bg-[#2F2F2F] text-[#E3E3E3] hover:bg-[#37352F]'
-                                : 'text-[#9B9A97] cursor-not-allowed'
+                            className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 text-xs font-bold rounded-full transition-all ${searchQuery.trim() && !isSearching
+                                ? 'bg-[#CD6E67] text-white hover:bg-[#B55B55] shadow-sm'
+                                : 'bg-[#ECC8CD] text-[#7A6862] cursor-not-allowed'
                                 }`}
                         >
                             {isSearching ? '...' : 'Tìm'}
@@ -405,7 +405,7 @@ export default function DiscoverPage() {
 
             {/* Mode Switcher - only show when not in search mode */}
             {!searchResults.length && (
-                <div className="max-w-lg mx-auto px-4 py-3">
+                <div className="max-w-4xl mx-auto px-4 py-6">
                     <ModeSwitcher
                         currentMode={intentMode}
                         onModeChange={handleModeChange}
@@ -424,8 +424,8 @@ export default function DiscoverPage() {
 
                     {/* Show distance info when location enabled */}
                     {hasLocation === true && userCoords && (
-                        <div className="mt-2 flex items-center justify-center gap-1 text-xs text-[#9B9A97]">
-                            <MapPin className="w-3 h-3 text-green-500" />
+                        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-[#7A6862] font-semibold">
+                            <MapPin className="w-4 h-4 text-[#CD6E67]" />
                             <span>Tìm kiếm trong bán kính 50km</span>
                         </div>
                     )}
@@ -434,7 +434,7 @@ export default function DiscoverPage() {
 
             {/* Main Content - only show when not in search mode */}
             {!searchResults.length && (
-                <main className="max-w-lg mx-auto">
+                <main className="max-w-4xl mx-auto px-4 flex flex-col items-center">
                     <ProfileCardStack
                         users={users}
                         onSwipe={handleSwipe}

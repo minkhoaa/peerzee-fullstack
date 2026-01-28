@@ -20,11 +20,8 @@ export class UserSession {
   @Property()
   device_hash: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { fieldName: 'user_id' })
   user: User;
-
-  @Property({ fieldName: 'user_id' })
-  user_id: string;
 
   @Property({ onCreate: () => new Date() })
   created_at: Date = new Date();

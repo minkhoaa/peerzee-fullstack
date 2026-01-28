@@ -2,6 +2,7 @@ import { Entity, PrimaryKey, Property, OneToOne, Enum } from '@mikro-orm/core';
 import { User } from './user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { v4 as uuid } from 'uuid';
+import { VectorType } from '../types/vector.type';
 
 // JSONB Types for Rich Profile
 export interface ProfilePhoto {
@@ -156,12 +157,12 @@ export class UserProfile {
 
   // Intent Mode (Bumble-style: DATE, STUDY, FRIEND)
   @ApiProperty({ description: 'User intent mode', enum: IntentMode, default: IntentMode.DATE })
-  @Enum(() => IntentMode)
+  @Enum({ items: () => IntentMode, fieldName: 'intentMode' })
   intentMode: IntentMode = IntentMode.DATE;
 
   // Profile Properties (Notion Database Properties)
   @ApiProperty({ description: 'Rich profile properties (zodiac, mbti, habits, etc.)' })
-  @Property({ type: 'jsonb', nullable: true })
+  @Property({ type: 'jsonb', nullable: true, fieldName: 'profileProperties' })
   profileProperties: ProfileProperties = {};
 
   // ============================================================================
@@ -169,10 +170,9 @@ export class UserProfile {
   // ============================================================================
 
   // Gender (hard filter)
-  @ApiProperty({ description: 'User gender for filtering', enum: UserGender })
-  @Enum(() => UserGender)
-  @Property({ nullable: true })
-  gender: UserGender;
+  @ApiProperty({ description: 'User gender for filtering', enum: UserGender, nullable: true })
+  @Enum({ items: () => UserGender, nullable: true })
+  gender?: UserGender;
 
   // Structured Location (hard filters)
   @ApiProperty({ description: 'City name for location filtering' })
@@ -194,21 +194,20 @@ export class UserProfile {
 
   // Vector Embedding for Semantic Search (requires pgvector extension)
   // Using Google Gemini text-embedding-004 (768 dimensions)
-  // CRITICAL: Use columnType to preserve vector type during schema sync
   @ApiProperty({ description: 'Bio embedding vector for semantic search (768 dimensions - Gemini)' })
-  @Property({ columnType: 'vector(768)', nullable: true })
+  @Property({ type: VectorType, nullable: true, fieldName: 'bioEmbedding' })
   bioEmbedding?: number[];
 
   @ApiProperty({ description: 'Timestamp when embedding was last updated' })
-  @Property({ type: 'timestamp', nullable: true })
+  @Property({ type: 'timestamp', nullable: true, fieldName: 'embeddingUpdatedAt' })
   embeddingUpdatedAt: Date;
 
   @ApiProperty({ description: 'Last time user was active (for recency scoring)' })
-  @Property({ type: 'timestamp', nullable: true, onCreate: () => new Date() })
+  @Property({ type: 'timestamp', nullable: true, onCreate: () => new Date(), fieldName: 'lastActive' })
   lastActive: Date = new Date();
 
   // ============================================================================
 
-  @OneToOne(() => User, (user) => user.profile, { fieldName: 'user_id' })
+  @OneToOne(() => User, (user) => user.profile, { fieldName: 'user_id', owner: true })
   user: User;
 }

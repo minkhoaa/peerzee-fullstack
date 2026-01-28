@@ -78,14 +78,12 @@ export class CommunityService {
         const limit = dto.limit || 10;
         const sort = dto.sort || 'new';
 
-        // Build SQL conditions
-        let whereClause = '1=1';
-        const params: any[] = [];
+        // Build filter conditions
+        const where: any = {};
 
         // Filter by tag if provided
         if (dto.tag) {
-            whereClause += ` AND p.tags @> $${params.length + 1}::jsonb`;
-            params.push(JSON.stringify([dto.tag]));
+            where.tags = { $contains: [dto.tag] };
         }
 
         // Cursor-based pagination
@@ -93,35 +91,27 @@ export class CommunityService {
             const cursorPost = await this.postRepo.findOne({ id: dto.cursor });
             if (cursorPost) {
                 if (sort === 'top') {
-                    whereClause += ` AND (p.score < $${params.length + 1} OR (p.score = $${params.length + 1} AND p.id < $${params.length + 2}))`;
-                    params.push(cursorPost.score, cursorPost.id);
+                    where.$or = [
+                        { score: { $lt: cursorPost.score } },
+                        { score: cursorPost.score, id: { $lt: cursorPost.id } }
+                    ];
                 } else {
-                    whereClause += ` AND p.created_at < $${params.length + 1}`;
-                    params.push(cursorPost.createdAt);
+                    where.createdAt = { $lt: cursorPost.createdAt };
                 }
             }
         }
 
-        // Order clause
-        const orderClause = sort === 'top'
-            ? 'ORDER BY p.score DESC, p.id DESC'
-            : 'ORDER BY p.created_at DESC';
+        // Order by
+        const orderBy: any = sort === 'top'
+            ? { score: 'DESC', id: 'DESC' }
+            : { createdAt: 'DESC' };
 
-        // Execute raw SQL
-        const posts = await this.em.getConnection().execute<any[]>(`
-            SELECT 
-                p.*,
-                u.id as author__id,
-                u.email as author__email,
-                prof.display_name as author__display_name,
-                prof.photos as author__photos
-            FROM social_posts p
-            LEFT JOIN users u ON p.author_id = u.id
-            LEFT JOIN user_profiles prof ON u.id = prof.user_id
-            WHERE ${whereClause}
-            ${orderClause}
-            LIMIT $${params.length + 1}
-        `, [...params, limit + 1]);
+        // Fetch posts with author and profile populated
+        const posts = await this.postRepo.find(where, {
+            populate: ['author', 'author.profile'],
+            orderBy,
+            limit: limit + 1,
+        });
 
         // Check for more results
         const hasMore = posts.length > limit;
@@ -146,14 +136,14 @@ export class CommunityService {
             media: post.media,
             tags: post.tags,
             score: post.score,
-            commentsCount: post.comments_count,
-            createdAt: new Date(post.created_at),
-            updatedAt: new Date(post.updated_at),
+            commentsCount: post.commentsCount,
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt,
             author: {
-                id: post.author__id || post.author_id,
-                email: post.author__email || '',
-                display_name: post.author__display_name || post.author__email?.split('@')[0],
-                avatar: post.author__photos?.[0]?.url,
+                id: post.author.id,
+                email: post.author.email,
+                display_name: post.author.profile?.display_name || post.author.email.split('@')[0],
+                avatar: post.author.profile?.photos?.[0]?.url,
             },
             userVote: userVotesMap.get(post.id) || 0,
         }));
@@ -364,65 +354,61 @@ export class CommunityService {
     }
 
     /**
-     * Get trending tags (last 7 days) - Uses raw SQL
+     * Get trending tags (last 7 days) - Uses ORM query
      */
     async getTrendingTags(limit: number = 5): Promise<{ tag: string; count: number }[]> {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        const result = await this.em.getConnection().execute<any[]>(
-            `
-            SELECT tag, COUNT(*) as count
-            FROM (
-                SELECT jsonb_array_elements_text(tags) as tag
-                FROM social_posts
-                WHERE tags IS NOT NULL 
-                AND jsonb_array_length(tags) > 0
-                AND created_at > $1
-            ) subquery
-            GROUP BY tag
-            ORDER BY count DESC
-            LIMIT $2
-        `,
-            [sevenDaysAgo.toISOString(), limit],
-        );
+        // Get recent posts with tags
+        const posts = await this.postRepo.find({
+            createdAt: { $gte: sevenDaysAgo },
+            tags: { $ne: null }
+        }, { fields: ['tags'] });
 
-        return result.map((row: any) => ({
-            tag: row.tag.replace(/^#/, ''),
-            count: parseInt(row.count, 10),
-        }));
+        // Count tag occurrences (filter out empty arrays in memory)
+        const tagCount = new Map<string, number>();
+        posts.forEach(post => {
+            if (post.tags && post.tags.length > 0) {
+                post.tags.forEach(tag => {
+                    const cleanTag = tag.replace(/^#/, '');
+                    tagCount.set(cleanTag, (tagCount.get(cleanTag) || 0) + 1);
+                });
+            }
+        });
+
+        // Sort by count and return top N
+        return Array.from(tagCount.entries())
+            .map(([tag, count]) => ({ tag, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, limit);
     }
 
     /**
-     * Get suggested users - Uses raw SQL for RANDOM()
+     * Get suggested users - Uses ORM query
      */
     async getSuggestedUsers(userId: string, limit: number = 3) {
-        const users = await this.em.getConnection().execute<any[]>(`
-            SELECT 
-                u.id,
-                u.email,
-                p.display_name,
-                p.bio,
-                p.photos
-            FROM users u
-            LEFT JOIN user_profiles p ON u.id = p.user_id
-            WHERE u.id != $1
-            AND u.status = 'active'
-            ORDER BY RANDOM()
-            LIMIT $2
-        `, [userId, limit]);
+        // Note: MikroORM doesn't support RANDOM() in orderBy directly
+        // So we fetch more users and shuffle in memory
+        const users = await this.userRepo.find(
+            { id: { $ne: userId }, status: 'active' },
+            { populate: ['profile'], limit: limit * 3 }
+        );
 
-        return users.map((u) => ({
+        // Shuffle and take limit
+        const shuffled = users.sort(() => Math.random() - 0.5).slice(0, limit);
+
+        return shuffled.map((u) => ({
             id: u.id,
             email: u.email,
-            display_name: u.display_name || u.email.split('@')[0],
-            bio: u.bio,
-            avatar: u.photos?.[0]?.url,
+            display_name: u.profile?.display_name || u.email.split('@')[0],
+            bio: u.profile?.bio,
+            avatar: u.profile?.photos?.[0]?.url,
         }));
     }
 
     /**
-     * Get topics for left sidebar navigation - Uses raw SQL
+     * Get topics for left sidebar navigation - Uses ORM query
      */
     async getTopics(): Promise<{ name: string; slug: string; count: number; icon?: string }[]> {
         const pinnedTopics = [
@@ -435,21 +421,25 @@ export class CommunityService {
             { name: 'Memes', slug: 'Memes', icon: '😂' },
         ];
 
-        const result = await this.em.getConnection().execute<any[]>(`
-            SELECT tag, COUNT(*) as count
-            FROM (
-                SELECT jsonb_array_elements_text(tags) as tag
-                FROM social_posts
-                WHERE tags IS NOT NULL AND jsonb_array_length(tags) > 0
-            ) subquery
-            WHERE tag = ANY($1::text[])
-            GROUP BY tag
-        `, [pinnedTopics.map(t => `#${t.slug}`)]);
+        // Get all posts with tags
+        const posts = await this.postRepo.find(
+            { tags: { $ne: null } },
+            { fields: ['tags'] }
+        );
 
+        // Count occurrences of pinned topics (filter empty arrays in memory)
         const countMap = new Map<string, number>();
-        result.forEach((row: any) => {
-            const cleanTag = row.tag.replace(/^#/, '');
-            countMap.set(cleanTag, parseInt(row.count, 10));
+        const pinnedTagsSet = new Set(pinnedTopics.map(t => `#${t.slug}`));
+
+        posts.forEach(post => {
+            if (post.tags && post.tags.length > 0) {
+                post.tags.forEach(tag => {
+                    if (pinnedTagsSet.has(tag)) {
+                        const cleanTag = tag.replace(/^#/, '');
+                        countMap.set(cleanTag, (countMap.get(cleanTag) || 0) + 1);
+                    }
+                });
+            }
         });
 
         return pinnedTopics.map(topic => ({

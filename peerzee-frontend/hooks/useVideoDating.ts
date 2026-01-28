@@ -420,6 +420,7 @@ export function useVideoDating() {
     remoteHasVideo,
     queueSize,
     withVideo,
+    socket: socketRef.current,
     // 🎬 AI DATING HOST: Blind Date state and actions
     blindDate,
     requestNewTopic,

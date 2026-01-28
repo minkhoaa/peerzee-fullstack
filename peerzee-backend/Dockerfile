@@ -36,5 +36,5 @@ RUN mkdir -p uploads
 EXPOSE 9000
 
 # Start the app
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]
 

@@ -11,26 +11,28 @@ interface AppLayoutNotionProps {
 
 export default function AppLayoutNotion({ children }: AppLayoutNotionProps) {
     return (
-        <div className="min-h-screen bg-[#191919] overflow-x-hidden">
+        <div className="min-h-screen bg-[#ECC8CD] overflow-x-hidden font-[family-name:var(--font-nunito)]">
             {/* Top Navigation */}
             <TopNavNotion />
 
             {/* Main Container */}
-            <div className="pt-12">
-                <div className="max-w-[1200px] mx-auto flex">
-                    {/* Left Sidebar - Border separated */}
-                    <div className="hidden lg:block w-52 shrink-0 border-r border-[#2F2F2F] sticky top-12 h-[calc(100vh-48px)] overflow-y-auto">
-                        <LeftSidebarNotion />
-                    </div>
+            <div className="pt-20 px-4 py-6">
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-12 gap-6">
+                        {/* Left Sidebar - Navigation */}
+                        <div className="hidden lg:block col-span-3">
+                            <LeftSidebarNotion />
+                        </div>
 
-                    {/* Main Content */}
-                    <main className="flex-1 min-w-0 px-6 py-4">
-                        {children}
-                    </main>
+                        {/* Main Content - Feed */}
+                        <main className="col-span-12 lg:col-span-6 flex flex-col gap-6">
+                            {children}
+                        </main>
 
-                    {/* Right Sidebar - Border separated */}
-                    <div className="hidden xl:block w-56 shrink-0 border-l border-[#2F2F2F] sticky top-12 h-[calc(100vh-48px)] overflow-y-auto">
-                        <RightSidebarNotion />
+                        {/* Right Sidebar - Trending */}
+                        <div className="hidden xl:block col-span-3">
+                            <RightSidebarNotion />
+                        </div>
                     </div>
                 </div>
             </div>

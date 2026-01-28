@@ -61,7 +61,7 @@ export class NotificationService {
         nextCursor: string | null;
         unreadCount: number;
     }> {
-        let query: any = { userId };
+        let query: any = { user: { id: userId } };
         if (cursor) {
             const cursorDate = new Date(cursor);
             query.createdAt = { $lt: cursorDate };

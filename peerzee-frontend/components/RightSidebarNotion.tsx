@@ -9,78 +9,72 @@ export default function RightSidebarNotion() {
     const { data: suggestedUsers, isLoading: loadingUsers } = useSuggestedUsers(3);
 
     return (
-        <aside className="h-full py-4 pl-4">
+        <aside className="bg-[#FDF0F1] rounded-[30px] p-6 shadow-xl shadow-[#CD6E67]/10 sticky top-24">
             {/* Trending */}
             <div className="mb-8">
-                <h3 className="text-[10px] font-medium text-[#9B9A97] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <TrendingUp className="w-3 h-3" />
-                    Trending
+                <h3 className="text-xl font-black text-[#3E3229] mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-[#CD6E67]" />
+                    Trending Topics
                 </h3>
-                <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
                     {loadingTags ? (
-                        <div className="flex items-center justify-center py-2">
-                            <Loader2 className="w-4 h-4 text-[#9B9A97] animate-spin" />
+                        <div className="flex items-center justify-center py-3 w-full">
+                            <Loader2 className="w-5 h-5 text-[#CD6E67] animate-spin" />
                         </div>
                     ) : trendingTags && trendingTags.length > 0 ? (
-                        trendingTags.map((topic, index) => (
-                            <div
+                        trendingTags.map((topic) => (
+                            <span
                                 key={topic.tag}
-                                className="flex items-center justify-between py-1 cursor-pointer group"
+                                className="bg-white text-[#CD6E67] px-4 py-2 rounded-[12px] text-sm font-bold inline-block hover:shadow-md transition-all cursor-pointer shadow-sm"
                             >
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[#9B9A97] text-xs w-4">{index + 1}</span>
-                                    <span className="text-[#E3E3E3] text-sm group-hover:text-white transition-colors">
-                                        #{topic.tag}
-                                    </span>
-                                </div>
-                                <span className="text-[#9B9A97] text-xs">{topic.count}</span>
-                            </div>
+                                #{topic.tag} <span className="text-[#7A6862] text-xs ml-1">({topic.count})</span>
+                            </span>
                         ))
                     ) : (
-                        <p className="text-[#9B9A97] text-xs">No trending tags</p>
+                        <p className="text-[#7A6862] text-sm">No trending tags</p>
                     )}
                 </div>
             </div>
 
             {/* Suggested */}
             <div className="mb-8">
-                <h3 className="text-[10px] font-medium text-[#9B9A97] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <UserPlus className="w-3 h-3" />
-                    Suggested
+                <h3 className="text-xl font-black text-[#3E3229] mb-4 flex items-center gap-2">
+                    <UserPlus className="w-5 h-5 text-[#CD6E67]" />
+                    Suggested For You
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {loadingUsers ? (
-                        <div className="flex items-center justify-center py-2">
-                            <Loader2 className="w-4 h-4 text-[#9B9A97] animate-spin" />
+                        <div className="flex items-center justify-center py-3">
+                            <Loader2 className="w-5 h-5 text-[#CD6E67] animate-spin" />
                         </div>
                     ) : suggestedUsers && suggestedUsers.length > 0 ? (
                         suggestedUsers.map((peer) => (
-                            <div key={peer.id} className="flex items-center gap-2.5">
-                                <div className="w-7 h-7 rounded-md bg-[#37352F] flex items-center justify-center text-[#E3E3E3] text-xs shrink-0">
+                            <div key={peer.id} className="flex items-center gap-3 p-3 bg-white rounded-[20px] shadow-sm hover:shadow-md hover:shadow-[#CD6E67]/10 transition-all">
+                                <div className="w-10 h-10 rounded-full bg-[#CD6E67] flex items-center justify-center text-white text-sm font-extrabold shrink-0 shadow-sm">
                                     {peer.display_name.slice(0, 2).toUpperCase()}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-[#E3E3E3] text-sm truncate">{peer.display_name}</p>
-                                    {peer.bio && <p className="text-[#9B9A97] text-xs truncate">{peer.bio}</p>}
+                                    <p className="text-[#3E3229] text-sm font-bold truncate">{peer.display_name}</p>
+                                    {peer.bio && <p className="text-[#7A6862] text-xs truncate">{peer.bio}</p>}
                                 </div>
-                                <button className="px-2 py-1 text-xs text-[#9B9A97] hover:text-[#E3E3E3] hover:bg-[#2F2F2F] rounded transition-colors">
-                                    +
+                                <button className="px-3 py-1.5 text-xs font-bold text-white bg-[#CD6E67] hover:bg-[#B55B55] rounded-full transition-colors shadow-sm">
+                                    Follow
                                 </button>
                             </div>
                         ))
                     ) : (
-                        <p className="text-[#9B9A97] text-xs">No suggestions</p>
+                        <p className="text-[#7A6862] text-sm">No suggestions</p>
                     )}
                 </div>
             </div>
 
             {/* Footer */}
-            <div className="text-[10px] text-[#9B9A97] space-x-2">
-                <a href="#" className="hover:text-[#E3E3E3]">Terms</a>
+            <div className="text-xs text-[#7A6862] space-x-2 font-medium">
+                <a href="#" className="hover:text-[#3E3229]">Terms</a>
                 <span>·</span>
-                <a href="#" className="hover:text-[#E3E3E3]">Privacy</a>
+                <a href="#" className="hover:text-[#3E3229]">Privacy</a>
                 <span>·</span>
-                <a href="#" className="hover:text-[#E3E3E3]">Help</a>
+                <a href="#" className="hover:text-[#3E3229]">Help</a>
             </div>
         </aside>
     );

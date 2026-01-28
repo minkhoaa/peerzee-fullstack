@@ -19,6 +19,6 @@ export class IceBreaker {
     @Property({ default: true })
     isActive: boolean = true;
 
-    @Property({ onCreate: () => new Date() })
+    @Property({ onCreate: () => new Date(), nullable: true, fieldName: 'created_at' })
     createdAt: Date = new Date();
 }

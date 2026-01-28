@@ -106,30 +106,30 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
     };
 
     return (
-        <article className="border-b border-[#2F2F2F] py-4 hover:bg-[#1D1D1D] transition-colors -mx-2 px-2 rounded-md">
-            <div className="flex gap-3">
+        <article className="bg-[#FDF0F1] p-6 rounded-[30px] shadow-md shadow-[#CD6E67]/5 hover:shadow-lg hover:shadow-[#CD6E67]/10 transition-all mb-6 hover:-translate-y-1">
+            <div className="flex gap-4">
                 {/* Vote Strip - Reddit style */}
-                <div className="flex flex-col items-center gap-0.5 pt-1 shrink-0">
+                <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
                     <button
                         onClick={handleUpvote}
                         disabled={voteMutation.isPending}
-                        className={`p-1 rounded transition-colors ${userVote === 1
-                                ? 'text-orange-500 bg-orange-500/10'
-                                : 'text-[#9B9A97] hover:text-orange-500 hover:bg-[#2F2F2F]'
+                        className={`p-1.5 rounded-full transition-colors ${userVote === 1
+                                ? 'text-white bg-[#CD6E67] shadow-sm'
+                                : 'text-[#7A6862] hover:text-[#CD6E67] hover:bg-[#F3DDE0]'
                             }`}
                     >
                         <ArrowUp className="w-5 h-5" />
                     </button>
-                    <span className={`text-xs font-medium min-w-[20px] text-center ${userVote === 1 ? 'text-orange-500' : userVote === -1 ? 'text-blue-500' : 'text-[#E3E3E3]'
+                    <span className={`text-xs font-black min-w-[24px] text-center ${userVote === 1 ? 'text-[#CD6E67]' : userVote === -1 ? 'text-blue-500' : 'text-[#3E3229]'
                         }`}>
                         {score}
                     </span>
                     <button
                         onClick={handleDownvote}
                         disabled={voteMutation.isPending}
-                        className={`p-1 rounded transition-colors ${userVote === -1
-                                ? 'text-blue-500 bg-blue-500/10'
-                                : 'text-[#9B9A97] hover:text-blue-500 hover:bg-[#2F2F2F]'
+                        className={`p-1.5 rounded-full transition-colors ${userVote === -1
+                                ? 'text-white bg-blue-500 shadow-sm'
+                                : 'text-[#7A6862] hover:text-blue-500 hover:bg-[#F3DDE0]'
                             }`}
                     >
                         <ArrowDown className="w-5 h-5" />
@@ -139,32 +139,32 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                     {/* Header */}
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="w-5 h-5 rounded bg-[#37352F] flex items-center justify-center text-[#E3E3E3] text-[9px] font-medium">
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-[#CD6E67] flex items-center justify-center text-white text-xs font-extrabold shadow-sm">
                             {getInitials(displayName)}
                         </div>
-                        <span className="text-[#E3E3E3] text-sm hover:underline cursor-pointer">
+                        <span className="text-[#3E3229] text-sm font-extrabold hover:underline cursor-pointer">
                             {displayName}
                         </span>
-                        <span className="text-[#9B9A97] text-xs">·</span>
-                        <span className="text-[#9B9A97] text-xs">{formatTimeAgo(post.createdAt)}</span>
+                        <span className="text-[#9CA3AF] text-xs">·</span>
+                        <span className="text-[#7A6862] text-xs font-medium">{formatTimeAgo(post.createdAt)}</span>
 
                         {isAuthor && (
                             <div className="relative ml-auto">
                                 <button
                                     onClick={() => setShowMenu(!showMenu)}
-                                    className="p-1 text-[#9B9A97] hover:text-[#E3E3E3] hover:bg-[#2F2F2F] rounded transition-colors"
+                                    className="p-1.5 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
                                 >
-                                    <MoreHorizontal className="w-4 h-4" />
+                                    <MoreHorizontal className="w-5 h-5" />
                                 </button>
                                 {showMenu && (
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                                        <div className="absolute right-0 top-6 z-20 bg-[#252525] border border-[#2F2F2F] rounded-md shadow-lg py-1">
+                                        <div className="absolute right-0 top-8 z-20 bg-white rounded-[20px] shadow-lg shadow-[#CD6E67]/20 py-2 min-w-[120px]">
                                             <button
                                                 onClick={handleDelete}
                                                 disabled={deletePostMutation.isPending}
-                                                className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-400 hover:bg-[#2F2F2F] w-full"
+                                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 hover:bg-red-50 w-full transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                                 Delete
@@ -177,17 +177,17 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                     </div>
 
                     {/* Body */}
-                    <p className="text-[#E3E3E3] text-sm leading-relaxed whitespace-pre-wrap break-words mb-2">
+                    <p className="text-[#3E3229] text-sm leading-relaxed whitespace-pre-wrap break-words mb-3">
                         {post.content}
                     </p>
 
                     {/* Tags */}
                     {post.tags && post.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-2">
+                        <div className="flex flex-wrap gap-2 mb-3">
                             {post.tags.map((tag, index) => (
                                 <span
                                     key={index}
-                                    className="text-[#9B9A97] text-xs hover:text-[#E3E3E3] cursor-pointer transition-colors"
+                                    className="text-[#CD6E67] text-xs font-bold hover:text-white hover:bg-[#CD6E67] px-2 py-1 rounded-lg cursor-pointer transition-colors"
                                 >
                                     #{tag.replace(/^#/, '')}
                                 </span>
@@ -197,17 +197,17 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
 
                     {/* Media */}
                     {post.media && post.media.length > 0 && (
-                        <div className={`mb-3 grid gap-2 ${post.media.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                        <div className={`mb-4 grid gap-3 ${post.media.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                             {post.media.slice(0, 4).map((item, index) => (
-                                <div key={index} className="relative rounded-md overflow-hidden border border-[#2F2F2F] aspect-video">
+                                <div key={index} className="relative rounded-[20px] overflow-hidden border-2 border-white shadow-sm aspect-video">
                                     {item.type === 'video' ? (
                                         <video src={item.url} className="w-full h-full object-cover" controls preload="metadata" />
                                     ) : (
                                         <img src={item.url} alt="" className="w-full h-full object-cover" loading="lazy" />
                                     )}
                                     {index === 3 && post.media.length > 4 && (
-                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                            <span className="text-white font-medium">+{post.media.length - 4}</span>
+                                        <div className="absolute inset-0 bg-[#CD6E67]/80 flex items-center justify-center">
+                                            <span className="text-white font-extrabold text-lg">+{post.media.length - 4}</span>
                                         </div>
                                     )}
                                 </div>
@@ -216,22 +216,22 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center gap-4 -ml-1">
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={handleToggleComments}
-                            className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors ${showComments
-                                ? 'text-[#E3E3E3] bg-[#2F2F2F]'
-                                : 'text-[#9B9A97] hover:bg-[#2F2F2F] hover:text-[#E3E3E3]'
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${showComments
+                                ? 'bg-[#CD6E67] text-white shadow-md shadow-[#CD6E67]/30'
+                                : 'bg-white text-[#CD6E67] hover:bg-[#F8E3E6]'
                                 }`}
                         >
                             <MessageCircle className="w-4 h-4" />
                             <span>{localCommentsCount}</span>
                         </button>
-                        <button className="flex items-center gap-1.5 px-2 py-1 rounded text-xs text-[#9B9A97] hover:bg-[#2F2F2F] hover:text-[#E3E3E3] transition-colors">
+                        <button className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-white text-[#CD6E67] hover:bg-[#F8E3E6] transition-colors">
                             <Share className="w-4 h-4" />
                             <span>Share</span>
                         </button>
-                        <button className="flex items-center gap-1.5 px-2 py-1 rounded text-xs text-[#9B9A97] hover:bg-[#2F2F2F] hover:text-[#E3E3E3] transition-colors">
+                        <button className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-white text-[#CD6E67] hover:bg-[#F8E3E6] transition-colors">
                             <Bookmark className="w-4 h-4" />
                             <span>Save</span>
                         </button>
@@ -241,51 +241,53 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
 
             {/* Comments */}
             {showComments && (
-                <div className="mt-4 ml-9 border-l border-[#2F2F2F] pl-4">
+                <div className="mt-5 ml-12 border-l-2 border-[#ECC8CD] pl-5">
                     {/* Input */}
-                    <form onSubmit={handleSubmitComment} className="flex items-center gap-2 mb-4">
+                    <form onSubmit={handleSubmitComment} className="flex items-center gap-3 mb-5">
                         <input
                             ref={inputRef}
                             type="text"
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             placeholder="Add a comment..."
-                            className="flex-1 bg-transparent border-b border-[#2F2F2F] focus:border-[#9B9A97] text-[#E3E3E3] placeholder-[#9B9A97] py-1.5 text-sm outline-none transition-colors"
+                            className="flex-1 bg-white border-none rounded-full text-[#3E3229] placeholder-[#9CA3AF] px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#CD6E67] transition-all shadow-sm"
                             disabled={isSubmitting}
                         />
                         <button
                             type="submit"
                             disabled={!newComment.trim() || isSubmitting}
-                            className={`p-1.5 rounded transition-colors ${newComment.trim() && !isSubmitting
-                                ? 'text-[#E3E3E3] hover:bg-[#2F2F2F]'
-                                : 'text-[#9B9A97] cursor-not-allowed'
+                            className={`p-2 rounded-full transition-all ${newComment.trim() && !isSubmitting
+                                ? 'text-white bg-[#CD6E67] hover:bg-[#B55B55] shadow-sm'
+                                : 'text-[#9CA3AF] bg-[#E5C0C5] cursor-not-allowed'
                                 }`}
                         >
-                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                         </button>
                     </form>
 
                     {/* List */}
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         {isLoadingComments ? (
-                            <Loader2 className="w-4 h-4 text-[#9B9A97] animate-spin" />
+                            <div className="flex items-center justify-center py-3">
+                                <Loader2 className="w-5 h-5 text-[#CD6E67] animate-spin" />
+                            </div>
                         ) : comments.length === 0 ? (
-                            <p className="text-[#9B9A97] text-xs">No comments yet</p>
+                            <p className="text-[#7A6862] text-xs font-medium">No comments yet. Be the first!</p>
                         ) : (
                             comments.map(comment => (
-                                <div key={comment.id} className="flex gap-2">
-                                    <div className="w-5 h-5 rounded bg-[#37352F] flex items-center justify-center text-[#E3E3E3] text-[8px] font-medium shrink-0">
+                                <div key={comment.id} className="flex gap-3">
+                                    <div className="w-7 h-7 rounded-full bg-[#CD6E67] flex items-center justify-center text-white text-xs font-extrabold shrink-0 shadow-sm">
                                         {getInitials(comment.author.display_name || comment.author.email)}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1.5 text-xs">
-                                            <span className="text-[#E3E3E3]">
+                                    <div className="flex-1 min-w-0 bg-white p-3 rounded-[20px] shadow-sm">
+                                        <div className="flex items-center gap-2 text-xs mb-1">
+                                            <span className="text-[#3E3229] font-extrabold">
                                                 {comment.author.display_name || comment.author.email?.split('@')[0]}
                                             </span>
-                                            <span className="text-[#9B9A97]">·</span>
-                                            <span className="text-[#9B9A97]">{formatTimeAgo(comment.createdAt)}</span>
+                                            <span className="text-[#9CA3AF]">·</span>
+                                            <span className="text-[#7A6862] font-medium">{formatTimeAgo(comment.createdAt)}</span>
                                         </div>
-                                        <p className="text-[#E3E3E3] text-sm mt-0.5">{comment.content}</p>
+                                        <p className="text-[#3E3229] text-sm">{comment.content}</p>
                                     </div>
                                 </div>
                             ))
@@ -299,25 +301,25 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
 
 export function PostCardNotionSkeleton() {
     return (
-        <div className="border-b border-[#2F2F2F] py-4 animate-pulse">
-            <div className="flex gap-3">
-                <div className="flex flex-col items-center gap-1 pt-1">
-                    <div className="w-5 h-5 bg-[#2F2F2F] rounded" />
-                    <div className="w-4 h-3 bg-[#2F2F2F] rounded" />
-                    <div className="w-5 h-5 bg-[#2F2F2F] rounded" />
+        <div className="bg-[#FDF0F1] p-6 rounded-[30px] shadow-md shadow-[#CD6E67]/5 mb-6 animate-pulse">
+            <div className="flex gap-4">
+                <div className="flex flex-col items-center gap-2 pt-1">
+                    <div className="w-8 h-8 bg-[#E5C0C5] rounded-full" />
+                    <div className="w-6 h-4 bg-[#E5C0C5] rounded" />
+                    <div className="w-8 h-8 bg-[#E5C0C5] rounded-full" />
                 </div>
                 <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="w-5 h-5 bg-[#2F2F2F] rounded" />
-                        <div className="w-20 h-3 bg-[#2F2F2F] rounded" />
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 bg-[#E5C0C5] rounded-full" />
+                        <div className="w-24 h-4 bg-[#E5C0C5] rounded-full" />
                     </div>
-                    <div className="space-y-1.5 mb-3">
-                        <div className="h-4 bg-[#2F2F2F] rounded w-full" />
-                        <div className="h-4 bg-[#2F2F2F] rounded w-3/4" />
+                    <div className="space-y-2 mb-4">
+                        <div className="h-4 bg-[#E5C0C5] rounded-full w-full" />
+                        <div className="h-4 bg-[#E5C0C5] rounded-full w-3/4" />
                     </div>
-                    <div className="flex gap-4">
-                        <div className="w-12 h-5 bg-[#2F2F2F] rounded" />
-                        <div className="w-12 h-5 bg-[#2F2F2F] rounded" />
+                    <div className="flex gap-3">
+                        <div className="w-20 h-8 bg-[#E5C0C5] rounded-full" />
+                        <div className="w-20 h-8 bg-[#E5C0C5] rounded-full" />
                     </div>
                 </div>
             </div>

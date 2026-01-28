@@ -78,15 +78,15 @@ function CreatePostNotion() {
     const canSubmit = (content.trim() || files.length > 0) && !isSubmitting;
 
     return (
-        <div {...getRootProps()} className="border-b border-[#2F2F2F] pb-4 mb-4">
+        <div {...getRootProps()} className="bg-[#FDF0F1] rounded-[30px] p-5 shadow-md shadow-[#CD6E67]/5 mb-6">
             <input {...getInputProps()} />
 
             <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 onFocus={() => setIsFocused(true)}
-                placeholder="Write something..."
-                className="w-full bg-transparent text-[#E3E3E3] placeholder-[#9B9A97] resize-none outline-none text-sm leading-relaxed min-h-[60px]"
+                placeholder="What's on your mind?"
+                className="w-full bg-white text-[#3E3229] placeholder-[#9CA3AF] rounded-full px-6 py-3 resize-none outline-none text-sm leading-relaxed min-h-[48px] focus:ring-2 focus:ring-[#CD6E67] border-none shadow-inner transition-all"
                 disabled={isSubmitting}
             />
 
@@ -94,17 +94,17 @@ function CreatePostNotion() {
             {files.length > 0 && (
                 <div className="grid grid-cols-4 gap-2 mt-3">
                     {files.map((file, index) => (
-                        <div key={index} className="relative group aspect-square rounded-md overflow-hidden border border-[#2F2F2F]">
+                        <div key={index} className="relative group aspect-square rounded-[15px] overflow-hidden border-2 border-white shadow-sm">
                             {file.type.startsWith('video/') ? (
-                                <div className="w-full h-full bg-[#202020] flex items-center justify-center">
-                                    <Film className="w-6 h-6 text-[#9B9A97]" />
+                                <div className="w-full h-full bg-[#F3DDE0] flex items-center justify-center">
+                                    <Film className="w-6 h-6 text-[#CD6E67]" />
                                 </div>
                             ) : (
                                 <img src={file.preview} alt="" className="w-full h-full object-cover" />
                             )}
                             <button
                                 onClick={() => removeFile(index)}
-                                className="absolute top-1 right-1 p-0.5 bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-1.5 right-1.5 p-1 bg-[#CD6E67] rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                             >
                                 <X className="w-3 h-3 text-white" />
                             </button>
@@ -115,18 +115,18 @@ function CreatePostNotion() {
 
             {/* Actions - Show when focused or has content */}
             {(isFocused || content || files.length > 0) && (
-                <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center justify-between mt-4">
                     <button
                         onClick={open}
-                        className="p-1.5 text-[#9B9A97] hover:text-[#E3E3E3] hover:bg-[#2F2F2F] rounded transition-colors"
+                        className="p-2 text-[#7A6862] hover:text-[#CD6E67] hover:bg-[#F3DDE0] rounded-full transition-colors"
                     >
-                        <ImageIcon className="w-4 h-4" />
+                        <ImageIcon className="w-5 h-5" />
                     </button>
                     <div className="flex items-center gap-2">
                         {(content || files.length > 0) && (
                             <button
                                 onClick={() => { setContent(''); setFiles([]); setIsFocused(false); }}
-                                className="px-3 py-1 text-xs text-[#9B9A97] hover:text-[#E3E3E3] transition-colors"
+                                className="px-4 py-2 text-sm font-bold text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
                             >
                                 Cancel
                             </button>
@@ -134,12 +134,12 @@ function CreatePostNotion() {
                         <button
                             onClick={handlePost}
                             disabled={!canSubmit}
-                            className={`px-3 py-1 text-xs rounded transition-colors flex items-center gap-1.5 ${canSubmit
-                                ? 'bg-[#2F2F2F] text-[#E3E3E3] hover:bg-[#37352F]'
-                                : 'text-[#9B9A97] cursor-not-allowed'
+                            className={`px-4 py-2 text-sm font-bold rounded-full transition-all flex items-center gap-2 shadow-sm ${canSubmit
+                                ? 'bg-[#CD6E67] text-white hover:bg-[#B55B55] shadow-[#CD6E67]/30'
+                                : 'bg-[#E5C0C5] text-[#9CA3AF] cursor-not-allowed'
                                 }`}
                         >
-                            {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+                            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                             Post
                         </button>
                     </div>
@@ -171,8 +171,8 @@ export default function CommunityFeedNotion() {
     if (isLoading) {
         return (
             <div>
-                <div className="border-b border-[#2F2F2F] pb-4 mb-4">
-                    <div className="h-16 bg-[#202020] rounded animate-pulse" />
+                <div className="bg-[#FDF0F1] rounded-[30px] p-5 shadow-md shadow-[#CD6E67]/5 mb-6">
+                    <div className="h-16 bg-[#E5C0C5] rounded-full animate-pulse" />
                 </div>
                 {[1, 2, 3].map(i => <PostCardNotionSkeleton key={i} />)}
             </div>
@@ -188,9 +188,9 @@ export default function CommunityFeedNotion() {
 
             {/* Error */}
             {isError && (
-                <div className="text-center py-8">
-                    <p className="text-red-400 text-sm mb-2">{error instanceof Error ? error.message : 'Failed'}</p>
-                    <button onClick={() => refetch()} className="text-[#9B9A97] text-sm hover:text-[#E3E3E3]">
+                <div className="text-center py-8 bg-[#FDF0F1] rounded-[30px] p-6">
+                    <p className="text-red-500 text-sm font-medium mb-3">{error instanceof Error ? error.message : 'Failed'}</p>
+                    <button onClick={() => refetch()} className="px-4 py-2 text-sm font-bold text-[#CD6E67] hover:bg-[#F3DDE0] rounded-full transition-colors">
                         Try again
                     </button>
                 </div>
@@ -212,14 +212,14 @@ export default function CommunityFeedNotion() {
                     {isFetchingNextPage && <PostCardNotionSkeleton />}
 
                     {posts.length === 0 && (
-                        <div className="text-center py-12">
-                            <p className="text-[#9B9A97] text-sm">No posts yet. Be the first!</p>
+                        <div className="text-center py-12 bg-[#FDF0F1] rounded-[30px] p-8">
+                            <p className="text-[#7A6862] text-sm font-medium">No posts yet. Be the first!</p>
                         </div>
                     )}
 
                     {!hasNextPage && posts.length > 0 && (
                         <div className="text-center py-8">
-                            <p className="text-[#9B9A97] text-xs">End of feed</p>
+                            <p className="text-[#7A6862] text-xs font-medium">You've reached the end ✨</p>
                         </div>
                     )}
                 </>
