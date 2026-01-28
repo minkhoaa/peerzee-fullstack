@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Socket } from "socket.io-client";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { useTheme } from "@/lib/theme";
-import api from "@/lib/api";
+import api, { userApi, chatApi } from "@/lib/api";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import CallModal from "@/components/AudioCallModal";
 
@@ -420,7 +420,7 @@ export default function ChatPage() {
         const timer = setTimeout(async () => {
             setSearching(true);
             try {
-                const res = await api.get(`/user/search?q=${encodeURIComponent(searchQuery)}`);
+                const res = await userApi.searchUsers(searchQuery);
                 setSearchResults(res.data);
             } catch (err) {
                 console.error(err);
@@ -472,13 +472,11 @@ export default function ChatPage() {
             fileName = null,
             fileType = null;
         if (selectedFile) {
-            const formData = new FormData();
-            formData.append("file", selectedFile);
             try {
-                const res = await api.post("/chat/upload", formData, { headers: { "Content-Type": undefined } });
-                fileUrl = res.data.fileUrl;
-                fileName = res.data.fileName;
-                fileType = res.data.fileType;
+                const uploadRes = await chatApi.uploadFile(selectedFile);
+                fileUrl = uploadRes.data.fileUrl;
+                fileName = uploadRes.data.fileName;
+                fileType = uploadRes.data.fileType;
             } catch (error) {
                 console.log(error);
                 return;
@@ -506,18 +504,15 @@ export default function ChatPage() {
     const handleVoiceMessage = async (blob: Blob, duration: number) => {
         if (!activeConversation || !socketRef.current) return;
 
-        const formData = new FormData();
-        formData.append("file", blob, "voice_message.webm");
-        const res = await api.post("/chat/upload", formData, {
-            headers: { "Content-Type": undefined },
-        });
+        const file = new File([blob], "voice_message.webm", { type: "audio/webm" });
+        const uploadRes = await chatApi.uploadFile(file);
 
         socketRef.current.emit("conversation:send", {
             conversation_id: activeConversation.id,
             body: `🎤 Voice message (${duration}s)`,
-            fileUrl: res.data.fileUrl,
-            fileName: res.data.fileName || "voice_message.webm",
-            fileType: res.data.fileType || "audio/webm",
+            fileUrl: uploadRes.data.fileUrl,
+            fileName: uploadRes.data.fileName || "voice_message.webm",
+            fileType: uploadRes.data.fileType || "audio/webm",
         });
     };
 

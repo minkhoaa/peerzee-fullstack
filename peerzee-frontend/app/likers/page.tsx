@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Heart } from 'lucide-react';
 import LikersGrid from '@/components/discover/LikersGrid';
-import api from '@/lib/api';
+import { swipeApi } from '@/lib/api';
 
 interface Liker {
     id: string;
@@ -27,7 +27,7 @@ export default function LikersPage() {
     useEffect(() => {
         const fetchLikers = async () => {
             try {
-                const res = await api.get('/swipe/matches/likers');
+                const res = await swipeApi.getLikers();
                 setLikers(res.data.likers || []);
             } catch (e) {
                 console.error('Failed to fetch likers:', e);

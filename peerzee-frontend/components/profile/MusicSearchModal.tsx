@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Search, Loader2, Play, Pause, Sparkles, Music } from 'lucide-react';
+import { profileApi } from '@/lib/api';
 
 interface MusicTrack {
     trackId: string;
@@ -83,14 +84,7 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
 
         setSearching(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'}/profile/music/search?q=${encodeURIComponent(searchQuery)}&limit=8`,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
-            const data = await res.json();
+            const { data } = await profileApi.searchMusic(searchQuery);
             setResults(data || []);
         } catch (err) {
             console.error('Search failed:', err);
@@ -143,29 +137,12 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
         stopAudio();
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'}/profile/music`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        songName: track.songName,
-                        artistName: track.artistName,
-                        previewUrl: track.previewUrl,
-                        coverUrl: track.coverUrl,
-                    }),
-                }
-            );
-
-            if (!res.ok) {
-                throw new Error('Failed to analyze music');
-            }
-
-            const data = await res.json();
+            const { data } = await profileApi.setMusic({
+                song: track.songName,
+                artist: track.artistName,
+                previewUrl: track.previewUrl,
+                cover: track.coverUrl,
+            });
 
             onMusicSet({
                 song: track.songName,

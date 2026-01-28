@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MapPin, Loader2, CheckCircle, AlertCircle, Navigation } from 'lucide-react';
+import { profileApi } from '@/lib/api';
 
 interface LocationRequestProps {
     onLocationUpdate?: (lat: number, long: number) => void;
@@ -40,22 +41,7 @@ export function LocationRequest({ onLocationUpdate, onLocationGranted, currentLo
 
                 // Send to backend
                 try {
-                    const token = localStorage.getItem('token');
-                    const res = await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'}/profile/me`,
-                        {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({ latitude, longitude }),
-                        }
-                    );
-
-                    if (!res.ok) {
-                        throw new Error('Failed to update location');
-                    }
+                    await profileApi.updateProfile({ latitude, longitude });
 
                     setStatus('success');
                     onLocationUpdate?.(latitude, longitude);

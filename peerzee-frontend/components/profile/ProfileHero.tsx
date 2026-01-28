@@ -35,10 +35,10 @@ export function ProfileHero({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-[#FDF0F1] p-2 rounded-[50px] shadow-xl shadow-[#CD6E67]/10 w-full relative overflow-visible"
+      className="relative flex flex-col w-full bg-[#FDF0F1] rounded-[40px] shadow-xl shadow-[#CD6E67]/10 overflow-visible"
     >
-      {/* Cover Image */}
-      <div className="h-64 w-full rounded-[40px] overflow-hidden bg-[#E5C0C5] relative">
+      {/* Cover Section */}
+      <div className="h-48 w-full rounded-t-[40px] bg-[#E5C0C5] relative overflow-hidden">
         {coverPhoto ? (
           <img
             src={coverPhoto}
@@ -64,43 +64,42 @@ export function ProfileHero({
         </button>
       </div>
 
+      {/* The Anchor Bar - Avatar & Edit Button */}
+      <div className="flex justify-between items-end px-8 -mt-12 mb-4">
+        {/* Avatar (Left) */}
+        <div className="w-32 h-32 rounded-full border-[6px] border-[#FDF0F1] bg-white shadow-md z-10 overflow-hidden shrink-0">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[#CD6E67] to-[#E5C0C5] flex items-center justify-center text-white text-4xl font-black font-nunito">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+
+        {/* Edit Button (Right) */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onEditClick}
+          className="mb-2 bg-[#CD6E67] text-white px-6 py-2 rounded-full font-bold shadow-lg shadow-[#CD6E67]/20 hover:bg-[#B55B55] transition-colors text-sm flex items-center gap-2"
+        >
+          ✏️ Edit Profile
+        </motion.button>
+      </div>
+
       {/* Info Section */}
-      <div className="pt-20 pb-8 px-10 relative">
-        {/* Avatar (Overlapping) */}
-        <div className="absolute -top-16 left-10">
-          <div className="w-40 h-40 rounded-full border-[6px] border-[#FDF0F1] shadow-lg bg-white overflow-hidden">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={displayName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-[#CD6E67] to-[#E5C0C5] flex items-center justify-center text-white text-5xl font-black font-nunito">
-                {displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Edit Button (Top-right) */}
-        <div className="absolute top-8 right-10">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onEditClick}
-            className="bg-[#CD6E67] text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-[#CD6E67]/20 hover:bg-[#B55B55] transition-colors flex items-center gap-2"
-          >
-            ✏️ Edit Profile
-          </motion.button>
-        </div>
-
+      <div className="px-8 pb-8 flex flex-col gap-2">
         {/* Name & Username */}
-        <div className="mb-4">
-          <h1 className="text-4xl font-black text-[#3E3229] font-nunito mb-1">
+        <div>
+          <h1 className="text-3xl font-black text-[#3E3229] font-nunito mb-1">
             {displayName}
           </h1>
-          <p className="text-[#CD6E67] font-bold text-lg flex items-center gap-2">
+          <p className="text-[#CD6E67] font-bold text-sm flex items-center gap-2">
             <span>@{username}</span>
             <span className="w-5 h-5 bg-[#CD6E67] rounded-full flex items-center justify-center">
               <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -112,18 +111,18 @@ export function ProfileHero({
 
         {/* Bio */}
         {bio && (
-          <p className="text-[#7A6862] font-semibold text-lg max-w-2xl leading-relaxed mb-6">
+          <p className="text-[#7A6862] font-semibold text-base leading-relaxed mt-2">
             {bio}
           </p>
         )}
 
         {/* Stats Row */}
-        <div className="flex gap-8 mt-6">
+        <div className="flex gap-8 border-t border-[#ECC8CD]/30 pt-4 mt-4">
           <div className="flex flex-col items-center">
             <span className="font-black text-2xl text-[#3E3229]">
               {stats.matches}
             </span>
-            <span className="text-sm font-bold text-[#CD6E67] uppercase tracking-wide">
+            <span className="text-xs font-bold text-[#CD6E67] uppercase tracking-wide">
               Matches
             </span>
           </div>
@@ -131,7 +130,7 @@ export function ProfileHero({
             <span className="font-black text-2xl text-[#3E3229]">
               {stats.likes}
             </span>
-            <span className="text-sm font-bold text-[#CD6E67] uppercase tracking-wide">
+            <span className="text-xs font-bold text-[#CD6E67] uppercase tracking-wide">
               Likes
             </span>
           </div>
@@ -139,7 +138,7 @@ export function ProfileHero({
             <span className="font-black text-2xl text-[#3E3229]">
               {stats.views}
             </span>
-            <span className="text-sm font-bold text-[#CD6E67] uppercase tracking-wide">
+            <span className="text-xs font-bold text-[#CD6E67] uppercase tracking-wide">
               Views
             </span>
           </div>

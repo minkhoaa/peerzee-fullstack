@@ -173,6 +173,14 @@ export const communityApi = {
         const response = await api.get(`/community/tags/trending?limit=${limit}`);
         return response.data;
     },
+
+    /**
+     * Get suggested users (from community controller)
+     */
+    getSuggestedUsers: async (limit: number = 5): Promise<{ ok: boolean; users: SuggestedUser[] }> => {
+        const response = await api.get(`/community/suggested-users?limit=${limit}`);
+        return response.data;
+    },
 };
 
 // Types for widgets
@@ -187,34 +195,3 @@ export interface SuggestedUser {
     display_name: string;
     bio?: string;
 }
-
-export interface RecentMatch {
-    id: string;
-    conversationId: string;
-    matchedAt: string;
-    partner: {
-        id: string;
-        email: string;
-        display_name: string;
-    };
-}
-
-// Swipe/Match API functions
-export const swipeApi = {
-    /**
-     * Get recent matches for sidebar
-     */
-    getRecentMatches: async (limit: number = 5): Promise<{ ok: boolean; matches: RecentMatch[] }> => {
-        const response = await api.get(`/swipe/matches/recent?limit=${limit}`);
-        return response.data;
-    },
-
-    /**
-     * Get suggested users to connect with
-     */
-    getSuggestedUsers: async (limit: number = 5): Promise<{ ok: boolean; users: SuggestedUser[] }> => {
-        // Changed from /swipe/suggestions to /community/suggested-users
-        const response = await api.get(`/community/suggested-users?limit=${limit}`);
-        return response.data;
-    },
-};

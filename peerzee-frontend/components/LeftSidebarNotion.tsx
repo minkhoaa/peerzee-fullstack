@@ -68,7 +68,7 @@ export default function LeftSidebarNotion() {
                         <div className="flex items-center justify-center py-3">
                             <Loader2 className="w-5 h-5 text-[#CD6E67] animate-spin" />
                         </div>
-                    ) : matches && matches.length > 0 ? (
+                    ) : matches && Array.isArray(matches) && matches.length > 0 ? (
                         matches.map((match) => (
                             <Link
                                 key={match.id}

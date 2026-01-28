@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { LoginDto, LoginResponse, RegisterDto, RegisterResponse, UpdateUserProfileDto } from "@/types";
-import { Conversation } from "@/types/conversation";
+import type { Conversation as ConversationType } from "@/types/conversation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 const api = axios.create({
@@ -58,13 +58,37 @@ export const authApi = {
         api.put(`/user/profile/${userId}`, data),
 };
 export const chatApi = {
-    getConversations: () => api.get<Conversation[]>("/conversation"),
+    getConversations: () => api.get<ConversationType[]>("/conversation"),
     startDM: (targetUserId: string) =>
         api.post<{ conversationId: string; isDirect: boolean; isNew: boolean }>(
             `/chat/dm/${targetUserId}`
         ),
     suggestReply: (conversationId: string) =>
         api.post<{ suggestions: string[] }>('/chat/suggest-reply', { conversationId }),
+    uploadFile: (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post<{ fileUrl: string; fileName: string; fileType: string }>(
+            '/chat/upload',
+            formData,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+        );
+    },
+};
+
+// User API for search and user-related operations
+export const userApi = {
+    searchUsers: (query: string) =>
+        api.get(`/user/search?q=${encodeURIComponent(query)}`),
+
+    getUserProfile: (userId: string) =>
+        api.get(`/user/profile/${userId}`),
+
+    addTag: (userId: string, tag: string) =>
+        api.post('/user/add-tag', { userId, tag }),
+
+    updateProperties: (data: Record<string, unknown>) =>
+        api.patch('/user/profile/properties', data),
 };
 
 // Rich Profile Types for Matching
@@ -88,6 +112,8 @@ export interface RecommendationUser {
     display_name?: string;
     bio?: string;
     location?: string;
+    latitude?: number;
+    longitude?: number;
     age?: number;
     occupation?: string;
     education?: string;
@@ -115,6 +141,17 @@ export interface SwipeRequest {
     likedContentType?: 'photo' | 'prompt' | 'vibe';
 }
 
+export interface RecentMatch {
+    id: string;
+    conversationId: string;
+    matchedAt: string;
+    partner: {
+        id: string;
+        email: string;
+        display_name: string;
+    };
+}
+
 export const swipeApi = {
     getRecommendations: (limit: number = 10) =>
         api.get<RecommendationUser[]>(`/swipe/recommendations?limit=${limit}&_t=${Date.now()}`),
@@ -126,7 +163,22 @@ export const swipeApi = {
         api.get('/swipe/matches'),
 
     getRecentMatches: (limit: number = 5) =>
-        api.get<{ ok: boolean; matches: unknown[] }>(`/swipe/matches/recent?limit=${limit}`),
+        api.get<{ ok: boolean; matches: RecentMatch[] }>(`/swipe/matches/recent?limit=${limit}`),
+
+    getLikers: () =>
+        api.get('/swipe/matches/likers'),
+
+    unmatch: (matchId: string, block?: boolean) =>
+        api.post(`/swipe/matches/${matchId}/unmatch`, { block }),
+
+    report: (targetId: string, reason: string) =>
+        api.post('/swipe/report', { targetId, reason }),
+
+    getSuperlikeStatus: () =>
+        api.get('/swipe/superlike-status'),
+
+    getSuggestedUsers: (limit: number = 3) =>
+        api.get(`/swipe/suggestions?limit=${limit}`),
 };
 
 // Profile API for rich profile management
@@ -160,6 +212,15 @@ export const profileApi = {
 
     analyzeProfile: () =>
         api.post<ProfileAnalysisResult>('/profile/analyze'),
+
+    searchMusic: (query: string) =>
+        api.get(`/profile/music/search?q=${encodeURIComponent(query)}`),
+
+    setMusic: (musicData: { trackId?: string; song: string; artist: string; cover: string; previewUrl?: string }) =>
+        api.put('/profile/music', musicData),
+
+    setSpotify: (accessToken: string, refreshToken: string) =>
+        api.post('/profile/spotify', { accessToken, refreshToken }),
 };
 
 // AI Profile Doctor Types
@@ -215,3 +276,73 @@ export const discoverApi = {
         api.post<SwipeResponse>('/discover/swipe', data),
 };
 
+// Notification API
+export interface Notification {
+    id: string;
+    userId: string;
+    type: 'match' | 'message' | 'like' | 'superlike' | 'profile_view';
+    title: string;
+    message: string;
+    data?: Record<string, unknown>;
+    read: boolean;
+    createdAt: string;
+}
+
+export interface NotificationsResponse {
+    ok: boolean;
+    notifications: Notification[];
+    nextCursor: string | null;
+    hasMore: boolean;
+}
+
+export const notificationApi = {
+    getNotifications: (cursor?: string, limit: number = 20) => {
+        const params = new URLSearchParams();
+        params.append('limit', limit.toString());
+        if (cursor) params.append('cursor', cursor);
+        return api.get<NotificationsResponse>(`/notifications?${params.toString()}`);
+    },
+
+    getUnreadCount: () =>
+        api.get<{ count: number }>('/notifications/unread-count'),
+
+    markAsRead: (notificationId: string) =>
+        api.patch(`/notifications/${notificationId}/read`),
+
+    markAllAsRead: () =>
+        api.patch('/notifications/read-all'),
+};
+
+// Conversation API
+export interface Conversation {
+    id: string;
+    participants: Array<{
+        id: string;
+        display_name?: string;
+        email: string;
+    }>;
+    lastMessage?: {
+        content: string;
+        createdAt: string;
+    };
+    unreadCount?: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export const conversationApi = {
+    getConversations: () =>
+        api.get<{ conversations: Conversation[] }>('/conversations'),
+
+    getConversation: (conversationId: string) =>
+        api.get<Conversation>(`/conversations/${conversationId}`),
+
+    sendIcebreakerAnswer: (conversationId: string, questionId: string, answer: string) =>
+        api.post(`/conversations/${conversationId}/icebreaker`, { questionId, answer }),
+
+    updateConversation: (conversationId: string, data: Partial<Conversation>) =>
+        api.patch<Conversation>(`/conversations/${conversationId}`, data),
+
+    deleteConversation: (conversationId: string) =>
+        api.delete(`/conversations/${conversationId}`),
+};

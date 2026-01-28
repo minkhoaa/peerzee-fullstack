@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Camera, Check, X, Heart, MessageCircle, Eye, Loader2 } from 'lucide-react';
-import api, { chatApi } from '@/lib/api';
+import { chatApi, userApi } from '@/lib/api';
 
 interface UserProfileData {
     id: string;
@@ -39,7 +39,7 @@ export default function UserProfilePage() {
 
     const loadProfile = async () => {
         try {
-            const res = await api.get(`/user/profile/${userId}`);
+            const res = await userApi.getUserProfile(userId);
             setProfile(res.data?.profile || res.data);
         } catch (err) {
             console.error('Failed to load profile:', err);

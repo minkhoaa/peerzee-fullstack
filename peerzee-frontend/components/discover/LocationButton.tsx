@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { MapPin, Loader2, CheckCircle } from 'lucide-react';
+import { profileApi } from '@/lib/api';
 
 interface LocationButtonProps {
     onLocationUpdate?: (lat: number, long: number) => void;
@@ -27,20 +28,7 @@ export function LocationButton({ onLocationUpdate, className = '' }: LocationBut
                 const { latitude, longitude } = position.coords;
 
                 try {
-                    const token = localStorage.getItem('token');
-                    const res = await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'}/profile/me`,
-                        {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({ latitude, longitude }),
-                        }
-                    );
-
-                    if (!res.ok) throw new Error('Failed to update');
+                    await profileApi.updateProfile({ latitude, longitude });
 
                     setStatus('success');
                     onLocationUpdate?.(latitude, longitude);

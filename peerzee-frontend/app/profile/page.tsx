@@ -8,6 +8,8 @@ import { profileApi } from '@/lib/api';
 import { searchLocations } from '@/lib/vietnam-locations';
 import { TagSelector } from '@/components/TagSelector';
 import { ProfileHero } from '@/components/profile/ProfileHero';
+import { MusicSearchModal } from '@/components/profile/MusicSearchModal';
+import ProfilePhotos from '@/components/profile/ProfilePhotos';
 import { ZODIAC_SIGNS, getTagDisplay } from '@/lib/profile-tags';
 
 interface MusicData {
@@ -61,6 +63,10 @@ export default function MyProfilePage() {
     const [locationQuery, setLocationQuery] = useState('');
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
     const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState<'posts' | 'photos'>('photos');
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isMusicModalOpen, setMusicModalOpen] = useState(false);
+    const [isEditingPhotos, setIsEditingPhotos] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -138,12 +144,36 @@ export default function MyProfilePage() {
         }
     };
 
-    const handleDeletePhoto = async (photoId: string) => {
+    const handlePhotoUploadFile = async (file: File): Promise<void> => {
+        setUploading(true);
+        try {
+            const res = await profileApi.uploadPhoto(file, !profile?.photos || profile.photos.length === 0);
+            setProfile(res.data);
+        } catch (err) {
+            console.error('Failed to upload:', err);
+            throw err;
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleDeletePhoto = async (photoId: string): Promise<void> => {
         try {
             const res = await profileApi.deletePhoto(photoId);
             setProfile(res.data);
         } catch (err) {
             console.error('Failed to delete:', err);
+            throw err;
+        }
+    };
+
+    const handleSelectMusic = async (music: MusicData) => {
+        try {
+            // Update profile state immediately for instant feedback
+            setProfile(prev => prev ? { ...prev, spotify: music } : null);
+            setMusicModalOpen(false);
+        } catch (err) {
+            console.error('Failed to set music:', err);
         }
     };
 
@@ -181,8 +211,6 @@ export default function MyProfilePage() {
     const photos = profile.photos?.sort((a, b) => (a.order || 0) - (b.order || 0)) || [];
     const coverPhoto = photos[0]?.url;
     const avatarUrl = photos[0]?.url;
-    const [activeTab, setActiveTab] = useState<'posts' | 'photos'>('photos');
-    const [isPlaying, setIsPlaying] = useState(false);
 
     const musicData = profile.spotify && 'cover' in profile.spotify
         ? profile.spotify as MusicData
@@ -222,7 +250,9 @@ export default function MyProfilePage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="bg-[#FDF0F1] p-6 rounded-[40px] shadow-md flex items-center gap-4"
+                        whileHover={{ scale: 1.02 }}
+                        onClick={() => setMusicModalOpen(true)}
+                        className="bg-[#FDF0F1] p-6 rounded-[40px] shadow-md flex items-center gap-4 cursor-pointer hover:shadow-lg transition-all"
                     >
                         {musicData ? (
                             <>
@@ -243,7 +273,10 @@ export default function MyProfilePage() {
                                         )}
                                     </motion.div>
                                     <button
-                                        onClick={() => setIsPlaying(!isPlaying)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsPlaying(!isPlaying);
+                                        }}
                                         className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#CD6E67] rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform"
                                     >
                                         {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
@@ -331,41 +364,30 @@ export default function MyProfilePage() {
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full"
+                            className="space-y-4"
                         >
-                            {photos.length > 0 ? (
-                                photos.map((photo) => (
-                                    <motion.div
-                                        key={photo.id}
-                                        whileHover={{ scale: 1.02 }}
-                                        className="aspect-square bg-[#FDF0F1] rounded-[30px] overflow-hidden shadow-md relative group cursor-pointer"
-                                    >
-                                        <img
-                                            src={photo.url}
-                                            alt=""
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                        />
-                                        <div className="absolute inset-0 bg-[#CD6E67]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <button
-                                                onClick={() => handleDeletePhoto(photo.id)}
-                                                className="p-3 bg-white/90 rounded-full text-[#CD6E67] shadow-lg hover:bg-white transition-all"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                ))
-                            ) : (
-                                <div className="col-span-2 md:col-span-3 text-center py-12">
-                                    <button
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="inline-flex items-center gap-2 px-8 py-4 bg-[#CD6E67] text-white font-bold rounded-full shadow-lg hover:bg-[#B55B55] hover:scale-105 transition-all"
-                                    >
-                                        <Plus className="w-5 h-5" />
-                                        Add Your First Photo
-                                    </button>
-                                </div>
-                            )}
+                            {/* Edit Toggle Button */}
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => setIsEditingPhotos(!isEditingPhotos)}
+                                    className={`px-6 py-2 rounded-full font-bold transition-all ${
+                                        isEditingPhotos
+                                            ? 'bg-[#CD6E67] text-white shadow-md'
+                                            : 'bg-[#FDF0F1] text-[#7A6862] hover:bg-[#F3DDE0]'
+                                    }`}
+                                >
+                                    {isEditingPhotos ? '✓ Xong' : '✏️ Chỉnh sửa'}
+                                </button>
+                            </div>
+
+                            {/* ProfilePhotos Component */}
+                            <ProfilePhotos
+                                photos={photos}
+                                isOwnProfile={true}
+                                isEditing={isEditingPhotos}
+                                onUpload={handlePhotoUploadFile}
+                                onDelete={handleDeletePhoto}
+                            />
                         </motion.div>
                     )}
 
@@ -528,6 +550,13 @@ export default function MyProfilePage() {
                     </motion.div>
                 </div>
             )}
+
+            {/* Music Search Modal */}
+            <MusicSearchModal
+                isOpen={isMusicModalOpen}
+                onClose={() => setMusicModalOpen(false)}
+                onMusicSet={handleSelectMusic}
+            />
         </div>
     );
 }

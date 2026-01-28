@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Music, Search, X, Loader2, Play, Pause, Sparkles } from 'lucide-react';
+import { profileApi } from '@/lib/api';
 
 interface MusicTrack {
     trackId: string;
@@ -62,14 +63,7 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
 
         setSearching(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'}/profile/music/search?q=${encodeURIComponent(searchQuery)}&limit=5`,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
-            const data = await res.json();
+            const { data } = await profileApi.searchMusic(searchQuery);
             setResults(data || []);
         } catch (err) {
             console.error('Search failed:', err);
@@ -101,28 +95,13 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
         stopAudio();
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'}/profile/music`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        song: track.songName,
-                        artist: track.artistName,
-                        previewUrl: track.previewUrl,
-                        cover: track.coverUrl,
-                        trackId: track.trackId,
-                        album: track.albumName,
-                        genre: track.genre,
-                    }),
-                }
-            );
-
-            const data = await res.json();
+            const { data } = await profileApi.setMusic({
+                trackId: track.trackId,
+                song: track.songName,
+                artist: track.artistName,
+                previewUrl: track.previewUrl,
+                cover: track.coverUrl,
+            });
 
             if (onMusicSet) {
                 onMusicSet({

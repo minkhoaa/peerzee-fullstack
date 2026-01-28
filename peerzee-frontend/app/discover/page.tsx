@@ -8,7 +8,7 @@ import ModeSwitcher from '@/components/discover/ModeSwitcher';
 import { LocationRequest } from '@/components/discover/LocationRequest';
 import { useDiscover } from '@/hooks/useDiscover';
 import { useMatchContext } from '@/components/MatchProvider';
-import api, { discoverApi, SearchResult, SearchResponse } from '@/lib/api';
+import api, { discoverApi, swipeApi, userApi, SearchResult, SearchResponse } from '@/lib/api';
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 
@@ -56,8 +56,8 @@ export default function DiscoverPage() {
         const loadData = async () => {
             try {
                 const [profileRes, likersRes] = await Promise.all([
-                    api.get('/user/profile'),
-                    api.get('/swipe/matches/likers'),
+                    userApi.getUserProfile('me'),
+                    swipeApi.getLikers(),
                 ]);
                 if (profileRes.data?.profile?.intentMode) {
                     setIntentMode(profileRes.data.profile.intentMode);
@@ -92,7 +92,7 @@ export default function DiscoverPage() {
     const handleModeChange = useCallback(async (mode: IntentMode) => {
         setIsChangingMode(true);
         try {
-            await api.patch('/user/profile/properties', { intentMode: mode });
+            await userApi.updateProperties({ intentMode: mode });
             setIntentMode(mode);
             await refetch();
         } catch (e) {
