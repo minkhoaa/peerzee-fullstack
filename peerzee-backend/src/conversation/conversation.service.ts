@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Conversation, IcebreakerData } from 'src/chat/entities/conversation.entity';
-import { Participant } from 'src/chat/entities/participants.entity';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
+import { Conversation, IcebreakerData } from '../chat/entities/conversation.entity';
+import { Participant } from '../chat/entities/participants.entity';
 
 // Icebreaker questions pool
 const ICEBREAKER_QUESTIONS = [
@@ -24,9 +24,10 @@ const ICEBREAKER_QUESTIONS = [
 export class ConversationService {
   constructor(
     @InjectRepository(Conversation)
-    private readonly convRepo: Repository<Conversation>,
+    private readonly convRepo: EntityRepository<Conversation>,
     @InjectRepository(Participant)
-    private readonly partRepo: Repository<Participant>,
+    private readonly partRepo: EntityRepository<Participant>,
+    private readonly em: EntityManager,
   ) { }
 
   /**
@@ -50,7 +51,7 @@ export class ConversationService {
       isUnlocked: false,
     };
 
-    await this.convRepo.update(conversationId, { icebreaker });
+    await this.convRepo.nativeUpdate({ id: conversationId }, { icebreaker });
     return icebreaker;
   }
 
@@ -59,9 +60,7 @@ export class ConversationService {
    * Returns { myAnswer, partnerAnswer?, isUnlocked }
    */
   async submitIcebreakerAnswer(conversationId: string, userId: string, answer: string) {
-    const conversation = await this.convRepo.findOne({
-      where: { id: conversationId },
-    });
+    const conversation = await this.convRepo.findOne({ id: conversationId });
 
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
@@ -98,7 +97,7 @@ export class ConversationService {
     }
 
     // Save updated icebreaker
-    await this.convRepo.update(conversationId, { icebreaker });
+    await this.convRepo.nativeUpdate({ id: conversationId }, { icebreaker });
 
     // Return response based on who answered
     const isUser1 = userId === icebreaker.user1Id;
@@ -116,11 +115,11 @@ export class ConversationService {
   /**
    * Get conversation with icebreaker status
    */
-  async getConversationWithIcebreaker(conversationId: string, userId: string) {
-    const conversation = await this.convRepo.findOne({
-      where: { id: conversationId },
-      relations: ['participants'],
-    });
+  async getConversationWithIcebreaker(conversationId: string, userId: string): Promise<any> {
+    const conversation = await this.convRepo.findOne(
+      { id: conversationId },
+      { populate: ['participants'] }
+    );
 
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
@@ -148,11 +147,11 @@ export class ConversationService {
     };
   }
 
-  async findAllByUserId(user_id: string) {
-    const participants = await this.partRepo.find({
-      where: { user_id: user_id },
-      relations: ['conversation', 'conversation.participants', 'conversation.participants.user', 'conversation.participants.user.profile'],
-    });
+  async findAllByUserId(user_id: string): Promise<any[]> {
+    const participants = await this.partRepo.find(
+      { user: { id: user_id } },
+      { populate: ['conversation', 'conversation.participants', 'conversation.participants.user', 'conversation.participants.user.profile'] }
+    );
 
     return participants.map((p) => {
       const conv = p.conversation;
@@ -170,9 +169,9 @@ export class ConversationService {
       return {
         ...conv,
         icebreaker: icebreakerStatus,
-        participantIds: conv.participants?.map((part) => part.user_id) || [],
+        participantIds: conv.participants?.map((part) => part.user.id) || [],
         participantInfo: conv.participants?.map((part) => ({
-          user_id: part.user_id,
+          user_id: part.user.id,
           email: part.user?.email,
           display_name: part.user?.profile?.display_name || part.user?.email?.split('@')[0],
         })) || [],

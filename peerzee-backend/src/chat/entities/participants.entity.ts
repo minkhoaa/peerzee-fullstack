@@ -1,20 +1,12 @@
-import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Entity, ManyToOne } from '@mikro-orm/core';
 import { Conversation } from './conversation.entity';
 import { User } from '../../user/entities/user.entity';
 
-@Entity('participants')
+@Entity({ tableName: 'participants' })
 export class Participant {
-  @PrimaryColumn({ name: 'conversation_id', type: 'uuid' })
-  conversation_id: string;
-  @PrimaryColumn({ name: 'user_id', type: 'uuid' })
-  user_id: string;
-
-  @ManyToOne(() => Conversation, (k) => k.participants)
-  @JoinColumn({ name: 'conversation_id' })
+  @ManyToOne(() => Conversation, { primary: true, fieldName: 'conversation_id' })
   conversation: Conversation;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User, { primary: true, fieldName: 'user_id' })
   user: User;
 }
-

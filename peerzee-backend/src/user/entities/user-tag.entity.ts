@@ -1,17 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 import { ApiProperty } from '@nestjs/swagger';
+import { v4 as uuid } from 'uuid';
 
-@Entity('user_tags')
+@Entity({ tableName: 'user_tags' })
 export class UserTag {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryKey({ type: 'uuid' })
+  id: string = uuid();
 
   @ApiProperty()
-  @Column({ unique: true })
+  @Property({ unique: true })
   tag_type: string;
 
   @ApiProperty()
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   tag_name: string;
 }

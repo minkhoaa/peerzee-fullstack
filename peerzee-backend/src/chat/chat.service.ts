@@ -1,44 +1,45 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { Conversation } from './entities/conversation.entity';
 import { Participant } from './entities/participants.entity';
 import { Message } from './entities/message.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { MessageReaction } from './entities/message-reaction.entity';
 import { IceBreaker } from './entities/ice-breaker.entity';
 import { UserProfile } from '../user/entities/user-profile.entity';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class ChatService {
   constructor(
-    private readonly dataSource: DataSource,
     @InjectRepository(Conversation)
-    private readonly convRepo: Repository<Conversation>,
+    private readonly convRepo: EntityRepository<Conversation>,
     @InjectRepository(Participant)
-    private readonly partRepo: Repository<Participant>,
+    private readonly partRepo: EntityRepository<Participant>,
     @InjectRepository(Message)
-    private readonly msgRepo: Repository<Message>,
+    private readonly msgRepo: EntityRepository<Message>,
     @InjectRepository(MessageReaction)
-    private readonly reactionRepo: Repository<MessageReaction>,
+    private readonly reactionRepo: EntityRepository<MessageReaction>,
     @InjectRepository(IceBreaker)
-    private readonly iceBreakerRepo: Repository<IceBreaker>,
+    private readonly iceBreakerRepo: EntityRepository<IceBreaker>,
     @InjectRepository(UserProfile)
-    private readonly profileRepo: Repository<UserProfile>,
+    private readonly profileRepo: EntityRepository<UserProfile>,
+    private readonly em: EntityManager,
   ) { }
 
   async isParticipants(user_id: string, conversation_id: string) {
     const existed = await this.partRepo.findOne({
-      where: { user_id: user_id, conversation_id: conversation_id },
+      user: { id: user_id }, conversation: { id: conversation_id },
     });
     return !!existed;
   }
 
   async getConversationIdsOfUser(user_id: string) {
-    const rows = await this.partRepo.find({
-      where: { user_id: user_id },
-      select: ['conversation_id', 'user_id'],
-    });
-    return rows.map((k) => k.conversation_id);
+    const rows = await this.partRepo.find(
+      { user: { id: user_id } },
+      { populate: ['conversation'] }
+    );
+    return rows.map((k) => k.conversation.id);
   }
 
   /**
@@ -46,46 +47,49 @@ export class ChatService {
    * Returns the conversation with participant info
    */
   async findOrCreateDMConversation(userId: string, targetUserId: string): Promise<Conversation> {
-    // Find existing DM between these two users
-    const existingDM = await this.convRepo
-      .createQueryBuilder('c')
-      .innerJoin('c.participants', 'p1', 'p1.user_id = :userId', { userId })
-      .innerJoin('c.participants', 'p2', 'p2.user_id = :targetUserId', { targetUserId })
-      .where('c.isDirect = true')
-      .getOne();
+    // Find existing DM between these two users - use raw SQL
+    const existingDMs = await this.em.getConnection().execute<any[]>(`
+      SELECT c.*
+      FROM conversations c
+      INNER JOIN participants p1 ON c.id = p1.conversation_id AND p1.user_id = $1
+      INNER JOIN participants p2 ON c.id = p2.conversation_id AND p2.user_id = $2
+      WHERE c."isDirect" = true
+      LIMIT 1
+    `, [userId, targetUserId]);
 
-    if (existingDM) {
-      return existingDM;
+    if (existingDMs.length > 0) {
+      const conv = await this.convRepo.findOne({ id: existingDMs[0].id });
+      if (conv) return conv;
     }
 
     // Get target user's display_name for conversation name
     const targetProfile = await this.profileRepo.findOne({
-      where: { user_id: targetUserId },
+      user: { id: targetUserId },
     });
     const conversationName = targetProfile?.display_name || 'Chat';
 
     // Create new DM conversation
-    return this.dataSource.transaction(async (manager) => {
-      const conversation = await manager.getRepository(Conversation).save({
-        type: 'direct',
-        name: conversationName,
-        isDirect: true,
-        lastMessageAt: null,
-        lastSeq: '0',
-      });
+    return this.em.transactional(async (em) => {
+      const conversation = new Conversation();
+      conversation.type = 'direct';
+      conversation.name = conversationName;
+      conversation.isDirect = true;
+      conversation.lastMessageAt = null;
+      conversation.lastSeq = '0';
+      em.persist(conversation);
 
       // Add both participants
-      await Promise.all([
-        manager.getRepository(Participant).save({
-          conversation_id: conversation.id,
-          user_id: userId,
-        }),
-        manager.getRepository(Participant).save({
-          conversation_id: conversation.id,
-          user_id: targetUserId,
-        }),
-      ]);
+      const p1 = new Participant();
+      p1.conversation = em.getReference(Conversation, conversation.id);
+      p1.user = em.getReference(User, userId);
+      em.persist(p1);
 
+      const p2 = new Participant();
+      p2.conversation = em.getReference(Conversation, conversation.id);
+      p2.user = em.getReference(User, targetUserId);
+      em.persist(p2);
+
+      await em.flush();
       return conversation;
     });
   }
@@ -94,128 +98,144 @@ export class ChatService {
     const validUserIds =
       participantUserIds?.filter((id) => id && id.trim()) || [];
 
-    return this.dataSource.transaction(async (manager) => {
-      const conver = await manager.getRepository(Conversation).save({
-        type: type,
-        name: name,
-        lastMessageAt: null,
-        lastSeq: '0',
-      });
+    return this.em.transactional(async (em) => {
+      const conver = new Conversation();
+      conver.type = type;
+      conver.name = name || 'Chat';
+      conver.lastMessageAt = null;
+      conver.lastSeq = '0';
+      em.persist(conver);
 
       if (validUserIds.length > 0) {
-        await Promise.all(
-          validUserIds.map((uid) =>
-            manager.getRepository(Participant).save({
-              conversation_id: conver.id,
-              user_id: uid.trim(),
-            }),
-          ),
-        );
+        for (const uid of validUserIds) {
+          const participant = new Participant();
+          participant.conversation = this.em.getReference(Conversation, conver.id);
+          participant.user = this.em.getReference(User, uid.trim());
+          em.persist(participant);
+        }
       }
+
+      await em.flush();
       return conver;
     });
   }
 
   async chatMessage(conversation_id: string, sender_id: string, body: string, fileUrl?: string, fileName?: string, fileType?: string, reply_to_id?: string) {
-    return this.dataSource.transaction(async (manager) => {
-      await manager
-        .getRepository(Conversation)
-        .createQueryBuilder()
-        .update(Conversation)
-        .set({
-          lastMessageAt: new Date(),
-          lastMessage: body,
-          lastSeq: () => '"last_seq" + 1',
-        })
-        .where('id = :id', { id: conversation_id })
-        .execute();
+    return this.em.transactional(async (em) => {
+      // Update conversation - use raw SQL for atomic increment
+      await em.getConnection().execute(
+        `UPDATE conversations 
+         SET "lastMessageAt" = $1, 
+             "lastMessage" = $2, 
+             "last_seq" = CAST(CAST("last_seq" AS INTEGER) + 1 AS TEXT)
+         WHERE id = $3`,
+        [new Date(), body, conversation_id]
+      );
 
-      const conv = await manager.getRepository(Conversation).findOne({
-        where: { id: conversation_id },
-      });
+      const conv = await em.findOne(Conversation, { id: conversation_id });
       if (!conv) throw new NotFoundException('Conversation not found');
 
-      const msg = await manager.getRepository(Message).save({
-        conversation_id: conversation_id,
-        sender_id: sender_id,
-        body: body,
-        seq: conv.lastSeq,
-        fileUrl: fileUrl,
-        fileName: fileName,
-        fileType: fileType,
-        reply_to_id: reply_to_id || null,
-      });
+      const msg = new Message();
+      msg.conversation = conv;
+      msg.sender_id = sender_id;
+      msg.body = body;
+      msg.seq = conv.lastSeq;
+      msg.fileUrl = fileUrl || null;
+      msg.fileName = fileName || null;
+      msg.fileType = fileType || null;
+
+      // Set replyTo if exists
+      if (reply_to_id) {
+        const replyToMsg = await em.findOne(Message, { id: reply_to_id });
+        msg.replyTo = replyToMsg;
+      }
+      em.persist(msg);
 
       // Load replyTo if exists
       if (reply_to_id) {
-        const replyTo = await manager.getRepository(Message).findOne({ where: { id: reply_to_id } });
+        const replyTo = await em.findOne(Message, { id: reply_to_id });
         msg.replyTo = replyTo;
       }
 
+      await em.flush();
       return msg;
     });
   }
 
   async getMessages(conversation_id: string) {
-    return this.msgRepo.find({
-      where: { conversation_id: conversation_id },
-      relations: ['replyTo'],
-      order: { seq: 'ASC' },
-    });
+    return this.msgRepo.find(
+      { conversation: { id: conversation_id } },
+      {
+        populate: ['replyTo'],
+        orderBy: { seq: 'ASC' },
+      }
+    );
   }
 
   async searchMessages(conversation_id: string, query: string) {
-    return this.msgRepo
-      .createQueryBuilder('message')
-      .where('message.conversation_id = :conversation_id', { conversation_id })
-      .andWhere('message.isDeleted = false')
-      .andWhere('LOWER(message.body) LIKE LOWER(:query)', { query: `%${query}%` })
-      .orderBy('message.seq', 'DESC')
-      .limit(50)
-      .getMany();
+    return this.em.getConnection().execute<Message[]>(
+      `SELECT * FROM messages 
+       WHERE conversation_id = $1 
+       AND "isDeleted" = false 
+       AND LOWER(body) LIKE LOWER($2)
+       ORDER BY seq DESC
+       LIMIT 50`,
+      [conversation_id, `%${query}%`]
+    );
   }
 
   async editMessage(message_id: string, user_id: string, newBody: string) {
-    const message = await this.msgRepo.findOne({
-      where: { id: message_id },
-    });
+    const message = await this.msgRepo.findOne({ id: message_id });
     if (!message) throw new NotFoundException('Message not found');
     if (message.sender_id !== user_id) throw new UnauthorizedException('You are not the sender of this message');
     message.body = newBody;
     message.isEdited = true;
-    return this.msgRepo.save(message);
+    await this.em.persistAndFlush(message);
+    return message;
   }
+
   async deleteMessage(message_id: string, user_id: string) {
-    const message = await this.msgRepo.findOne({
-      where: { id: message_id },
-    });
+    const message = await this.msgRepo.findOne({ id: message_id });
     if (!message) throw new NotFoundException('Message not found');
     if (message.sender_id !== user_id) throw new UnauthorizedException('You are not the sender of this message');
     message.isDeleted = true;
     message.deletedAt = new Date();
-    return this.msgRepo.save(message);
+    await this.em.persistAndFlush(message);
+    return message;
   }
+
   async addReaction(messageId: string, userId: string, emoji: string) {
+    // Fetch message entity
+    const message = await this.msgRepo.findOne({ id: messageId });
+    if (!message) throw new Error('Message not found');
+
     // Check if already reacted with same emoji
     const existing = await this.reactionRepo.findOne({
-      where: { message_id: messageId, user_id: userId, emoji }
+      message, user_id: userId, emoji
     });
     if (existing) return existing;
 
-    return this.reactionRepo.save({ message_id: messageId, user_id: userId, emoji });
+    const reaction = new MessageReaction();
+    reaction.message = message;
+    reaction.user_id = userId;
+    reaction.emoji = emoji;
+    await this.em.persistAndFlush(reaction);
+    return reaction;
   }
 
   async removeReaction(messageId: string, userId: string, emoji: string) {
-    await this.reactionRepo.delete({ message_id: messageId, user_id: userId, emoji });
+    const message = await this.msgRepo.findOne({ id: messageId });
+    if (!message) return;
+    await this.reactionRepo.nativeDelete({ message, user_id: userId, emoji });
   }
 
   async markMessageAsRead(messageId: string, userId: string) {
-    const message = await this.msgRepo.findOne({ where: { id: messageId } });
+    const message = await this.msgRepo.findOne({ id: messageId });
     if (!message || message.sender_id === userId || message.readAt) {
       return null;
     }
     message.readAt = new Date();
-    await this.msgRepo.save(message);
+    await this.em.persistAndFlush(message);
     return { readAt: message.readAt };
   }
 
@@ -223,20 +243,21 @@ export class ChatService {
    * Update conversation with AI-generated icebreaker suggestion
    */
   async updateConversationIcebreaker(conversationId: string, icebreaker: string): Promise<void> {
-    await this.convRepo.update(conversationId, { icebreakerSuggestion: icebreaker });
+    await this.convRepo.nativeUpdate({ id: conversationId }, { icebreakerSuggestion: icebreaker });
   }
 
   /**
    * Get random ice breaker prompts
    */
   async getRandomIceBreakers(count: number = 3): Promise<IceBreaker[]> {
-    // Try to get from database first
-    const fromDb = await this.iceBreakerRepo
-      .createQueryBuilder('ib')
-      .where('ib.isActive = :isActive', { isActive: true })
-      .orderBy('RANDOM()')
-      .limit(count)
-      .getMany();
+    // Try to get from database first - use raw SQL for RANDOM()
+    const fromDb = await this.em.getConnection().execute<IceBreaker[]>(
+      `SELECT * FROM ice_breakers 
+       WHERE "isActive" = true 
+       ORDER BY RANDOM() 
+       LIMIT $1`,
+      [count]
+    );
 
     if (fromDb.length >= count) {
       return fromDb;
@@ -265,27 +286,29 @@ export class ChatService {
    */
   async getConversationContext(conversationId: string, currentUserId: string, messageLimit: number = 10) {
     // Get conversation with participants
-    const conversation = await this.convRepo.findOne({
-      where: { id: conversationId },
-      relations: ['participants'],
-    });
+    const conversation = await this.convRepo.findOne(
+      { id: conversationId },
+      { populate: ['participants'] }
+    );
 
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
 
     // Find partner's user_id
-    const partnerParticipant = conversation.participants.find(p => p.user_id !== currentUserId);
+    const partnerParticipant = conversation.participants.find(p => p.user.id !== currentUserId);
     if (!partnerParticipant) {
       throw new NotFoundException('Partner not found in conversation');
     }
 
     // Get last N messages
-    const messages = await this.msgRepo.find({
-      where: { conversation_id: conversationId, isDeleted: false },
-      order: { seq: 'DESC' },
-      take: messageLimit,
-    });
+    const messages = await this.msgRepo.find(
+      { conversation: { id: conversationId }, isDeleted: false },
+      {
+        orderBy: { seq: 'DESC' },
+        limit: messageLimit,
+      }
+    );
 
     // Reverse to get chronological order
     const chatHistory = messages.reverse().map(msg => ({
@@ -295,7 +318,7 @@ export class ChatService {
 
     // Get partner's profile
     const partnerProfile = await this.profileRepo.findOne({
-      where: { user_id: partnerParticipant.user_id },
+      user: { id: partnerParticipant.user.id },
     });
 
     return {
@@ -306,7 +329,7 @@ export class ChatService {
         occupation: partnerProfile.occupation,
         tags: partnerProfile.tags,
       } : {},
-      partnerId: partnerParticipant.user_id,
+      partnerId: partnerParticipant.user.id,
     };
   }
 }

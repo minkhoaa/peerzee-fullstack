@@ -33,7 +33,7 @@ interface ChatSidebarProps {
 type FilterTab = 'all' | 'unread';
 
 /**
- * ChatSidebar - Notion-style sidebar with search, filters, and conversation list
+ * ChatSidebar - Soft Light Mode sidebar with clean, airy design
  */
 export default function ChatSidebar({
     conversations,
@@ -103,90 +103,94 @@ export default function ChatSidebar({
     };
 
     return (
-        <div className="w-[300px] shrink-0 bg-[#191919] border-r border-[#2F2F2F] flex flex-col h-full">
+        <div className="w-[320px] shrink-0 bg-white/70 backdrop-blur-xl border-r border-white/40 shadow-xl shadow-rose-500/5 flex flex-col h-full">
             {/* Header */}
-            <div className="p-4 border-b border-[#2F2F2F]">
+            <div className="p-4 border-b border-white/40">
                 {/* Title Row */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-white font-bold text-lg">Chats</h1>
-                        <span className={`w-2 h-2 rounded-full transition-colors ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-neutral-500'}`} />
+                        <h1 className="text-zinc-900 font-bold text-2xl">Messages</h1>
+                        <span className={`w-2 h-2 rounded-full transition-colors ${isConnected ? 'bg-green-500' : 'bg-zinc-400'}`} />
                     </div>
-                    <div className="flex items-center gap-1">
+                    <button
+                        onClick={onNewChat}
+                        className="w-10 h-10 bg-gradient-to-r from-rose-500 to-rose-400 text-white rounded-full shadow-lg shadow-rose-500/30 transition-all flex items-center justify-center hover:scale-[1.02] active:scale-[0.98]"
+                        title="New message"
+                    >
+                        <SquarePen className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Search Input - Pill shaped */}
+                <div className="relative mb-3">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search messages..."
+                        className="w-full bg-white/50 border border-white/50 text-zinc-800 placeholder-zinc-400 rounded-full pl-11 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200/50 focus:bg-white transition-all"
+                    />
+                </div>
+
+                {/* Action Buttons Row */}
+                <div className="flex items-center justify-between">
+                    <div className="flex gap-1">
                         <button
                             onClick={onToggleTheme}
-                            className="p-2 text-[#9B9A97] hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                            className="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
                             title="Toggle theme"
                         >
                             {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                         </button>
                         <Link
                             href="/profile"
-                            className="p-2 text-[#9B9A97] hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                            className="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
                             title="Profile"
                         >
                             <User className="w-4 h-4" />
                         </Link>
                         <button
                             onClick={onLogout}
-                            className="p-2 text-[#9B9A97] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             title="Logout"
                         >
                             <LogOut className="w-4 h-4" />
                         </button>
+                    </div>
+                    
+                    {/* Filter Tabs */}
+                    <div className="flex bg-white/50 backdrop-blur-sm rounded-full p-0.5 border border-white/40">
                         <button
-                            onClick={onNewChat}
-                            className="p-2 text-[#9B9A97] hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
-                            title="New message"
+                            onClick={() => setActiveFilter('all')}
+                            className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${activeFilter === 'all'
+                                ? 'bg-gradient-to-r from-rose-500 to-rose-400 text-white shadow-md shadow-rose-500/30'
+                                : 'text-zinc-600 hover:text-zinc-900'
+                                }`}
                         >
-                            <SquarePen className="w-4 h-4" />
+                            All
+                        </button>
+                        <button
+                            onClick={() => setActiveFilter('unread')}
+                            className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${activeFilter === 'unread'
+                                ? 'bg-gradient-to-r from-rose-500 to-rose-400 text-white shadow-md shadow-rose-500/30'
+                                : 'text-zinc-600 hover:text-zinc-900'
+                                }`}
+                        >
+                            Unread
                         </button>
                     </div>
-                </div>
-
-                {/* Search Input */}
-                <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B9A97]" />
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search..."
-                        className="w-full bg-[#202020] text-[#E3E3E3] placeholder-[#9B9A97] rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F2F2F] transition-all"
-                    />
-                </div>
-
-                {/* Filter Tabs (Segmented Control) */}
-                <div className="flex bg-[#202020] rounded-lg p-1">
-                    <button
-                        onClick={() => setActiveFilter('all')}
-                        className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${activeFilter === 'all'
-                            ? 'bg-[#2F2F2F] text-white'
-                            : 'text-[#9B9A97] hover:text-[#E3E3E3]'
-                            }`}
-                    >
-                        All
-                    </button>
-                    <button
-                        onClick={() => setActiveFilter('unread')}
-                        className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${activeFilter === 'unread'
-                            ? 'bg-[#2F2F2F] text-white'
-                            : 'text-[#9B9A97] hover:text-[#E3E3E3]'
-                            }`}
-                    >
-                        Unread
-                    </button>
                 </div>
             </div>
 
             {/* Conversations List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 overflow-y-auto">
                 {filteredConversations.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 px-4">
-                        <div className="w-12 h-12 rounded-full bg-[#202020] flex items-center justify-center mb-3">
-                            <Search className="w-5 h-5 text-[#9B9A97]" />
+                        <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center mb-3">
+                            <Search className="w-5 h-5 text-zinc-400" />
                         </div>
-                        <p className="text-[#9B9A97] text-sm text-center">
+                        <p className="text-zinc-500 text-sm text-center">
                             {searchQuery ? 'No conversations found' : 'No conversations yet'}
                         </p>
                     </div>
@@ -202,27 +206,29 @@ export default function ChatSidebar({
                             <div
                                 key={conv.id}
                                 onClick={() => onSelectConversation(conv)}
-                                className={`px-3 py-3 cursor-pointer transition-all flex gap-3 items-center ${isActive
-                                    ? 'bg-[#262626]'
-                                    : 'hover:bg-[#202020]'
+                                className={`p-3 mx-2 mb-1 rounded-2xl cursor-pointer transition-all flex gap-3 items-center ${isActive
+                                    ? 'bg-rose-50 border border-rose-100'
+                                    : 'hover:bg-zinc-50'
                                     }`}
                             >
                                 {/* Avatar */}
                                 <div className="relative shrink-0">
-                                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-[#505050] to-[#404040] flex items-center justify-center text-white font-semibold text-sm ${isActive ? 'ring-2 ring-[#404040]' : ''}`}>
+                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white font-semibold text-sm shadow-sm border border-zinc-100`}>
                                         {conv.name?.slice(0, 1)?.toUpperCase() || '?'}
                                     </div>
                                     {/* Online indicator */}
-                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#191919] transition-colors ${isOnline ? 'bg-green-500' : 'bg-[#505050]'}`} />
+                                    {isOnline && (
+                                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                                    )}
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2">
-                                        <span className={`font-medium text-sm truncate ${isActive ? 'text-white' : 'text-[#E3E3E3]'}`}>
+                                        <span className={`font-semibold text-sm truncate ${isActive ? 'text-zinc-900' : 'text-zinc-900'}`}>
                                             {conv.name || 'Unknown'}
                                         </span>
-                                        <span className="text-[10px] text-[#9B9A97] shrink-0">
+                                        <span className="text-[10px] text-zinc-500 shrink-0">
                                             {formatTime(conv.lastMessageAt)}
                                         </span>
                                     </div>
@@ -230,23 +236,21 @@ export default function ChatSidebar({
                                         {typingText ? (
                                             <div className="flex items-center gap-1.5">
                                                 <div className="flex gap-0.5">
-                                                    <span className="w-1 h-1 bg-[#9B9A97] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                                    <span className="w-1 h-1 bg-[#9B9A97] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                                    <span className="w-1 h-1 bg-[#9B9A97] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                                    <span className="w-1 h-1 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                    <span className="w-1 h-1 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                    <span className="w-1 h-1 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                                                 </div>
-                                                <span className="text-xs text-[#9B9A97] italic truncate">
+                                                <span className="text-xs text-zinc-500 italic truncate">
                                                     {typingText}
                                                 </span>
                                             </div>
                                         ) : (
-                                            <p className="text-xs text-[#9B9A97] truncate">
+                                            <p className="text-sm text-zinc-500 truncate">
                                                 {conv.lastMessage || 'No messages yet'}
                                             </p>
                                         )}
                                         {unreadCount > 0 && (
-                                            <span className="min-w-5 h-5 px-1.5 bg-[#2383E2] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
-                                                {unreadCount > 9 ? '9+' : unreadCount}
-                                            </span>
+                                            <span className="w-2.5 h-2.5 bg-rose-500 rounded-full shrink-0" />
                                         )}
                                     </div>
                                 </div>
@@ -257,11 +261,11 @@ export default function ChatSidebar({
             </div>
 
             {/* Quick Navigation */}
-            <div className="p-3 border-t border-[#2F2F2F]">
+            <div className="p-3 border-t border-zinc-100">
                 <div className="flex gap-2">
                     <Link
                         href="/discover"
-                        className="flex-1 py-2 text-xs font-medium text-[#9B9A97] hover:text-white bg-[#202020] hover:bg-[#2F2F2F] rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2 text-xs font-medium text-zinc-600 hover:text-zinc-900 bg-zinc-50 hover:bg-zinc-100 rounded-lg transition-all flex items-center justify-center gap-1.5"
                         title="Discover"
                     >
                         <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -271,7 +275,7 @@ export default function ChatSidebar({
                     </Link>
                     <Link
                         href="/community"
-                        className="flex-1 py-2 text-xs font-medium text-[#9B9A97] hover:text-white bg-[#202020] hover:bg-[#2F2F2F] rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2 text-xs font-medium text-zinc-600 hover:text-zinc-900 bg-zinc-50 hover:bg-zinc-100 rounded-lg transition-all flex items-center justify-center gap-1.5"
                         title="Community"
                     >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,7 +285,7 @@ export default function ChatSidebar({
                     </Link>
                     <Link
                         href="/video-dating"
-                        className="flex-1 py-2 text-xs font-medium text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2 text-xs font-medium text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all flex items-center justify-center gap-1.5"
                         title="Video Dating"
                     >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

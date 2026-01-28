@@ -4,17 +4,17 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { RegisterDto } from './dto/register.dto';
 import { ProfileTag } from './entities/profile-tag.entity';
 import { UserSession } from './entities/user-session.entity';
 import { UserProfile } from './entities/user-profile.entity';
 import { UserTag } from './entities/user-tag.entity';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
 import { AddTagDto } from './dto/add-tag.dto';
 import { UpdateUserProfileDto } from './dto/update-profile.dto';
 
@@ -22,35 +22,41 @@ import { UpdateUserProfileDto } from './dto/update-profile.dto';
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly userRepository: EntityRepository<User>,
     @InjectRepository(UserTag)
-    private readonly userTagRepository: Repository<UserTag>,
+    private readonly userTagRepository: EntityRepository<UserTag>,
     @InjectRepository(UserProfile)
-    private readonly userProfileRepository: Repository<UserProfile>,
+    private readonly userProfileRepository: EntityRepository<UserProfile>,
     @InjectRepository(UserSession)
-    private readonly userSessionRepository: Repository<UserSession>,
+    private readonly userSessionRepository: EntityRepository<UserSession>,
     @InjectRepository(ProfileTag)
-    private readonly profileTagRepository: Repository<ProfileTag>,
+    private readonly profileTagRepository: EntityRepository<ProfileTag>,
     private readonly jwt: JwtService,
+    private readonly em: EntityManager,
   ) { }
 
   async register(dto: RegisterDto) {
-    const existed = await this.userRepository.findOneBy({ email: dto.email });
+    const existed = await this.userRepository.findOne({ email: dto.email });
     if (existed) {
       throw new ConflictException('User already exists');
     }
     const hashedPassword = await bcrypt.hash(dto.password, 12);
-    const user = await this.userRepository.save({
-      email: dto.email,
-      password_hash: hashedPassword,
-      phone: dto.phone,
-    });
-    const profile = await this.userProfileRepository.save({
-      user_id: user.id,
-      display_name: dto.display_name,
-      bio: dto.bio,
-      location: dto.location,
-    });
+
+    const user = new User();
+    user.email = dto.email;
+    user.password_hash = hashedPassword;
+    user.phone = dto.phone;
+    this.em.persist(user);
+
+    const profile = new UserProfile();
+    profile.user = user;
+    profile.display_name = dto.display_name;
+    profile.bio = dto.bio;
+    profile.location = dto.location;
+    this.em.persist(profile);
+
+    await this.em.flush();
+
     return {
       id: user.id,
       email: user.email,
@@ -60,18 +66,22 @@ export class UserService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .addSelect('user.password_hash')
-      .where('user.email = :email', { email: dto.email })
-      .getOne();
-    if (!user) {
+    // Use raw SQL to get password_hash since MikroORM lazy loads protected fields
+    const users = await this.em.getConnection().execute<any[]>(
+      `SELECT id, email, password_hash FROM users WHERE email = $1`,
+      [dto.email]
+    );
+
+    if (users.length === 0) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    const user = users[0];
     const isMatch = await bcrypt.compare(dto.password, user.password_hash);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
     const token = this.jwt.sign(
       { sub: user.id, user_id: user.id },
       { expiresIn: '8h' },
@@ -83,11 +93,11 @@ export class UserService {
 
     // Hash refresh token before storing
     const refreshTokenHash = await bcrypt.hash(refreshToken, 12);
-    await this.userSessionRepository.save({
-      user_id: user.id,
-      refresh_token_hash: refreshTokenHash,
-      device_hash: await bcrypt.hash(dto.device ?? '', 12),
-    });
+    const session = new UserSession();
+    session.user = user;
+    session.refresh_token_hash = refreshTokenHash;
+    session.device_hash = await bcrypt.hash(dto.device ?? '', 12);
+    await this.em.persistAndFlush(session);
 
     return { user_id: user.id, token, refreshToken };
   }
@@ -117,81 +127,75 @@ export class UserService {
   async logout(userId: string, refreshToken?: string) {
     if (refreshToken) {
       // Delete specific session
-      const sessions = await this.userSessionRepository.find({
-        where: { user_id: userId },
-      });
+      const sessions = await this.userSessionRepository.find({ user: { id: userId } });
 
       for (const session of sessions) {
         const isMatch = await bcrypt.compare(refreshToken, session.refresh_token_hash);
         if (isMatch) {
-          await this.userSessionRepository.delete(session.id);
+          await this.em.removeAndFlush(session);
           return { message: 'Logged out successfully' };
         }
       }
     }
 
     // Delete all sessions for user
-    await this.userSessionRepository.delete({ user_id: userId });
+    await this.userSessionRepository.nativeDelete({ user: { id: userId } });
     return { message: 'Logged out from all devices' };
   }
 
   async addTags(tags: AddTagDto) {
-    const existedUser = await this.userRepository.findOne({
-      where: { id: tags.user_id },
-    });
+    const existedUser = await this.userRepository.findOne({ id: tags.user_id });
     if (!existedUser) throw new NotFoundException('User not found');
 
     for (const tag of tags.tags) {
-      await this.profileTagRepository.save({
-        user_id: tags.user_id,
-        tag_type: tag.tag_type,
-        tag_value: tag.tag_value,
-      });
+      const profileTag = new ProfileTag();
+      profileTag.user = existedUser;
+      profileTag.tag_type = tag.tag_type;
+      profileTag.tag_value = tag.tag_value;
+      this.em.persist(profileTag);
     }
+    await this.em.flush();
   }
 
   async getUserProfile(id: string) {
-    const user = await this.userRepository.findOne({
-      where: { id: id },
-      relations: ['profile', 'sessions'],
-    });
+    const user = await this.userRepository.findOne(
+      { id: id },
+      { populate: ['profile', 'sessions'] }
+    );
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
   async updateUserProfile(user_id: string, dto: UpdateUserProfileDto) {
-    const profile = await this.userProfileRepository.findOne({
-      where: { user_id: user_id },
-    });
+    const profile = await this.userProfileRepository.findOne({ user: { id: user_id } });
     if (!profile) throw new NotFoundException('User profile not found');
 
-    const updatedProfile = await this.userProfileRepository.save({
-      id: profile.id,
-      user_id: user_id,
-      bio: dto.bio,
-      display_name: dto.display_name,
-      location: dto.location,
-    });
-    return updatedProfile;
+    profile.bio = dto.bio;
+    profile.display_name = dto.display_name;
+    profile.location = dto.location;
+    await this.em.persistAndFlush(profile);
+
+    return profile;
   }
+
   async searchUsers(query: string, currentUserId: string) {
     if (!query || query.length < 2) return [];
 
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.profile', 'profile')
-      .where('user.id != :currentUserId', { currentUserId })
-      .andWhere(
-        '(user.email ILIKE :query OR profile.display_name ILIKE :query)',
-        { query: `%${query}%` }
-      )
-      .limit(10)
-      .getMany();
+    // Use raw SQL for ILIKE search
+    const users = await this.em.getConnection().execute<any[]>(
+      `SELECT u.id, u.email, p.display_name
+       FROM users u
+       LEFT JOIN user_profiles p ON u.id = p.user_id
+       WHERE u.id != $1
+       AND (u.email ILIKE $2 OR p.display_name ILIKE $2)
+       LIMIT 10`,
+      [currentUserId, `%${query}%`]
+    );
 
-    return users.map(u => ({
+    return users.map((u) => ({
       id: u.id,
       email: u.email,
-      fullName: u.profile?.display_name,
+      fullName: u.display_name,
     }));
   }
 
@@ -202,9 +206,7 @@ export class UserService {
     userId: string,
     dto: { intentMode?: string; profileProperties?: any }
   ) {
-    const profile = await this.userProfileRepository.findOne({
-      where: { user_id: userId },
-    });
+    const profile = await this.userProfileRepository.findOne({ user: { id: userId } });
     if (!profile) throw new NotFoundException('User profile not found');
 
     // Update intentMode if provided
@@ -220,13 +222,12 @@ export class UserService {
       } as any;
     }
 
-    const updated = await this.userProfileRepository.save(profile);
+    await this.em.persistAndFlush(profile);
+
     return {
       ok: true,
-      intentMode: updated.intentMode,
-      profileProperties: updated.profileProperties,
+      intentMode: profile.intentMode,
+      profileProperties: profile.profileProperties,
     };
   }
 }
-
-

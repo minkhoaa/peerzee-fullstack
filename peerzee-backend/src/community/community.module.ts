@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { JwtModule } from '@nestjs/jwt';
 import { SocialPost, SocialComment, SocialLike, SocialVote } from './entities';
 import { User } from '../user/entities/user.entity';
@@ -9,7 +9,7 @@ import { UploadService } from './upload.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([SocialPost, SocialComment, SocialLike, SocialVote, User]),
+        MikroOrmModule.forFeature([SocialPost, SocialComment, SocialLike, SocialVote, User]),
         JwtModule.registerAsync({
             useFactory: () => ({
                 secret: process.env.JWT_SECRET,

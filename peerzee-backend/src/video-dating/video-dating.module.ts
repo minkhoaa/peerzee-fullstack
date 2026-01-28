@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { JwtModule } from '@nestjs/jwt';
 import { VideoSession } from './entities/video-session.entity';
 import { VideoDatingService } from './video-dating.service';
@@ -9,7 +9,7 @@ import { UserProfile } from '../user/entities/user-profile.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([VideoSession, UserProfile]),
+        MikroOrmModule.forFeature([VideoSession, UserProfile]),
         JwtModule.register({}),
         AiModule, // 🎬 AI Dating Host integration
     ],

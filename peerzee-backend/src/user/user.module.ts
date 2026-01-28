@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { ProfileController } from './profile.controller';
@@ -19,7 +19,7 @@ import { MusicModule } from '../music/music.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserTag, UserProfile, UserSession, ProfileTag]),
+    MikroOrmModule.forFeature([User, UserTag, UserProfile, UserSession, ProfileTag]),
     AiModule,
     MusicModule,
     ConfigModule,

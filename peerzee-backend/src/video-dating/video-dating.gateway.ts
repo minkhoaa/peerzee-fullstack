@@ -11,8 +11,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/core';
 import { VideoDatingService } from './video-dating.service';
 import { JoinQueueDto } from './dto/join-queue.dto';
 import { AiService } from '../ai/ai.service';
@@ -48,7 +48,7 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         private readonly videoDatingService: VideoDatingService,
         private readonly aiService: AiService,
         @InjectRepository(UserProfile)
-        private readonly profileRepo: Repository<UserProfile>,
+        private readonly profileRepo: EntityRepository<UserProfile>,
     ) { }
 
     /**
@@ -102,8 +102,8 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
                 if (shouldRotateTopic && blindSession.topicHistory.length < 10) {
                     try {
                         const [profileA, profileB] = await Promise.all([
-                            this.profileRepo.findOne({ where: { user_id: blindSession.participants[0] } }),
-                            this.profileRepo.findOne({ where: { user_id: blindSession.participants[1] } }),
+                            this.profileRepo.findOne({ user: { id: blindSession.participants[0] } }),
+                            this.profileRepo.findOne({ user: { id: blindSession.participants[1] } }),
                         ]);
 
                         if (profileA && profileB) {
@@ -438,8 +438,8 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
 
         try {
             const [profileA, profileB] = await Promise.all([
-                this.profileRepo.findOne({ where: { user_id: blindSession.participants[0] } }),
-                this.profileRepo.findOne({ where: { user_id: blindSession.participants[1] } }),
+                this.profileRepo.findOne({ user: { id: blindSession.participants[0] } }),
+                this.profileRepo.findOne({ user: { id: blindSession.participants[1] } }),
             ]);
 
             if (!profileA || !profileB) {
@@ -593,8 +593,8 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
 
         try {
             const [profileA, profileB] = await Promise.all([
-                this.profileRepo.findOne({ where: { user_id: user1Id } }),
-                this.profileRepo.findOne({ where: { user_id: user2Id } }),
+                this.profileRepo.findOne({ user: { id: user1Id } }),
+                this.profileRepo.findOne({ user: { id: user2Id } }),
             ]);
 
             if (profileA && profileB) {

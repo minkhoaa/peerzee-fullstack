@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SwipeService } from './swipe.service';
@@ -13,7 +13,7 @@ import { NotificationModule } from '../notification/notification.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UserSwipe, Match, User]),
+        MikroOrmModule.forFeature([UserSwipe, Match, User]),
         JwtModule.registerAsync({
             imports: [ConfigModule],
             useFactory: (configService: ConfigService) => ({

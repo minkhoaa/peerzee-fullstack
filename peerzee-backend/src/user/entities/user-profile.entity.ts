@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, Index } from 'typeorm';
+import { Entity, PrimaryKey, Property, OneToOne, Enum } from '@mikro-orm/core';
 import { User } from './user.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { v4 as uuid } from 'uuid';
 
 // JSONB Types for Rich Profile
 export interface ProfilePhoto {
@@ -77,109 +78,91 @@ export interface DiscoverySettings {
 }
 
 
-@Entity('user_profiles')
+@Entity({ tableName: 'user_profiles' })
 export class UserProfile {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryKey({ type: 'uuid' })
+  id: string = uuid();
 
   @ApiProperty()
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   display_name: string;
 
   @ApiProperty()
-  @Column({ type: 'text', nullable: true })
+  @Property({ type: 'text', nullable: true })
   bio: string;
 
   @ApiProperty()
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   location: string;
 
   @ApiProperty({ description: 'Age of the user' })
-  @Column({ type: 'int', nullable: true })
+  @Property({ type: 'int', nullable: true })
   age: number;
 
   @ApiProperty({ description: 'Occupation/Job title' })
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   occupation: string;
 
   @ApiProperty({ description: 'Education/School' })
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   education: string;
 
   @ApiProperty({ description: 'Height in cm' })
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   height: string;
 
   @ApiProperty({ description: 'Zodiac sign' })
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   zodiac: string;
 
   // Rich Profile Fields (JSONB)
   @ApiProperty({ description: 'Array of profile photos' })
-  @Column({ type: 'jsonb', nullable: true, default: '[]' })
-  photos: ProfilePhoto[];
+  @Property({ type: 'jsonb', nullable: true })
+  photos: ProfilePhoto[] = [];
 
   @ApiProperty({ description: 'Array of prompt responses' })
-  @Column({ type: 'jsonb', nullable: true, default: '[]' })
-  prompts: ProfilePrompt[];
+  @Property({ type: 'jsonb', nullable: true })
+  prompts: ProfilePrompt[] = [];
 
   @ApiProperty({ description: 'Array of interest tags' })
-  @Column({ type: 'jsonb', nullable: true, default: '[]' })
-  tags: string[];
+  @Property({ type: 'jsonb', nullable: true })
+  tags: string[] = [];
 
   @ApiProperty({ description: 'AI-extracted hidden keywords for enriched vector search' })
-  @Column({ type: 'jsonb', nullable: true, default: '[]' })
-  hidden_keywords: string[];
+  @Property({ type: 'jsonb', nullable: true })
+  hidden_keywords: string[] = [];
 
   @ApiProperty({ description: 'Discovery preferences' })
-  @Column({ type: 'jsonb', nullable: true, default: '{}' })
-  discovery_settings: DiscoverySettings;
+  @Property({ type: 'jsonb', nullable: true })
+  discovery_settings: DiscoverySettings = {};
 
   @ApiProperty({ description: 'Spotify anthem with AI vibe analysis' })
-  @Column({ type: 'jsonb', nullable: true })
+  @Property({ type: 'jsonb', nullable: true })
   spotify: SpotifyData | null;
 
   @ApiProperty({ description: 'Instagram handle' })
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   instagram: string;
 
   // Location coordinates (for distance-based matching using Haversine formula)
   @ApiProperty({ description: 'Latitude coordinate' })
-  @Column({ type: 'float', nullable: true })
+  @Property({ type: 'float', nullable: true })
   latitude: number;
 
   @ApiProperty({ description: 'Longitude coordinate' })
-  @Column({ type: 'float', nullable: true })
+  @Property({ type: 'float', nullable: true })
   longitude: number;
-
-  // DEPRECATED: PostGIS Location Point (kept for backward compatibility)
-  // Now using pure Haversine formula with latitude/longitude columns
-  // This column can be removed in a future migration
-  @ApiProperty({ description: 'DEPRECATED: PostGIS geometry point (use latitude/longitude instead)' })
-  @Index({ spatial: true })
-  @Column({
-    type: 'geometry',
-    spatialFeatureType: 'Point',
-    srid: 4326,
-    nullable: true,
-    select: false, // Don't include in regular queries
-  })
-  locationPoint: string; // TypeORM stores as WKT string or GeoJSON
 
   // Intent Mode (Bumble-style: DATE, STUDY, FRIEND)
   @ApiProperty({ description: 'User intent mode', enum: IntentMode, default: IntentMode.DATE })
-  @Column({
-    type: 'enum',
-    enum: IntentMode,
-    default: IntentMode.DATE,
-  })
-  intentMode: IntentMode;
+  @Enum(() => IntentMode)
+  intentMode: IntentMode = IntentMode.DATE;
 
   // Profile Properties (Notion Database Properties)
   @ApiProperty({ description: 'Rich profile properties (zodiac, mbti, habits, etc.)' })
-  @Column({ type: 'jsonb', nullable: true, default: '{}' })
-  profileProperties: ProfileProperties;
+  @Property({ type: 'jsonb', nullable: true })
+  profileProperties: ProfileProperties = {};
 
   // ============================================================================
   // Hybrid Search Fields (for semantic + SQL filtering)
@@ -187,61 +170,45 @@ export class UserProfile {
 
   // Gender (hard filter)
   @ApiProperty({ description: 'User gender for filtering', enum: UserGender })
-  @Column({
-    type: 'enum',
-    enum: UserGender,
-    nullable: true,
-  })
+  @Enum(() => UserGender)
+  @Property({ nullable: true })
   gender: UserGender;
 
   // Structured Location (hard filters)
   @ApiProperty({ description: 'City name for location filtering' })
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Property({ type: 'varchar', length: 100, nullable: true })
   city: string;
 
   @ApiProperty({ description: 'Region/Province name' })
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Property({ type: 'varchar', length: 100, nullable: true })
   region: string;
 
   @ApiProperty({ description: 'ISO 2-letter country code' })
-  @Column({ type: 'varchar', length: 2, nullable: true })
+  @Property({ type: 'varchar', length: 2, nullable: true })
   country: string;
 
   // Availability Schedule (hard filter for time-based matching)
   @ApiProperty({ description: 'User availability schedule' })
-  @Column({ type: 'jsonb', nullable: true, default: '{}' })
-  availability: AvailabilitySchedule;
+  @Property({ type: 'jsonb', nullable: true })
+  availability: AvailabilitySchedule = {};
 
   // Vector Embedding for Semantic Search (requires pgvector extension)
   // Using Google Gemini text-embedding-004 (768 dimensions)
-  // IMPORTANT: select: false to prevent TypeORM from loading/saving this field
-  // Use raw SQL for embedding operations since TypeORM can't handle pgvector type
+  // CRITICAL: Use columnType to preserve vector type during schema sync
   @ApiProperty({ description: 'Bio embedding vector for semantic search (768 dimensions - Gemini)' })
-  @Column({
-    type: 'float',
-    array: true,
-    nullable: true,
-    select: false, // Don't include in regular queries
-    insert: false, // Don't include in inserts (use raw SQL)
-    update: false, // Don't include in updates (use raw SQL)
-    comment: 'vector(768) - Google Gemini text-embedding-004',
-  })
-  bioEmbedding: number[];
+  @Property({ columnType: 'vector(768)', nullable: true })
+  bioEmbedding?: number[];
 
   @ApiProperty({ description: 'Timestamp when embedding was last updated' })
-  @Column({ type: 'timestamp', nullable: true })
+  @Property({ type: 'timestamp', nullable: true })
   embeddingUpdatedAt: Date;
 
   @ApiProperty({ description: 'Last time user was active (for recency scoring)' })
-  @Column({ type: 'timestamp', nullable: true, default: () => 'NOW()' })
-  lastActive: Date;
+  @Property({ type: 'timestamp', nullable: true, onCreate: () => new Date() })
+  lastActive: Date = new Date();
 
   // ============================================================================
 
-  @OneToOne(() => User, (user) => user.profile)
-  @JoinColumn({ name: 'user_id' })
+  @OneToOne(() => User, (user) => user.profile, { fieldName: 'user_id' })
   user: User;
-
-  @Column({ name: 'user_id' })
-  user_id: string;
 }

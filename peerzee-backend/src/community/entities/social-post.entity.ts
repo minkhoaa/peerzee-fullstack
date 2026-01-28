@@ -1,17 +1,15 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
+    PrimaryKey,
+    Property,
     ManyToOne,
     OneToMany,
-    JoinColumn,
-} from 'typeorm';
+} from '@mikro-orm/core';
 import { User } from '../../user/entities/user.entity';
 import { SocialComment } from './social-comment.entity';
 import { SocialLike } from './social-like.entity';
 import { SocialVote } from './social-vote.entity';
+import { v4 as uuid } from 'uuid';
 
 // Media item interface for the JSONB column
 export interface MediaItem {
@@ -23,45 +21,41 @@ export interface MediaItem {
     thumbnail?: string; // Video thumbnail URL
 }
 
-@Entity('social_posts')
+@Entity({ tableName: 'social_posts' })
 export class SocialPost {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryKey({ type: 'uuid' })
+    id: string = uuid();
 
-    @Column({ type: 'text' })
+    @Property({ type: 'text' })
     content: string;
 
     // Renamed from 'images' to 'media' to support both images and videos
-    @Column({ type: 'jsonb', default: [] })
-    media: MediaItem[];
+    @Property({ type: 'jsonb' })
+    media: MediaItem[] = [];
 
-    @Column({ type: 'jsonb', default: [] })
-    tags: string[];
+    @Property({ type: 'jsonb' })
+    tags: string[] = [];
 
-    @Column({ name: 'author_id', type: 'uuid' })
-    author_id: string;
+    @ManyToOne(() => User, { fieldName: 'author_id' })
+    author: User;
 
     /**
      * Reddit-style score = Upvotes - Downvotes
      */
-    @Column({ type: 'int', default: 0 })
-    score: number;
+    @Property({ type: 'int', default: 0 })
+    score: number = 0;
 
-    @Column({ name: 'likes_count', type: 'int', default: 0 })
-    likesCount: number;
+    @Property({ fieldName: 'likes_count', type: 'int', default: 0 })
+    likesCount: number = 0;
 
-    @Column({ name: 'comments_count', type: 'int', default: 0 })
-    commentsCount: number;
+    @Property({ fieldName: 'comments_count', type: 'int', default: 0 })
+    commentsCount: number = 0;
 
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+    @Property({ fieldName: 'created_at', onCreate: () => new Date() })
+    createdAt: Date = new Date();
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'author_id' })
-    author: User;
+    @Property({ fieldName: 'updated_at', onCreate: () => new Date(), onUpdate: () => new Date() })
+    updatedAt: Date = new Date();
 
     @OneToMany(() => SocialComment, (comment) => comment.post)
     comments: SocialComment[];

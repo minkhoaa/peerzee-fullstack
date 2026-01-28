@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { MikroORM } from '@mikro-orm/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -13,23 +14,14 @@ import { NotificationModule } from './notification/notification.module';
 import { VideoDatingModule } from './video-dating/video-dating.module';
 import { AiModule } from './ai/ai.module';
 import { RedisModule } from './redis/redis.module';
+import config from './mikro-orm.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432'),
-      username: process.env.DB_USERNAME || 'peerzee',
-      password: process.env.DB_PASSWORD || 'peerzee',
-      database: process.env.DB_DATABASE || 'peerzee-db',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false, // Disabled to preserve vector(768) column type from migration
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-    }),
+    MikroOrmModule.forRoot(config),
     RedisModule,
     UserModule,
     ChatModule,
@@ -44,5 +36,28 @@ import { RedisModule } from './redis/redis.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule implements OnModuleInit {
+  constructor(private readonly orm: MikroORM) { }
+
+  async onModuleInit() {
+    // 1. Create pgvector extension if it doesn't exist
+    try {
+      await this.orm.em.getConnection().execute('CREATE EXTENSION IF NOT EXISTS vector');
+      console.log('✅ pgvector extension enabled');
+    } catch (error) {
+      console.error('Failed to create pgvector extension:', error);
+    }
+
+    // 2. Update schema safely (no data loss)
+    try {
+      const generator = this.orm.getSchemaGenerator();
+      await generator.updateSchema();
+      console.log('✅ Database schema synchronized');
+    } catch (error) {
+      console.error('Failed to update schema:', error);
+    }
+  }
+}
+
+
 

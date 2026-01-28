@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { User } from './entities/user.entity';
 import { UserProfile, ProfilePhoto } from './entities/user-profile.entity';
 import {
@@ -18,10 +18,11 @@ export class ProfileService {
 
     constructor(
         @InjectRepository(User)
-        private readonly userRepo: Repository<User>,
+        private readonly userRepo: EntityRepository<User>,
         @InjectRepository(UserProfile)
-        private readonly profileRepo: Repository<UserProfile>,
+        private readonly profileRepo: EntityRepository<UserProfile>,
         private readonly aiService: AiService,
+        private readonly em: EntityManager,
     ) { }
 
     /**
@@ -41,10 +42,7 @@ export class ProfileService {
      * Get full profile with all rich data
      */
     async getFullProfile(userId: string): Promise<ProfileResponseDto> {
-        const user = await this.userRepo.findOne({
-            where: { id: userId },
-            relations: ['profile'],
-        });
+        const user = await this.userRepo.findOne({ id: userId }, { populate: ['profile'] });
 
         if (!user) {
             throw new NotFoundException('User not found');
@@ -53,14 +51,14 @@ export class ProfileService {
         // Create profile if it doesn't exist
         let profile = user.profile;
         if (!profile) {
-            profile = await this.profileRepo.save({
-                user_id: userId,
-                display_name: user.email.split('@')[0],
-                photos: [],
-                prompts: [],
-                tags: [],
-                discovery_settings: {},
-            });
+            profile = new UserProfile();
+            profile.user = this.em.getReference(User, userId);
+            profile.display_name = user.email.split('@')[0];
+            profile.photos = [];
+            profile.prompts = [];
+            profile.tags = [];
+            profile.discovery_settings = {};
+            await this.em.persistAndFlush(profile);
         }
 
         return this.mapToResponseDto(user, profile);
@@ -73,21 +71,19 @@ export class ProfileService {
         userId: string,
         dto: UpdateProfileDto,
     ): Promise<ProfileResponseDto> {
-        let profile = await this.profileRepo.findOne({
-            where: { user_id: userId },
-        });
+        let profile = await this.profileRepo.findOne({ user: { id: userId } });
 
         if (!profile) {
             // Create profile if it doesn't exist
-            profile = await this.profileRepo.save({
-                user_id: userId,
-                display_name: dto.display_name,
-                bio: dto.bio,
-                photos: [],
-                prompts: [],
-                tags: [],
-                discovery_settings: {},
-            });
+            profile = new UserProfile();
+            profile.user = this.em.getReference(User, userId);
+            if (dto.display_name) profile.display_name = dto.display_name;
+            if (dto.bio) profile.bio = dto.bio;
+            profile.photos = [];
+            profile.prompts = [];
+            profile.tags = [];
+            profile.discovery_settings = {};
+            await this.em.persistAndFlush(profile);
         }
 
         // Update fields
@@ -113,8 +109,8 @@ export class ProfileService {
         if (dto.latitude !== undefined) profile.latitude = dto.latitude;
         if (dto.longitude !== undefined) profile.longitude = dto.longitude;
 
-        // Save profile WITHOUT embedding first (TypeORM can't handle vector type)
-        const updatedProfile = await this.profileRepo.save(profile);
+        // Save profile WITHOUT embedding first
+        await this.em.persistAndFlush(profile);
 
         // Generate embedding if relevant fields changed - use raw SQL
         if (this.shouldRegenerateEmbedding(dto)) {
@@ -122,29 +118,29 @@ export class ProfileService {
                 this.logger.log(`Generating embedding for user ${userId}`);
 
                 // AUTO-TAGGING: Extract hidden keywords from bio for enriched search
-                let hidden_keywords: string[] = updatedProfile.hidden_keywords || [];
+                let hidden_keywords: string[] = profile.hidden_keywords || [];
                 if (dto.bio !== undefined) {
                     this.logger.log(`Extracting hidden keywords from bio for user ${userId}`);
                     hidden_keywords = await this.aiService.extractKeywordsFromBio(
-                        updatedProfile.bio || '',
-                        updatedProfile.occupation
+                        profile.bio || '',
+                        profile.occupation
                     );
                     // Save hidden_keywords to profile
-                    await this.profileRepo.update(updatedProfile.id, { hidden_keywords });
+                    await this.profileRepo.nativeUpdate({ id: profile.id }, { hidden_keywords });
                     this.logger.log(`Saved ${hidden_keywords.length} hidden keywords for user ${userId}`);
                 }
 
                 // Generate embedding with enriched profile (includes hidden_keywords)
                 const embedding = await this.aiService.generateProfileEmbedding({
-                    ...updatedProfile,
+                    ...profile,
                     hidden_keywords,
                 });
 
                 if (embedding.length > 0) {
                     // Use raw SQL to update vector column
-                    await this.profileRepo.query(
+                    await this.em.getConnection().execute(
                         `UPDATE user_profiles SET "bioEmbedding" = $1::vector, "embeddingUpdatedAt" = $2 WHERE id = $3`,
-                        [JSON.stringify(embedding), new Date(), updatedProfile.id]
+                        [JSON.stringify(embedding), new Date(), profile.id]
                     );
                     this.logger.log(`Embedding saved for user ${userId}`);
                 }
@@ -153,26 +149,24 @@ export class ProfileService {
             }
         }
 
-        const user = await this.userRepo.findOne({ where: { id: userId } });
-        return this.mapToResponseDto(user!, updatedProfile);
+        const user = await this.userRepo.findOne({ id: userId });
+        return this.mapToResponseDto(user!, profile);
     }
 
     /**
      * Add a new photo to profile
      */
     async addPhoto(userId: string, dto: AddPhotoDto): Promise<ProfileResponseDto> {
-        let profile = await this.profileRepo.findOne({
-            where: { user_id: userId },
-        });
+        let profile = await this.profileRepo.findOne({ user: { id: userId } });
 
         if (!profile) {
-            profile = await this.profileRepo.save({
-                user_id: userId,
-                photos: [],
-                prompts: [],
-                tags: [],
-                discovery_settings: {},
-            });
+            profile = new UserProfile();
+            profile.user = this.em.getReference(User, userId);
+            profile.photos = [];
+            profile.prompts = [];
+            profile.tags = [];
+            profile.discovery_settings = {};
+            await this.em.persistAndFlush(profile);
         }
 
         const photos = profile.photos || [];
@@ -191,10 +185,10 @@ export class ProfileService {
         photos.push(newPhoto);
         profile.photos = photos;
 
-        const updatedProfile = await this.profileRepo.save(profile);
+        await this.em.persistAndFlush(profile);
 
-        const user = await this.userRepo.findOne({ where: { id: userId } });
-        return this.mapToResponseDto(user!, updatedProfile);
+        const user = await this.userRepo.findOne({ id: userId });
+        return this.mapToResponseDto(user!, profile);
     }
 
     /**
@@ -204,9 +198,7 @@ export class ProfileService {
         userId: string,
         dto: ReorderPhotosDto,
     ): Promise<ProfileResponseDto> {
-        const profile = await this.profileRepo.findOne({
-            where: { user_id: userId },
-        });
+        const profile = await this.profileRepo.findOne({ user: { id: userId } });
 
         if (!profile) {
             throw new NotFoundException('Profile not found');
@@ -227,19 +219,17 @@ export class ProfileService {
         });
 
         profile.photos = reorderedPhotos;
-        const updatedProfile = await this.profileRepo.save(profile);
+        await this.em.persistAndFlush(profile);
 
-        const user = await this.userRepo.findOne({ where: { id: userId } });
-        return this.mapToResponseDto(user!, updatedProfile);
+        const user = await this.userRepo.findOne({ id: userId });
+        return this.mapToResponseDto(user!, profile);
     }
 
     /**
      * Delete a photo from profile
      */
     async deletePhoto(userId: string, photoId: string): Promise<ProfileResponseDto> {
-        const profile = await this.profileRepo.findOne({
-            where: { user_id: userId },
-        });
+        const profile = await this.profileRepo.findOne({ user: { id: userId } });
 
         if (!profile) {
             throw new NotFoundException('Profile not found');
@@ -262,10 +252,10 @@ export class ProfileService {
         });
 
         profile.photos = photos;
-        const updatedProfile = await this.profileRepo.save(profile);
+        await this.em.persistAndFlush(profile);
 
-        const user = await this.userRepo.findOne({ where: { id: userId } });
-        return this.mapToResponseDto(user!, updatedProfile);
+        const user = await this.userRepo.findOne({ id: userId });
+        return this.mapToResponseDto(user!, profile);
     }
 
     /**
@@ -273,7 +263,7 @@ export class ProfileService {
      */
     async getProfileStats(userId: string): Promise<{ matches: number; likes: number; views: number }> {
         // Query matches count
-        const matchesCount = await this.userRepo.manager.query(
+        const matchesCount = await this.em.getConnection().execute<any[]>(
             `SELECT COUNT(*) FROM user_swipes 
              WHERE target_id = $1 AND action = 'LIKE' 
              AND EXISTS (SELECT 1 FROM user_swipes s2 WHERE s2.user_id = $1 AND s2.target_id = user_swipes.user_id AND s2.action = 'LIKE')`,
@@ -281,13 +271,13 @@ export class ProfileService {
         );
 
         // Query likes received
-        const likesCount = await this.userRepo.manager.query(
+        const likesCount = await this.em.getConnection().execute<any[]>(
             `SELECT COUNT(*) FROM user_swipes WHERE target_id = $1 AND action = 'LIKE'`,
             [userId]
         );
 
         // Views would require a profile_views table - for now return estimated
-        const viewsCount = await this.userRepo.manager.query(
+        const viewsCount = await this.em.getConnection().execute<any[]>(
             `SELECT COUNT(DISTINCT user_id) FROM user_swipes WHERE target_id = $1`,
             [userId]
         );
@@ -332,7 +322,7 @@ export class ProfileService {
         failed: number;
         errors: string[];
     }> {
-        const profiles = await this.profileRepo.find();
+        const profiles = await this.profileRepo.findAll();
         const total = profiles.length;
         let success = 0;
         let failed = 0;
@@ -355,16 +345,16 @@ export class ProfileService {
                     if (embedding.length > 0) {
                         // Use raw SQL to save embedding to vector column
                         const vectorString = `[${embedding.join(',')}]`;
-                        await this.profileRepo.query(
+                        await this.em.getConnection().execute(
                             `UPDATE user_profiles 
                              SET "bioEmbedding" = $1::vector, 
                                  "embeddingUpdatedAt" = NOW() 
                              WHERE user_id = $2`,
-                            [vectorString, profile.user_id]
+                            [vectorString, profile.user.id]
                         );
-                        return { userId: profile.user_id, success: true };
+                        return { userId: profile.user.id, success: true };
                     }
-                    return { userId: profile.user_id, success: false, reason: 'Empty profile' };
+                    return { userId: profile.user.id, success: false, reason: 'Empty profile' };
                 }),
             );
 
@@ -425,8 +415,8 @@ export class ProfileService {
         };
 
         // 3. Update profile
-        await this.profileRepo.update(
-            { user_id: userId },
+        await this.profileRepo.nativeUpdate(
+            { user: { id: userId } },
             { spotify: spotifyData },
         );
 
@@ -442,12 +432,11 @@ export class ProfileService {
     async updateSpotifyData(userId: string, spotifyData: any): Promise<void> {
         this.logger.log(`Saving full Spotify data for user ${userId}: "${spotifyData.song}" by ${spotifyData.artist}`);
 
-        await this.profileRepo.update(
-            { user_id: userId },
+        await this.profileRepo.nativeUpdate(
+            { user: { id: userId } },
             { spotify: spotifyData },
         );
 
         this.logger.log(`Saved Spotify data for user ${userId}: trackId=${spotifyData.trackId}, mood=${spotifyData.analysis?.mood}`);
     }
 }
-

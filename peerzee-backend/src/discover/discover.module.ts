@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DiscoverController } from './discover.controller';
@@ -13,7 +13,7 @@ import { AiModule } from '../ai/ai.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UserSwipe, Match, User, UserProfile]),
+        MikroOrmModule.forFeature([UserSwipe, Match, User, UserProfile]),
         JwtModule.registerAsync({
             imports: [ConfigModule],
             useFactory: (configService: ConfigService) => ({

@@ -1,42 +1,29 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
+    PrimaryKey,
+    Property,
     ManyToOne,
-    JoinColumn,
     Index,
-} from 'typeorm';
+} from '@mikro-orm/core';
 import { User } from '../../user/entities/user.entity';
 import { Conversation } from '../../chat/entities/conversation.entity';
+import { v4 as uuid } from 'uuid';
 
-@Entity('matches')
-@Index(['user1_id', 'user2_id'], { unique: true }) // Prevent duplicate matches
+@Entity({ tableName: 'matches' })
+@Index({ properties: ['user1', 'user2'], options: { unique: true } }) // Prevent duplicate matches
 export class Match {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryKey({ type: 'uuid' })
+    id: string = uuid();
 
-    @Column({ name: 'user1_id', type: 'uuid' })
-    user1_id: string;
-
-    @Column({ name: 'user2_id', type: 'uuid' })
-    user2_id: string;
-
-    @Column({ name: 'conversation_id', type: 'uuid' })
-    conversation_id: string;
-
-    @CreateDateColumn({ name: 'created_at' })
-    created_at: Date;
-
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'user1_id' })
+    @ManyToOne(() => User, { fieldName: 'user1_id' })
     user1: User;
 
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'user2_id' })
+    @ManyToOne(() => User, { fieldName: 'user2_id' })
     user2: User;
 
-    @ManyToOne(() => Conversation)
-    @JoinColumn({ name: 'conversation_id' })
+    @ManyToOne(() => Conversation, { fieldName: 'conversation_id' })
     conversation: Conversation;
+
+    @Property({ fieldName: 'created_at', onCreate: () => new Date() })
+    created_at: Date = new Date();
 }

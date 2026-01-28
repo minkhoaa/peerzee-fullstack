@@ -1,68 +1,61 @@
 import {
-  Column,
   Entity,
-  JoinColumn,
+  PrimaryKey,
+  Property,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+} from '@mikro-orm/core';
 import { Conversation } from './conversation.entity';
 import { MessageReaction } from './message-reaction.entity';
+import { v4 as uuid } from 'uuid';
 
-@Entity('message')
+@Entity({ tableName: 'message' })
 export class Message {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-  @Column({ type: 'uuid', name: 'conversation_id' })
-  conversation_id: string;
+  @PrimaryKey({ type: 'uuid' })
+  id: string = uuid();
 
-  @ManyToOne(() => Conversation, (k) => k.messages, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'conversation_id' })
+  @ManyToOne(() => Conversation, { fieldName: 'conversation_id' })
   conversation: Conversation;
 
-  @Column({ type: 'uuid', name: 'sender_id' })
+  @Property({ type: 'uuid', fieldName: 'sender_id' })
   sender_id: string;
 
-  @Column({ type: 'text' })
+  @Property({ type: 'text' })
   body: string;
 
-  @Column({ type: 'bigint' })
+  @Property({ type: 'bigint' })
   seq: string;
 
-  @Column({ type: 'timestamptz', default: () => 'NOW()' })
-  createdAt: Date;
+  @Property({ type: 'timestamptz', onCreate: () => new Date() })
+  createdAt: Date = new Date();
 
-  @Column({ type: 'timestamptz', default: () => 'NOW()', onUpdate: 'NOW()' })
-  updatedAt: Date;
+  @Property({ type: 'timestamptz', onCreate: () => new Date(), onUpdate: () => new Date() })
+  updatedAt: Date = new Date();
 
-  @Column({ type: 'boolean', default: false })
-  isEdited: boolean;
+  @Property({ type: 'boolean', default: false })
+  isEdited: boolean = false;
 
-  @Column({ type: 'boolean', default: false })
-  isDeleted: boolean;
+  @Property({ type: 'boolean', default: false })
+  isDeleted: boolean = false;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Property({ type: 'timestamptz', nullable: true })
   deletedAt: Date | null;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Property({ type: 'timestamptz', nullable: true })
   readAt: Date | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Property({ type: 'varchar', nullable: true })
   fileUrl: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Property({ type: 'varchar', nullable: true })
   fileName: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Property({ type: 'varchar', nullable: true })
   fileType: string | null;
 
   @OneToMany(() => MessageReaction, (r) => r.message)
   reactions: MessageReaction[];
 
-  @Column({ type: 'uuid', name: 'reply_to_id', nullable: true })
-  reply_to_id: string | null;
-
-  @ManyToOne(() => Message, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'reply_to_id' })
+  @ManyToOne(() => Message, { fieldName: 'reply_to_id', nullable: true })
   replyTo: Message | null;
 }

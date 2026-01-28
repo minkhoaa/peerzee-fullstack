@@ -1,6 +1,7 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, PrimaryKey, Property, OneToMany } from '@mikro-orm/core';
 import { Participant } from './participants.entity';
 import { Message } from './message.entity';
+import { v4 as uuid } from 'uuid';
 
 // Icebreaker interface for the JSONB column
 export interface IcebreakerData {
@@ -13,37 +14,37 @@ export interface IcebreakerData {
   isUnlocked: boolean;
 }
 
-@Entity('conversation')
+@Entity({ tableName: 'conversation' })
 export class Conversation {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryKey({ type: 'uuid' })
+  id: string = uuid();
 
-  @Column({ type: 'text' })
+  @Property({ type: 'text' })
   type: string;
 
-  @Column({ type: 'text' })
+  @Property({ type: 'text' })
   name: string;
 
-  @Column({ name: 'last_message_at', type: 'timestamptz', nullable: true })
+  @Property({ fieldName: 'last_message_at', type: 'timestamptz', nullable: true })
   lastMessageAt: Date | null;
 
-  @Column({ type: 'text', name: 'last_message', nullable: true })
+  @Property({ type: 'text', fieldName: 'last_message', nullable: true })
   lastMessage: string | null;
 
-  @Column({ name: 'last_seq', type: 'bigint', default: '0' })
-  lastSeq: string;
+  @Property({ fieldName: 'last_seq', type: 'bigint', default: '0' })
+  lastSeq: string = '0';
 
   // Icebreaker game data
-  @Column({ type: 'jsonb', nullable: true, default: null })
-  icebreaker: IcebreakerData | null;
+  @Property({ type: 'jsonb', nullable: true })
+  icebreaker: IcebreakerData | null = null;
 
   // AI-generated contextual icebreaker suggestion
-  @Column({ name: 'icebreaker_suggestion', type: 'text', nullable: true })
+  @Property({ fieldName: 'icebreaker_suggestion', type: 'text', nullable: true })
   icebreakerSuggestion: string | null;
 
   // Flag to distinguish DM (1-1) from group conversations
-  @Column({ name: 'is_direct', type: 'boolean', default: true })
-  isDirect: boolean;
+  @Property({ fieldName: 'is_direct', type: 'boolean', default: true })
+  isDirect: boolean = true;
 
   @OneToMany(() => Participant, (p) => p.conversation)
   participants: Participant[];
@@ -51,4 +52,3 @@ export class Conversation {
   @OneToMany(() => Message, (m) => m.conversation)
   messages: Message[];
 }
-

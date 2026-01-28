@@ -1,33 +1,31 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
-  Column,
+  PrimaryKey,
+  Property,
   ManyToOne,
-  JoinColumn,
-  CreateDateColumn,
-} from 'typeorm';
+} from '@mikro-orm/core';
 import { User } from './user.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { v4 as uuid } from 'uuid';
 
-@Entity('user_sessions')
+@Entity({ tableName: 'user_sessions' })
 export class UserSession {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryKey({ type: 'uuid' })
+  id: string = uuid();
 
-  @Column()
+  @Property()
   refresh_token_hash: string;
 
-  @Column()
+  @Property()
   device_hash: string;
 
-  @ManyToOne(() => User, (user) => user.sessions)
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User)
   user: User;
 
-  @Column({ name: 'user_id' })
+  @Property({ fieldName: 'user_id' })
   user_id: string;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @Property({ onCreate: () => new Date() })
+  created_at: Date = new Date();
 }

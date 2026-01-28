@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
 import { ChatController } from './chat.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 import { Participant } from './entities/participants.entity';
@@ -19,7 +19,7 @@ import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Conversation, Message, Participant, MessageReaction, IceBreaker, UserProfile]),
+    MikroOrmModule.forFeature([Conversation, Message, Participant, MessageReaction, IceBreaker, UserProfile]),
     JwtModule.register({}),
     UserModule,
     AiModule,

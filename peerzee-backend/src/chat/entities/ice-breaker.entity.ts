@@ -1,24 +1,24 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-} from 'typeorm';
+    PrimaryKey,
+    Property,
+} from '@mikro-orm/core';
+import { v4 as uuid } from 'uuid';
 
-@Entity('ice_breakers')
+@Entity({ tableName: 'ice_breakers' })
 export class IceBreaker {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryKey({ type: 'uuid' })
+    id: string = uuid();
 
-    @Column({ type: 'text' })
+    @Property({ type: 'text' })
     prompt: string;
 
-    @Column({ default: 'general' })
-    category: string; // 'general' | 'fun' | 'deep' | 'flirty'
+    @Property({ default: 'general' })
+    category: string = 'general'; // 'general' | 'fun' | 'deep' | 'flirty'
 
-    @Column({ default: true })
-    isActive: boolean;
+    @Property({ default: true })
+    isActive: boolean = true;
 
-    @CreateDateColumn()
-    createdAt: Date;
+    @Property({ onCreate: () => new Date() })
+    createdAt: Date = new Date();
 }

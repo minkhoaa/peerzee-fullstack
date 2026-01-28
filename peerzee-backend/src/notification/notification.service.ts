@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { Server } from 'socket.io';
 import { Notification, NotificationType, NotificationData } from './entities/notification.entity';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class NotificationService {
@@ -10,19 +11,14 @@ export class NotificationService {
 
     constructor(
         @InjectRepository(Notification)
-        private readonly notificationRepo: Repository<Notification>,
+        private readonly notificationRepo: EntityRepository<Notification>,
+        private readonly em: EntityManager,
     ) { }
 
-    /**
-     * Set the Socket.io server instance for emitting events
-     */
     setSocketServer(server: Server) {
         this.socketServer = server;
     }
 
-    /**
-     * Create a notification and emit it to the user in real-time
-     */
     async createAndEmit(
         userId: string,
         type: NotificationType,
@@ -31,14 +27,14 @@ export class NotificationService {
         data: NotificationData = {},
     ): Promise<Notification> {
         // Save to database
-        const notification = await this.notificationRepo.save({
-            userId,
-            type,
-            title,
-            message,
-            data,
-            isRead: false,
-        });
+        const notification = new Notification();
+        notification.user = this.em.getReference(User, userId);
+        notification.type = type;
+        notification.title = title;
+        notification.message = message;
+        notification.data = data;
+        notification.isRead = false;
+        await this.em.persistAndFlush(notification);
 
         // Emit to user's room via Socket.io
         if (this.socketServer) {
@@ -56,9 +52,6 @@ export class NotificationService {
         return notification;
     }
 
-    /**
-     * Get notifications for a user with cursor-based pagination
-     */
     async getNotifications(
         userId: string,
         cursor?: string,
@@ -68,23 +61,19 @@ export class NotificationService {
         nextCursor: string | null;
         unreadCount: number;
     }> {
-        const queryBuilder = this.notificationRepo
-            .createQueryBuilder('notification')
-            .where('notification.user_id = :userId', { userId })
-            .orderBy('notification.created_at', 'DESC')
-            .take(limit + 1);
-
+        let query: any = { userId };
         if (cursor) {
             const cursorDate = new Date(cursor);
-            queryBuilder.andWhere('notification.created_at < :cursor', { cursor: cursorDate });
+            query.createdAt = { $lt: cursorDate };
         }
 
-        const notifications = await queryBuilder.getMany();
+        const notifications = await this.notificationRepo.find(
+            query,
+            { orderBy: { createdAt: 'DESC' }, limit: limit + 1 }
+        );
 
         // Get unread count
-        const unreadCount = await this.notificationRepo.count({
-            where: { userId, isRead: false },
-        });
+        const unreadCount = await this.notificationRepo.count({ user: { id: userId }, isRead: false });
 
         // Check if there are more items
         let nextCursor: string | null = null;
@@ -100,52 +89,37 @@ export class NotificationService {
         };
     }
 
-    /**
-     * Get unread count for a user
-     */
     async getUnreadCount(userId: string): Promise<number> {
-        return this.notificationRepo.count({
-            where: { userId, isRead: false },
-        });
+        return this.notificationRepo.count({ user: { id: userId }, isRead: false });
     }
 
-    /**
-     * Mark a specific notification as read
-     */
     async markAsRead(notificationId: string, userId: string): Promise<Notification | null> {
-        const notification = await this.notificationRepo.findOne({
-            where: { id: notificationId, userId },
-        });
+        const notification = await this.notificationRepo.findOne({ id: notificationId, user: { id: userId } });
 
         if (!notification) return null;
 
         notification.isRead = true;
-        return this.notificationRepo.save(notification);
+        await this.em.persistAndFlush(notification);
+        return notification;
     }
 
-    /**
-     * Mark all notifications as read for a user
-     */
     async markAllAsRead(userId: string): Promise<number> {
-        const result = await this.notificationRepo.update(
-            { userId, isRead: false },
+        const result = await this.notificationRepo.nativeUpdate(
+            { user: { id: userId }, isRead: false },
             { isRead: true },
         );
-        return result.affected || 0;
+        return result;
     }
 
-    /**
-     * Delete old notifications (cleanup job)
-     */
     async deleteOldNotifications(daysOld: number = 30): Promise<number> {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-        const result = await this.notificationRepo.delete({
-            createdAt: LessThan(cutoffDate),
+        const result = await this.notificationRepo.nativeDelete({
+            createdAt: { $lt: cutoffDate },
             isRead: true,
         });
 
-        return result.affected || 0;
+        return result;
     }
 }

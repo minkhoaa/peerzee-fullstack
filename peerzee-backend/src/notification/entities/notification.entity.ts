@@ -1,12 +1,12 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
+    PrimaryKey,
+    Property,
     ManyToOne,
-    JoinColumn,
-} from 'typeorm';
+    Enum,
+} from '@mikro-orm/core';
 import { User } from '../../user/entities/user.entity';
+import { v4 as uuid } from 'uuid';
 
 export enum NotificationType {
     MATCH = 'MATCH',
@@ -27,37 +27,30 @@ export interface NotificationData {
     [key: string]: unknown;
 }
 
-@Entity('notifications')
+@Entity({ tableName: 'notifications' })
 export class Notification {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryKey({ type: 'uuid' })
+    id: string = uuid();
 
-    @Column({ name: 'user_id', type: 'uuid' })
-    userId: string;
-
-    @ManyToOne(() => User, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'user_id' })
+    @ManyToOne(() => User, { fieldName: 'user_id' })
     user: User;
 
-    @Column({
-        type: 'enum',
-        enum: NotificationType,
-        default: NotificationType.SYSTEM,
-    })
-    type: NotificationType;
+    @Enum(() => NotificationType)
+    @Property({ default: NotificationType.SYSTEM })
+    type: NotificationType = NotificationType.SYSTEM;
 
-    @Column({ type: 'varchar', length: 255 })
+    @Property({ type: 'varchar', length: 255 })
     title: string;
 
-    @Column({ type: 'text' })
+    @Property({ type: 'text' })
     message: string;
 
-    @Column({ type: 'jsonb', default: '{}' })
-    data: NotificationData;
+    @Property({ type: 'jsonb' })
+    data: NotificationData = {};
 
-    @Column({ name: 'is_read', type: 'boolean', default: false })
-    isRead: boolean;
+    @Property({ fieldName: 'is_read', type: 'boolean', default: false })
+    isRead: boolean = false;
 
-    @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-    createdAt: Date;
+    @Property({ fieldName: 'created_at', type: 'timestamptz', onCreate: () => new Date() })
+    createdAt: Date = new Date();
 }

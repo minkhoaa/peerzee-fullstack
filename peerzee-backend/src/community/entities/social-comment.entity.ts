@@ -1,36 +1,27 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
+    PrimaryKey,
+    Property,
     ManyToOne,
-    JoinColumn,
-} from 'typeorm';
+} from '@mikro-orm/core';
 import { User } from '../../user/entities/user.entity';
 import { SocialPost } from './social-post.entity';
+import { v4 as uuid } from 'uuid';
 
-@Entity('social_comments')
+@Entity({ tableName: 'social_comments' })
 export class SocialComment {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryKey({ type: 'uuid' })
+    id: string = uuid();
 
-    @Column({ type: 'text' })
+    @Property({ type: 'text' })
     content: string;
 
-    @Column({ name: 'author_id', type: 'uuid' })
-    author_id: string;
-
-    @Column({ name: 'post_id', type: 'uuid' })
-    post_id: string;
-
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
-
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'author_id' })
+    @ManyToOne(() => User, { fieldName: 'author_id' })
     author: User;
 
-    @ManyToOne(() => SocialPost, (post) => post.comments, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'post_id' })
+    @ManyToOne(() => SocialPost, { fieldName: 'post_id' })
     post: SocialPost;
+
+    @Property({ fieldName: 'created_at', onCreate: () => new Date() })
+    createdAt: Date = new Date();
 }

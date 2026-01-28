@@ -1,24 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryKey, Property, ManyToOne } from '@mikro-orm/core';
 import { Message } from './message.entity';
+import { v4 as uuid } from 'uuid';
 
-@Entity('message_reactions')
+@Entity({ tableName: 'message_reactions' })
 export class MessageReaction {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryKey({ type: 'uuid' })
+    id: string = uuid();
 
-    @Column({ name: 'message_id' })
-    message_id: string;
-
-    @Column({ name: 'user_id' })
-    user_id: string;
-
-    @Column()
-    emoji: string;
-
-    @ManyToOne(() => Message, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'message_id' })
+    @ManyToOne(() => Message, { fieldName: 'message_id' })
     message: Message;
 
-    @CreateDateColumn()
-    created_at: Date;
+    @Property({ fieldName: 'user_id' })
+    user_id: string;
+
+    @Property()
+    emoji: string;
+
+    @Property({ onCreate: () => new Date() })
+    created_at: Date = new Date();
 }

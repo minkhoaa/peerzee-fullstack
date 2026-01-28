@@ -2,6 +2,16 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Dreamy Glass Background - Animated Mesh Gradient */
+body {
+    background-color: #FDF4F5; /* Very pale pink base */
+    background-image: 
+        radial-gradient(at 10% 10%, rgba(244, 63, 94, 0.1) 0px, transparent 50%), /* Soft Rose */
+        radial-gradient(at 90% 10%, rgba(139, 92, 246, 0.1) 0px, transparent 50%), /* Soft Violet */
+        radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.8) 0px, transparent 50%); /* White center */
+    background-attachment: fixed;
+}
+
 /* Prevent horizontal scrollbar */
 html,
 body {

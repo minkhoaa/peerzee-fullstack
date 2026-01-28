@@ -68,7 +68,7 @@ export class DiscoverController {
         try {
             const parsedLimit = limit ? parseInt(limit, 10) : 10;
 
-            // If lat/long provided, use dedicated location-based method
+            // If lat/long provided, use location-based filtering
             if (lat && long) {
                 const userLat = parseFloat(lat);
                 const userLong = parseFloat(long);
@@ -82,12 +82,13 @@ export class DiscoverController {
                     `Location-based search for user ${req.user.user_id}: (${userLat}, ${userLong}), radius: ${radiusInKm}km`,
                 );
 
-                const result = await this.discoverService.getRecommendationsByLocation(
+                const result = await this.discoverService.getRecommendations(
                     req.user.user_id,
+                    cursor,
+                    Math.min(parsedLimit, 50),
                     userLat,
                     userLong,
                     radiusInKm,
-                    Math.min(parsedLimit, 50),
                 );
 
                 return result;

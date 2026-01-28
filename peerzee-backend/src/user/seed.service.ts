@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { User } from '../user/entities/user.entity';
 import { UserProfile, ProfilePhoto, ProfilePrompt, IntentMode, UserGender } from '../user/entities/user-profile.entity';
 import * as bcrypt from 'bcrypt';
@@ -121,9 +121,10 @@ export class SeedService {
 
     constructor(
         @InjectRepository(User)
-        private readonly userRepo: Repository<User>,
+        private readonly userRepo: EntityRepository<User>,
         @InjectRepository(UserProfile)
-        private readonly profileRepo: Repository<UserProfile>,
+        private readonly profileRepo: EntityRepository<UserProfile>,
+        private readonly em: EntityManager,
     ) { }
 
     /**
@@ -142,7 +143,7 @@ export class SeedService {
             const email = `test${i}@gmail.com`;
 
             // Check if user already exists
-            const existing = await this.userRepo.findOne({ where: { email } });
+            const existing = await this.userRepo.findOne({ email });
             if (existing) {
                 this.logger.log(`User ${email} already exists, skipping.`);
                 skipped++;
@@ -156,11 +157,11 @@ export class SeedService {
             const name = names[i % names.length];
 
             // Create user
-            const user = await this.userRepo.save({
-                email,
-                password_hash: passwordHash,
-                status: 'active',
-            });
+            const user = new User();
+            user.email = email;
+            user.password_hash = passwordHash;
+            user.status = 'active';
+            this.em.persist(user);
 
             // Determine intent mode (variety)
             const intentModes = [IntentMode.DATE, IntentMode.STUDY, IntentMode.FRIEND];
@@ -172,42 +173,42 @@ export class SeedService {
             const prompts = this.generatePrompts();
             const tags = this.generateTags();
 
-            await this.profileRepo.save({
-                user_id: user.id,
-                display_name: name,
-                bio: SAMPLE_BIOS[i % SAMPLE_BIOS.length],
-                age: 20 + Math.floor(Math.random() * 12), // 20-31
-                occupation: SAMPLE_OCCUPATIONS[i % SAMPLE_OCCUPATIONS.length],
-                education: SAMPLE_EDUCATIONS[i % SAMPLE_EDUCATIONS.length],
-                location: SAMPLE_CITIES[cityIndex],
-                photos,
-                prompts,
-                tags,
-                spotify: SAMPLE_SPOTIFY[i % SAMPLE_SPOTIFY.length],
-                instagram: `@${name.toLowerCase().replace(' ', '')}`,
-                discovery_settings: {
-                    minAge: 18,
-                    maxAge: 35,
-                    maxDistance: 50,
-                    genderPreference: 'all',
-                },
-                // Hybrid Search Fields
-                gender,
-                intentMode,
-                city: SAMPLE_CITIES[cityIndex],
-                region: SAMPLE_REGIONS[cityIndex],
-                country: 'VN',
-                availability: {
-                    weekdayMorning: Math.random() > 0.5,
-                    weekdayAfternoon: Math.random() > 0.5,
-                    weekdayEvening: Math.random() > 0.3,
-                    weekendMorning: Math.random() > 0.4,
-                    weekendAfternoon: Math.random() > 0.3,
-                    weekendEvening: Math.random() > 0.3,
-                },
-                latitude: 10.762622 + (Math.random() - 0.5) * 2,
-                longitude: 106.660172 + (Math.random() - 0.5) * 2,
-            });
+            const profile = new UserProfile();
+            profile.user = user;
+            profile.display_name = name;
+            profile.bio = SAMPLE_BIOS[i % SAMPLE_BIOS.length];
+            profile.age = 20 + Math.floor(Math.random() * 12);
+            profile.occupation = SAMPLE_OCCUPATIONS[i % SAMPLE_OCCUPATIONS.length];
+            profile.education = SAMPLE_EDUCATIONS[i % SAMPLE_EDUCATIONS.length];
+            profile.location = SAMPLE_CITIES[cityIndex];
+            profile.photos = photos;
+            profile.prompts = prompts;
+            profile.tags = tags;
+            profile.spotify = SAMPLE_SPOTIFY[i % SAMPLE_SPOTIFY.length];
+            profile.instagram = `@${name.toLowerCase().replace(' ', '')}`;
+            profile.discovery_settings = {
+                minAge: 18,
+                maxAge: 35,
+                maxDistance: 50,
+                genderPreference: 'all',
+            };
+            profile.gender = gender;
+            profile.intentMode = intentMode;
+            profile.city = SAMPLE_CITIES[cityIndex];
+            profile.region = SAMPLE_REGIONS[cityIndex];
+            profile.country = 'VN';
+            profile.availability = {
+                weekdayMorning: Math.random() > 0.5,
+                weekdayAfternoon: Math.random() > 0.5,
+                weekdayEvening: Math.random() > 0.3,
+                weekendMorning: Math.random() > 0.4,
+                weekendAfternoon: Math.random() > 0.3,
+                weekendEvening: Math.random() > 0.3,
+            };
+            profile.latitude = 10.762622 + (Math.random() - 0.5) * 2;
+            profile.longitude = 106.660172 + (Math.random() - 0.5) * 2;
+            this.em.persist(profile);
+            await this.em.flush();
 
             created++;
             this.logger.log(`Created user ${i}/${count}: ${email} (${name}, ${gender}, ${intentMode})`);
@@ -236,44 +237,45 @@ export class SeedService {
             const name = names[i % names.length];
             const email = `demo${i + 1}@peerzee.com`;
 
-            const existing = await this.userRepo.findOne({ where: { email } });
+            const existing = await this.userRepo.findOne({ email });
             if (existing) {
                 this.logger.log(`User ${email} already exists, skipping.`);
                 continue;
             }
 
-            const user = await this.userRepo.save({
-                email,
-                password_hash: passwordHash,
-                status: 'active',
-            });
+            const user = new User();
+            user.email = email;
+            user.password_hash = passwordHash;
+            user.status = 'active';
+            this.em.persist(user);
 
             const photos = this.generatePhotos(i);
             const prompts = this.generatePrompts();
             const tags = this.generateTags();
 
-            await this.profileRepo.save({
-                user_id: user.id,
-                display_name: name,
-                bio: SAMPLE_BIOS[i % SAMPLE_BIOS.length],
-                age: 22 + Math.floor(Math.random() * 10),
-                occupation: SAMPLE_OCCUPATIONS[i % SAMPLE_OCCUPATIONS.length],
-                education: SAMPLE_EDUCATIONS[i % SAMPLE_EDUCATIONS.length],
-                location: ['Ho Chi Minh City', 'Hanoi', 'Da Nang'][i % 3],
-                photos,
-                prompts,
-                tags,
-                spotify: SAMPLE_SPOTIFY[i % SAMPLE_SPOTIFY.length],
-                instagram: `@${name.toLowerCase().replace(' ', '')}`,
-                discovery_settings: {
-                    minAge: 18,
-                    maxAge: 35,
-                    maxDistance: 50,
-                    genderPreference: 'all',
-                },
-                latitude: 10.762622 + (Math.random() - 0.5) * 0.1,
-                longitude: 106.660172 + (Math.random() - 0.5) * 0.1,
-            });
+            const profile = new UserProfile();
+            profile.user = user;
+            profile.display_name = name;
+            profile.bio = SAMPLE_BIOS[i % SAMPLE_BIOS.length];
+            profile.age = 22 + Math.floor(Math.random() * 10);
+            profile.occupation = SAMPLE_OCCUPATIONS[i % SAMPLE_OCCUPATIONS.length];
+            profile.education = SAMPLE_EDUCATIONS[i % SAMPLE_EDUCATIONS.length];
+            profile.location = ['Ho Chi Minh City', 'Hanoi', 'Da Nang'][i % 3];
+            profile.photos = photos;
+            profile.prompts = prompts;
+            profile.tags = tags;
+            profile.spotify = SAMPLE_SPOTIFY[i % SAMPLE_SPOTIFY.length];
+            profile.instagram = `@${name.toLowerCase().replace(' ', '')}`;
+            profile.discovery_settings = {
+                minAge: 18,
+                maxAge: 35,
+                maxDistance: 50,
+                genderPreference: 'all',
+            };
+            profile.latitude = 10.762622 + (Math.random() - 0.5) * 0.1;
+            profile.longitude = 106.660172 + (Math.random() - 0.5) * 0.1;
+            this.em.persist(profile);
+            await this.em.flush();
 
             this.logger.log(`Created user: ${email} (${name})`);
         }

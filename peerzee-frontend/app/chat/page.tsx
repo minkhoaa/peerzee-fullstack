@@ -629,12 +629,12 @@ export default function ChatPage() {
     // ============== RENDER ==============
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#191919]">
+            <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-                        <span className="text-[#191919] font-bold text-sm">P</span>
+                    <div className="w-8 h-8 rounded-lg bg-rose-500 flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">P</span>
                     </div>
-                    <span className="text-[#9B9A97] text-sm">Loading...</span>
+                    <span className="text-zinc-600 text-sm">Loading...</span>
                 </div>
             </div>
         );
@@ -644,7 +644,7 @@ export default function ChatPage() {
     const isOtherOnline = onlineUsers.has(otherUserId);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#191919] text-white antialiased">
+        <div className="flex w-full h-[100dvh] overflow-hidden antialiased">
             {/* Sidebar */}
             <ChatSidebar
                 conversations={conversations}
@@ -663,7 +663,7 @@ export default function ChatPage() {
             />
 
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col min-w-0 bg-[#191919]">
+            <div className="flex-1 flex flex-col min-w-0 h-full relative">
                 {activeConversation ? (
                     <>
                         <ChatWindow
@@ -704,8 +704,8 @@ export default function ChatPage() {
                     </>
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 rounded-2xl bg-[#262626] flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-[#9B9A97]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
@@ -714,20 +714,20 @@ export default function ChatPage() {
                                 />
                             </svg>
                         </div>
-                        <p className="text-[#9B9A97] text-sm">Select a conversation to start chatting</p>
+                        <p className="text-zinc-500 text-sm">Select a conversation to start chatting</p>
                     </div>
                 )}
             </div>
 
             {/* New Chat Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-[#202020] p-6 rounded-2xl w-96 border border-[#2F2F2F] shadow-2xl">
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-2xl w-96 border border-zinc-100 shadow-2xl">
                         <div className="flex justify-between items-center mb-5">
-                            <h3 className="font-semibold text-lg">New Chat</h3>
+                            <h3 className="font-semibold text-lg text-zinc-900">New Chat</h3>
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="p-1.5 text-[#9B9A97] hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                                className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -739,7 +739,7 @@ export default function ChatPage() {
                             value={newConvName}
                             onChange={(e) => setNewConvName(e.target.value)}
                             placeholder="Conversation name"
-                            className="w-full px-4 py-3 text-sm border border-[#2F2F2F] rounded-xl bg-[#191919] focus:outline-none focus:ring-2 focus:ring-[#2383E2] focus:border-transparent mb-3 placeholder-[#9B9A97]"
+                            className="w-full px-4 py-3 text-sm border border-zinc-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-rose-200 focus:border-transparent mb-3 placeholder-zinc-400 text-zinc-800"
                         />
 
                         <div className="relative mb-4">
@@ -747,10 +747,10 @@ export default function ChatPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search by email..."
-                                className="w-full px-4 py-3 text-sm border border-[#2F2F2F] rounded-xl bg-[#191919] focus:outline-none focus:ring-2 focus:ring-[#2383E2] focus:border-transparent placeholder-[#9B9A97]"
+                                className="w-full px-4 py-3 text-sm border border-zinc-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-rose-200 focus:border-transparent placeholder-zinc-400 text-zinc-800"
                             />
                             {searchResults.length > 0 && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-[#262626] border border-[#2F2F2F] rounded-xl shadow-lg max-h-40 overflow-y-auto z-10">
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-xl shadow-lg max-h-40 overflow-y-auto z-10">
                                     {searchResults.map((user) => (
                                         <div
                                             key={user.id}
@@ -759,25 +759,25 @@ export default function ChatPage() {
                                                 setSearchQuery(user.email);
                                                 setSearchResults([]);
                                             }}
-                                            className="px-4 py-3 text-sm cursor-pointer hover:bg-[#2F2F2F] border-b border-[#2F2F2F] last:border-b-0 transition-colors"
+                                            className="px-4 py-3 text-sm cursor-pointer hover:bg-zinc-50 border-b border-zinc-100 last:border-b-0 transition-colors text-zinc-800"
                                         >
                                             <div className="font-medium">{user.email}</div>
                                             {user.fullName && user.fullName !== "string" && (
-                                                <div className="text-xs text-[#9B9A97]">{user.fullName}</div>
+                                                <div className="text-xs text-zinc-500">{user.fullName}</div>
                                             )}
                                         </div>
                                     ))}
                                 </div>
                             )}
                             {searching && (
-                                <div className="absolute top-full left-0 right-0 mt-2 px-4 py-3 text-xs text-[#9B9A97] bg-[#262626] border border-[#2F2F2F] rounded-xl shadow-lg">
+                                <div className="absolute top-full left-0 right-0 mt-2 px-4 py-3 text-xs text-zinc-500 bg-white border border-zinc-200 rounded-xl shadow-lg">
                                     Searching...
                                 </div>
                             )}
                         </div>
 
                         {newUserId && (
-                            <div className="flex items-center gap-2 text-xs text-green-500 mb-4">
+                            <div className="flex items-center gap-2 text-xs text-green-600 mb-4">
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path
                                         fillRule="evenodd"
@@ -792,13 +792,13 @@ export default function ChatPage() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="flex-1 py-3 text-sm font-medium border border-[#2F2F2F] rounded-xl text-[#9B9A97] hover:bg-[#2F2F2F] hover:text-white transition-colors"
+                                className="flex-1 py-3 text-sm font-medium border border-zinc-200 rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleCreateConversation}
-                                className="flex-1 py-3 text-sm font-medium bg-white text-[#191919] rounded-xl hover:bg-[#E3E3E3] transition-colors"
+                                className="flex-1 py-3 text-sm font-medium bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors"
                             >
                                 Create
                             </button>

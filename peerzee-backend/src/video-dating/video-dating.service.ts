@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { VideoSession } from './entities/video-session.entity';
 
 export interface QueueEntry {
@@ -44,7 +44,8 @@ export class VideoDatingService {
 
     constructor(
         @InjectRepository(VideoSession)
-        private readonly sessionRepo: Repository<VideoSession>,
+        private readonly sessionRepo: EntityRepository<VideoSession>,
+        private readonly em: EntityManager,
     ) { }
 
     addToQueue(entry: QueueEntry): void {
@@ -105,13 +106,13 @@ export class VideoDatingService {
     }
 
     async createSession(user1Id: string, user2Id: string, intentMode: string): Promise<VideoSession> {
-        const session = this.sessionRepo.create({
-            user1Id,
-            user2Id,
-            intentMode,
-            status: 'active',
-        });
-        return this.sessionRepo.save(session);
+        const session = new VideoSession();
+        session.user1Id = user1Id;
+        session.user2Id = user2Id;
+        session.intentMode = intentMode;
+        session.status = 'active';
+        await this.em.persistAndFlush(session);
+        return session;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -230,21 +231,21 @@ export class VideoDatingService {
     }
 
     async endSession(sessionId: string): Promise<void> {
-        const session = await this.sessionRepo.findOne({ where: { id: sessionId } });
+        const session = await this.sessionRepo.findOne({ id: sessionId });
         if (session) {
             session.status = 'ended';
             session.endedAt = new Date();
             if (session.startedAt) {
                 session.durationSeconds = Math.floor((session.endedAt.getTime() - session.startedAt.getTime()) / 1000);
             }
-            await this.sessionRepo.save(session);
+            await this.em.persistAndFlush(session);
         }
         // Also cleanup blind session state
         this.cleanupBlindSession(sessionId);
     }
 
     async reportSession(sessionId: string): Promise<void> {
-        await this.sessionRepo.update(sessionId, { status: 'reported' });
+        await this.sessionRepo.nativeUpdate({ id: sessionId }, { status: 'reported' });
     }
 
     getQueueSize(): number {

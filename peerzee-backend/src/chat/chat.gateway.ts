@@ -172,7 +172,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
       this.server.to(dto.conversation_id).emit('message:new', {
         id: msg.id,
-        conversation_id: msg.conversation_id,
+        conversation_id: msg.conversation?.id,
         sender_id: msg.sender_id,
         body: msg.body,
         seq: msg.seq,
@@ -181,7 +181,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
         fileUrl: msg.fileUrl,
         fileName: msg.fileName,
         fileType: msg.fileType,
-        reply_to_id: msg.reply_to_id,
+        reply_to_id: msg.replyTo?.id,
         replyTo: msg.replyTo ? {
           id: msg.replyTo.id,
           body: msg.replyTo.body,

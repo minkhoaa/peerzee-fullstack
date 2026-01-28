@@ -169,7 +169,7 @@ export class CommunityController {
                 content: comment.content,
                 createdAt: comment.createdAt,
                 author: {
-                    id: comment.author?.id || comment.author_id,
+                    id: comment.author?.id,
                     email: comment.author?.email || '',
                     display_name:
                         comment.author?.profile?.display_name ||

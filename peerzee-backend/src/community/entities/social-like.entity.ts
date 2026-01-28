@@ -1,35 +1,25 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
+    PrimaryKey,
+    Property,
     ManyToOne,
-    JoinColumn,
     Unique,
-} from 'typeorm';
+} from '@mikro-orm/core';
 import { User } from '../../user/entities/user.entity';
 import { SocialPost } from './social-post.entity';
+import { v4 as uuid } from 'uuid';
 
-@Entity('social_likes')
-@Unique(['user_id', 'post_id']) // Ensure a user can only like a post once
+@Entity({ tableName: 'social_likes' })
 export class SocialLike {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryKey({ type: 'uuid' })
+    id: string = uuid();
 
-    @Column({ name: 'user_id', type: 'uuid' })
-    user_id: string;
-
-    @Column({ name: 'post_id', type: 'uuid' })
-    post_id: string;
-
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
-
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'user_id' })
+    @ManyToOne(() => User, { fieldName: 'user_id' })
     user: User;
 
-    @ManyToOne(() => SocialPost, (post) => post.likes, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'post_id' })
+    @ManyToOne(() => SocialPost, { fieldName: 'post_id' })
     post: SocialPost;
+
+    @Property({ fieldName: 'created_at', onCreate: () => new Date() })
+    createdAt: Date = new Date();
 }

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, LessThan, MoreThan, DataSource } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { SocialPost, SocialComment, SocialLike, SocialVote } from './entities';
 import { CreatePostDto, CreateCommentDto, GetFeedDto } from './dto';
 import { User } from '../user/entities/user.entity';
@@ -39,85 +39,89 @@ export interface VoteResult {
 export class CommunityService {
     constructor(
         @InjectRepository(SocialPost)
-        private readonly postRepo: Repository<SocialPost>,
+        private readonly postRepo: EntityRepository<SocialPost>,
         @InjectRepository(SocialComment)
-        private readonly commentRepo: Repository<SocialComment>,
+        private readonly commentRepo: EntityRepository<SocialComment>,
         @InjectRepository(SocialLike)
-        private readonly likeRepo: Repository<SocialLike>,
+        private readonly likeRepo: EntityRepository<SocialLike>,
         @InjectRepository(SocialVote)
-        private readonly voteRepo: Repository<SocialVote>,
+        private readonly voteRepo: EntityRepository<SocialVote>,
         @InjectRepository(User)
-        private readonly userRepo: Repository<User>,
-        private readonly dataSource: DataSource,
+        private readonly userRepo: EntityRepository<User>,
+        private readonly em: EntityManager,
     ) { }
 
     /**
      * Create a new post
      */
     async createPost(userId: string, dto: CreatePostDto): Promise<SocialPost> {
-        const post = this.postRepo.create({
-            content: dto.content,
-            tags: dto.tags || [],
-            media: dto.media || [],
-            author_id: userId,
-            score: 0,
-        });
-        return this.postRepo.save(post);
+        const author = await this.userRepo.findOne({ id: userId });
+        if (!author) throw new Error('User not found');
+
+        const post = new SocialPost();
+        post.content = dto.content;
+        post.tags = dto.tags || [];
+        post.media = dto.media || [];
+        post.author = author;
+        post.score = 0;
+        post.likesCount = 0;
+        post.commentsCount = 0;
+        await this.em.persistAndFlush(post);
+        return post;
     }
 
     /**
-     * Get feed with cursor-based pagination
+     * Get feed with cursor-based pagination - Uses RAW SQL for complex queries
      * Returns userVote for each post (1, -1, or 0)
      */
     async getFeed(userId: string, dto: GetFeedDto): Promise<FeedResponse> {
         const limit = dto.limit || 10;
         const sort = dto.sort || 'new';
 
-        // Build query
-        const queryBuilder = this.postRepo
-            .createQueryBuilder('post')
-            .leftJoinAndSelect('post.author', 'author')
-            .leftJoinAndSelect('author.profile', 'profile');
+        // Build SQL conditions
+        let whereClause = '1=1';
+        const params: any[] = [];
 
         // Filter by tag if provided
         if (dto.tag) {
-            queryBuilder.andWhere(`post.tags @> :tag::jsonb`, {
-                tag: JSON.stringify([dto.tag]),
-            });
+            whereClause += ` AND p.tags @> $${params.length + 1}::jsonb`;
+            params.push(JSON.stringify([dto.tag]));
         }
 
-        // Cursor-based pagination (different for each sort mode)
+        // Cursor-based pagination
         if (dto.cursor) {
-            const cursorPost = await this.postRepo.findOne({
-                where: { id: dto.cursor },
-                select: ['createdAt', 'score', 'id'],
-            });
+            const cursorPost = await this.postRepo.findOne({ id: dto.cursor });
             if (cursorPost) {
                 if (sort === 'top') {
-                    // For "top" sort: get posts with lower score, or same score but older
-                    queryBuilder.andWhere(
-                        '(post.score < :score OR (post.score = :score AND post.id < :id))',
-                        { score: cursorPost.score, id: cursorPost.id }
-                    );
+                    whereClause += ` AND (p.score < $${params.length + 1} OR (p.score = $${params.length + 1} AND p.id < $${params.length + 2}))`;
+                    params.push(cursorPost.score, cursorPost.id);
                 } else {
-                    // For "new" sort: get older posts
-                    queryBuilder.andWhere('post.createdAt < :createdAt', {
-                        createdAt: cursorPost.createdAt,
-                    });
+                    whereClause += ` AND p.created_at < $${params.length + 1}`;
+                    params.push(cursorPost.createdAt);
                 }
             }
         }
 
-        // Order based on sort mode
-        if (sort === 'top') {
-            queryBuilder.orderBy('post.score', 'DESC').addOrderBy('post.id', 'DESC');
-        } else {
-            queryBuilder.orderBy('post.createdAt', 'DESC');
-        }
+        // Order clause
+        const orderClause = sort === 'top'
+            ? 'ORDER BY p.score DESC, p.id DESC'
+            : 'ORDER BY p.created_at DESC';
 
-        queryBuilder.take(limit + 1);
-
-        const posts = await queryBuilder.getMany();
+        // Execute raw SQL
+        const posts = await this.em.getConnection().execute<any[]>(`
+            SELECT 
+                p.*,
+                u.id as author__id,
+                u.email as author__email,
+                prof.display_name as author__display_name,
+                prof.photos as author__photos
+            FROM social_posts p
+            LEFT JOIN users u ON p.author_id = u.id
+            LEFT JOIN user_profiles prof ON u.id = prof.user_id
+            WHERE ${whereClause}
+            ${orderClause}
+            LIMIT $${params.length + 1}
+        `, [...params, limit + 1]);
 
         // Check for more results
         const hasMore = posts.length > limit;
@@ -129,10 +133,10 @@ export class CommunityService {
 
         if (postIds.length > 0 && userId) {
             const userVotes = await this.voteRepo.find({
-                where: { user_id: userId, post_id: In(postIds) },
-                select: ['post_id', 'value'],
+                user: { id: userId },
+                post: { id: { $in: postIds } }
             });
-            userVotes.forEach((v) => userVotesMap.set(v.post_id, v.value));
+            userVotes.forEach((v) => userVotesMap.set(v.post.id, v.value));
         }
 
         // Map to response format
@@ -142,16 +146,14 @@ export class CommunityService {
             media: post.media,
             tags: post.tags,
             score: post.score,
-            commentsCount: post.commentsCount,
-            createdAt: post.createdAt,
-            updatedAt: post.updatedAt,
+            commentsCount: post.comments_count,
+            createdAt: new Date(post.created_at),
+            updatedAt: new Date(post.updated_at),
             author: {
-                id: post.author?.id || post.author_id,
-                email: post.author?.email || '',
-                display_name:
-                    post.author?.profile?.display_name ||
-                    post.author?.email?.split('@')[0],
-                avatar: post.author?.profile?.photos?.[0]?.url,
+                id: post.author__id || post.author_id,
+                email: post.author__email || '',
+                display_name: post.author__display_name || post.author__email?.split('@')[0],
+                avatar: post.author__photos?.[0]?.url,
             },
             userVote: userVotesMap.get(post.id) || 0,
         }));
@@ -173,19 +175,16 @@ export class CommunityService {
             throw new Error('Invalid vote value. Must be 1, -1, or 0.');
         }
 
-        return this.dataSource.transaction(async (manager) => {
-            const postRepo = manager.getRepository(SocialPost);
-            const voteRepo = manager.getRepository(SocialVote);
-
+        return this.em.transactional(async (em) => {
             // Get post
-            const post = await postRepo.findOne({ where: { id: postId } });
+            const post = await em.findOne(SocialPost, { id: postId });
             if (!post) {
                 throw new NotFoundException('Post not found');
             }
 
             // Get existing vote
-            const existingVote = await voteRepo.findOne({
-                where: { user_id: userId, post_id: postId },
+            const existingVote = await em.findOne(SocialVote, {
+                user: { id: userId }, post: { id: postId },
             });
 
             const oldValue = existingVote?.value || 0;
@@ -198,25 +197,26 @@ export class CommunityService {
             if (value === 0) {
                 // Remove vote
                 if (existingVote) {
-                    await voteRepo.remove(existingVote);
+                    em.remove(existingVote);
                 }
             } else {
                 // Update or create vote
                 if (existingVote) {
                     existingVote.value = value;
-                    await voteRepo.save(existingVote);
                 } else {
-                    const newVote = voteRepo.create({
-                        user_id: userId,
-                        post_id: postId,
-                        value,
-                    });
-                    await voteRepo.save(newVote);
+                    const newVote = new SocialVote();
+                    const user = await this.userRepo.findOne({ id: userId });
+                    const post = await this.postRepo.findOne({ id: postId });
+                    if (!user || !post) throw new Error('User or Post not found');
+                    newVote.user = user;
+                    newVote.post = post;
+                    newVote.value = value;
+                    em.persist(newVote);
                 }
             }
 
-            // Save post with new score
-            await postRepo.save(post);
+            // Flush all changes in transaction
+            await em.flush();
 
             return { newScore: post.score, userVote: value };
         });
@@ -227,18 +227,18 @@ export class CommunityService {
      */
     async toggleLike(userId: string, postId: string): Promise<{ liked: boolean; likesCount: number }> {
         const existingVote = await this.voteRepo.findOne({
-            where: { user_id: userId, post_id: postId },
+            user: { id: userId }, post: { id: postId },
         });
 
         if (existingVote && existingVote.value === 1) {
             // Unlike - remove upvote
             await this.vote(userId, postId, 0);
-            const post = await this.postRepo.findOne({ where: { id: postId } });
+            const post = await this.postRepo.findOne({ id: postId });
             return { liked: false, likesCount: post?.score || 0 };
         } else {
             // Like - add upvote
             await this.vote(userId, postId, 1);
-            const post = await this.postRepo.findOne({ where: { id: postId } });
+            const post = await this.postRepo.findOne({ id: postId });
             return { liked: true, likesCount: post?.score || 0 };
         }
     }
@@ -247,29 +247,29 @@ export class CommunityService {
      * Add a comment to a post
      */
     async addComment(userId: string, postId: string, dto: CreateCommentDto): Promise<SocialComment> {
-        const post = await this.postRepo.findOne({ where: { id: postId } });
+        const post = await this.postRepo.findOne({ id: postId });
         if (!post) {
             throw new NotFoundException('Post not found');
         }
 
-        const comment = this.commentRepo.create({
-            content: dto.content,
-            author_id: userId,
-            post_id: postId,
-        });
-        const savedComment = await this.commentRepo.save(comment);
+        const author = await this.userRepo.findOne({ id: userId });
+        const postEntity = await this.postRepo.findOne({ id: postId });
+        if (!author || !postEntity) throw new Error('User or Post not found');
+
+        const comment = new SocialComment();
+        comment.content = dto.content;
+        comment.author = author;
+        comment.post = postEntity;
+        this.em.persist(comment);
 
         // Update comments count
         post.commentsCount += 1;
-        await this.postRepo.save(post);
+        await this.em.flush();
 
         // Load author relation
-        const loadedComment = await this.commentRepo.findOne({
-            where: { id: savedComment.id },
-            relations: ['author', 'author.profile'],
-        });
+        await this.em.populate(comment, ['author', 'author.profile']);
 
-        return loadedComment || savedComment;
+        return comment;
     }
 
     /**
@@ -279,24 +279,23 @@ export class CommunityService {
         let whereCondition: any = { post_id: postId };
 
         if (cursor) {
-            const cursorComment = await this.commentRepo.findOne({
-                where: { id: cursor },
-                select: ['createdAt'],
-            });
+            const cursorComment = await this.commentRepo.findOne({ id: cursor });
             if (cursorComment) {
                 whereCondition = {
                     post_id: postId,
-                    createdAt: MoreThan(cursorComment.createdAt),
+                    createdAt: { $gt: cursorComment.createdAt },
                 };
             }
         }
 
-        const comments = await this.commentRepo.find({
-            where: whereCondition,
-            relations: ['author', 'author.profile'],
-            order: { createdAt: 'ASC' },
-            take: limit + 1,
-        });
+        const comments = await this.commentRepo.find(
+            whereCondition,
+            {
+                populate: ['author', 'author.profile'],
+                orderBy: { createdAt: 'ASC' },
+                limit: limit + 1,
+            }
+        );
 
         const hasMore = comments.length > limit;
         if (hasMore) comments.pop();
@@ -307,7 +306,7 @@ export class CommunityService {
                 content: c.content,
                 createdAt: c.createdAt,
                 author: {
-                    id: c.author?.id || c.author_id,
+                    id: c.author?.id,
                     email: c.author?.email || '',
                     display_name:
                         c.author?.profile?.display_name || c.author?.email?.split('@')[0],
@@ -322,15 +321,15 @@ export class CommunityService {
      * Get a single post by ID
      */
     async getPost(userId: string, postId: string): Promise<PostWithMeta | null> {
-        const post = await this.postRepo.findOne({
-            where: { id: postId },
-            relations: ['author', 'author.profile'],
-        });
+        const post = await this.postRepo.findOne(
+            { id: postId },
+            { populate: ['author', 'author.profile'] }
+        );
 
         if (!post) return null;
 
         const userVote = await this.voteRepo.findOne({
-            where: { user_id: userId, post_id: postId },
+            user: { id: userId }, post: { id: postId },
         });
 
         return {
@@ -343,7 +342,7 @@ export class CommunityService {
             createdAt: post.createdAt,
             updatedAt: post.updatedAt,
             author: {
-                id: post.author?.id || post.author_id,
+                id: post.author?.id,
                 email: post.author?.email || '',
                 display_name:
                     post.author?.profile?.display_name ||
@@ -357,20 +356,21 @@ export class CommunityService {
      * Delete a post (only by author)
      */
     async deletePost(userId: string, postId: string): Promise<void> {
-        const post = await this.postRepo.findOne({ where: { id: postId } });
+        const post = await this.postRepo.findOne({ id: postId });
         if (!post) throw new NotFoundException('Post not found');
-        if (post.author_id !== userId) throw new NotFoundException('Post not found');
-        await this.postRepo.remove(post);
+        await this.em.populate(post, ['author']);
+        if (post.author?.id !== userId) throw new NotFoundException('Post not found');
+        await this.em.removeAndFlush(post);
     }
 
     /**
-     * Get trending tags (last 7 days)
+     * Get trending tags (last 7 days) - Uses raw SQL
      */
     async getTrendingTags(limit: number = 5): Promise<{ tag: string; count: number }[]> {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        const result = await this.postRepo.query(
+        const result = await this.em.getConnection().execute<any[]>(
             `
             SELECT tag, COUNT(*) as count
             FROM (
@@ -394,34 +394,37 @@ export class CommunityService {
     }
 
     /**
-     * Get suggested users (random users not yet followed)
+     * Get suggested users - Uses raw SQL for RANDOM()
      */
     async getSuggestedUsers(userId: string, limit: number = 3) {
-        // Simple implementation: random active users
-        const users = await this.userRepo
-            .createQueryBuilder('user')
-            .leftJoinAndSelect('user.profile', 'profile')
-            .where('user.id != :userId', { userId })
-            .andWhere('user.status = :status', { status: 'active' })
-            .orderBy('RANDOM()')
-            .limit(limit)
-            .getMany();
+        const users = await this.em.getConnection().execute<any[]>(`
+            SELECT 
+                u.id,
+                u.email,
+                p.display_name,
+                p.bio,
+                p.photos
+            FROM users u
+            LEFT JOIN user_profiles p ON u.id = p.user_id
+            WHERE u.id != $1
+            AND u.status = 'active'
+            ORDER BY RANDOM()
+            LIMIT $2
+        `, [userId, limit]);
 
         return users.map((u) => ({
             id: u.id,
             email: u.email,
-            display_name: u.profile?.display_name || u.email.split('@')[0],
-            bio: u.profile?.bio,
-            avatar: u.profile?.photos?.[0]?.url,
+            display_name: u.display_name || u.email.split('@')[0],
+            bio: u.bio,
+            avatar: u.photos?.[0]?.url,
         }));
     }
 
     /**
-     * Get topics for left sidebar navigation
-     * Returns pinned/popular topics with post counts
+     * Get topics for left sidebar navigation - Uses raw SQL
      */
     async getTopics(): Promise<{ name: string; slug: string; count: number; icon?: string }[]> {
-        // Popular topics with icons
         const pinnedTopics = [
             { name: 'Programming', slug: 'Programming', icon: '💻' },
             { name: 'WebDev', slug: 'WebDev', icon: '🌐' },
@@ -432,8 +435,7 @@ export class CommunityService {
             { name: 'Memes', slug: 'Memes', icon: '😂' },
         ];
 
-        // Get counts for each topic
-        const result = await this.postRepo.query(`
+        const result = await this.em.getConnection().execute<any[]>(`
             SELECT tag, COUNT(*) as count
             FROM (
                 SELECT jsonb_array_elements_text(tags) as tag
@@ -461,7 +463,7 @@ export class CommunityService {
      */
     async seedPosts(authorId?: string): Promise<{ count: number; comments: number; votes: number }> {
         // Get all active users for varied authorship
-        const users = await this.userRepo.find({ where: { status: 'active' }, take: 20 });
+        const users = await this.userRepo.find({ status: 'active' }, { limit: 20 });
         if (users.length === 0) {
             throw new Error('No users found to create posts');
         }
@@ -517,30 +519,30 @@ export class CommunityService {
 
             // Create post with varied timestamps (last 7 days)
             const hoursAgo = Math.floor(Math.random() * 168); // Up to 7 days
-            const post = this.postRepo.create({
-                content: postData.content,
-                tags: postData.tags,
-                media: [],
-                author_id: author.id,
-                score: 0,
-                commentsCount: 0,
-                createdAt: new Date(Date.now() - hoursAgo * 3600000),
-            });
-            const savedPost = await this.postRepo.save(post);
-            savedPosts.push(savedPost);
+            const post = new SocialPost();
+            post.content = postData.content;
+            post.tags = postData.tags;
+            post.media = [];
+            post.author = author;
+            post.score = 0;
+            post.likesCount = 0;
+            post.commentsCount = 0;
+            post.createdAt = new Date(Date.now() - hoursAgo * 3600000);
+            this.em.persist(post);
+            savedPosts.push(post);
 
             // Create comments from random users (50% chance for each comment)
             for (const commentContent of postData.comments || []) {
                 if (Math.random() > 0.5) continue;
                 const commenter = users[Math.floor(Math.random() * users.length)];
-                await this.commentRepo.save({
-                    content: commentContent,
-                    author_id: commenter.id,
-                    post_id: savedPost.id,
-                    createdAt: new Date(savedPost.createdAt.getTime() + Math.random() * 3600000 * 5),
-                });
+                const comment = new SocialComment();
+                comment.content = commentContent;
+                comment.author = commenter;
+                comment.post = post;
+                comment.createdAt = new Date(post.createdAt.getTime() + Math.random() * 3600000 * 5);
+                this.em.persist(comment);
                 totalComments++;
-                savedPost.commentsCount++;
+                post.commentsCount++;
             }
 
             // Create votes from random users (varied voter count)
@@ -552,11 +554,11 @@ export class CommunityService {
 
                 const voteValue = Math.random() > 0.25 ? 1 : -1; // 75% upvotes
                 try {
-                    await this.voteRepo.save({
-                        user_id: voter.id,
-                        post_id: savedPost.id,
-                        value: voteValue,
-                    });
+                    const vote = new SocialVote();
+                    vote.user = voter;
+                    vote.post = post;
+                    vote.value = voteValue;
+                    this.em.persist(vote);
                     score += voteValue;
                     totalVotes++;
                 } catch {
@@ -564,9 +566,11 @@ export class CommunityService {
                 }
             }
 
-            savedPost.score = score;
-            await this.postRepo.save(savedPost);
+            post.score = score;
         }
+
+        // Flush all at once
+        await this.em.flush();
 
         return { count: savedPosts.length, comments: totalComments, votes: totalVotes };
     }
@@ -575,9 +579,9 @@ export class CommunityService {
      * Clear all community data (for clean reset)
      */
     async clearAllData(): Promise<{ deleted: boolean }> {
-        await this.voteRepo.delete({});
-        await this.commentRepo.delete({});
-        await this.postRepo.delete({});
+        await this.voteRepo.nativeDelete({});
+        await this.commentRepo.nativeDelete({});
+        await this.postRepo.nativeDelete({});
         return { deleted: true };
     }
 }

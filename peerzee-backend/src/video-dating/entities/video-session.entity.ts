@@ -1,33 +1,33 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-} from 'typeorm';
+    PrimaryKey,
+    Property,
+} from '@mikro-orm/core';
+import { v4 as uuid } from 'uuid';
 
-@Entity('video_sessions')
+@Entity({ tableName: 'video_sessions' })
 export class VideoSession {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryKey({ type: 'uuid' })
+    id: string = uuid();
 
-    @Column({ name: 'user1_id' })
+    @Property({ fieldName: 'user1_id' })
     user1Id: string;
 
-    @Column({ name: 'user2_id' })
+    @Property({ fieldName: 'user2_id' })
     user2Id: string;
 
-    @Column({ type: 'varchar', default: 'DATE' })
-    intentMode: string; // 'DATE' | 'STUDY' | 'FRIEND'
+    @Property({ type: 'varchar', default: 'DATE' })
+    intentMode: string = 'DATE'; // 'DATE' | 'STUDY' | 'FRIEND'
 
-    @CreateDateColumn({ name: 'started_at' })
-    startedAt: Date;
+    @Property({ fieldName: 'started_at', onCreate: () => new Date() })
+    startedAt: Date = new Date();
 
-    @Column({ type: 'timestamp', nullable: true, name: 'ended_at' })
+    @Property({ type: 'timestamp', nullable: true, fieldName: 'ended_at' })
     endedAt: Date | null;
 
-    @Column({ default: 'active' })
-    status: string; // 'active' | 'ended' | 'reported'
+    @Property({ default: 'active' })
+    status: string = 'active'; // 'active' | 'ended' | 'reported'
 
-    @Column({ type: 'int', default: 0, name: 'duration_seconds' })
-    durationSeconds: number;
+    @Property({ type: 'int', default: 0, fieldName: 'duration_seconds' })
+    durationSeconds: number = 0;
 }
