@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Camera, Check, X, Heart, MessageCircle, Eye, Loader2 } from 'lucide-react';
+import { Heart, MessageCircle, X, Loader2, MapPin, Briefcase, Check, Music, Play, Pause } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { chatApi, userApi } from '@/lib/api';
+import { VillageHeader, WoodenFrame, PixelButton } from '@/components/village';
 
 interface UserProfileData {
     id: string;
@@ -19,6 +21,7 @@ interface UserProfileData {
     tags?: string[];
     photos?: { id: string; url: string; order?: number }[];
     prompts?: { id: string; question: string; answer: string }[];
+    spotify?: { song: string; artist: string; cover?: string } | null;
     createdAt?: string;
 }
 
@@ -31,6 +34,8 @@ export default function UserProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [startingDM, setStartingDM] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
     useEffect(() => {
         if (!userId) return;
@@ -43,24 +48,12 @@ export default function UserProfilePage() {
             setProfile(res.data?.profile || res.data);
         } catch (err) {
             console.error('Failed to load profile:', err);
-            setError('Không thể tải profile');
+            setError('Could not load profile');
         } finally {
             setLoading(false);
         }
     };
 
-    // Calculate profile strength
-    const calculateStrength = () => {
-        if (!profile) return 0;
-        let score = 0;
-        if (profile.photos && profile.photos.length > 0) score += 40;
-        if (profile.bio) score += 30;
-        if (profile.tags && profile.tags.length > 0) score += 20;
-        if (profile.location) score += 10;
-        return Math.min(score, 100);
-    };
-
-    // Start a DM conversation with this user
     const handleStartDM = async () => {
         if (startingDM) return;
         setStartingDM(true);
@@ -73,260 +66,258 @@ export default function UserProfilePage() {
         }
     };
 
-    const strength = calculateStrength();
-
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="min-h-screen grass-dots flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-primary-orange border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
 
     if (error || !profile) {
         return (
-            <div className="min-h-screen bg-[#0D0D0D] flex flex-col items-center justify-center gap-4">
-                <p className="text-[#9B9A97]">{error || 'Profile không tồn tại'}</p>
-                <button onClick={() => router.back()} className="text-sm text-white hover:underline">
-                    ← Quay lại
-                </button>
+            <div className="min-h-screen grass-dots flex flex-col items-center justify-center gap-4">
+                <div className="text-6xl">😢</div>
+                <p className="font-pixel text-wood-dark">{error || 'PROFILE NOT FOUND'}</p>
+                <PixelButton onClick={() => router.back()}>
+                    ← GO BACK
+                </PixelButton>
             </div>
         );
     }
 
     const photos = profile.photos?.sort((a, b) => (a.order || 0) - (b.order || 0)) || [];
-    const coverPhoto = photos[0]?.url;
+    const coverPhoto = photos[activePhotoIndex]?.url || photos[0]?.url;
 
     return (
-        <div className="min-h-screen bg-[#0D0D0D]">
-            {/* Header */}
-            <header className="sticky top-0 z-30 bg-[#0D0D0D]/95 backdrop-blur-lg">
-                <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
-                    <button
-                        onClick={() => router.back()}
-                        className="p-2 -ml-2 text-[#9B9A97] hover:text-white rounded-lg hover:bg-[#1A1A1A] transition-colors"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                </div>
-            </header>
+        <div className="min-h-screen grass-dots flex flex-col">
+            <VillageHeader
+                title="PEERZEE"
+                subtitle="HERO REGISTRY • ADVENTURER PROFILE"
+                showBack
+                onBack={() => router.back()}
+            />
 
-            <main className="max-w-2xl mx-auto px-4 pb-8 space-y-4">
-                {/* Profile Strength Card */}
-                <div className="bg-[#1A1A1A] rounded-xl p-4 flex items-center gap-6">
-                    {/* Circular Progress */}
-                    <div className="relative w-20 h-20 shrink-0">
-                        <svg className="w-20 h-20 -rotate-90">
-                            <circle
-                                cx="40" cy="40" r="35"
-                                fill="none"
-                                stroke="#2A2A2A"
-                                strokeWidth="6"
-                            />
-                            <circle
-                                cx="40" cy="40" r="35"
-                                fill="none"
-                                stroke="#3B82F6"
-                                strokeWidth="6"
-                                strokeLinecap="round"
-                                strokeDasharray={`${strength * 2.2} 220`}
-                            />
-                        </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-white font-semibold">
-                            {strength}%
-                        </span>
-                    </div>
-
-                    {/* Checklist */}
-                    <div className="flex-1">
-                        <h3 className="text-white font-medium mb-2">Profile Strength</h3>
-                        <div className="space-y-1.5 text-sm">
-                            <div className="flex items-center gap-2 text-[#9B9A97]">
-                                <span className={photos.length > 0 ? 'text-blue-400' : 'text-[#9B9A97]'}>
-                                    {photos.length > 0 ? <Check className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border border-current" />}
-                                </span>
-                                Profile photo
-                            </div>
-                            <div className="flex items-center gap-2 text-[#9B9A97]">
-                                <span className={profile.bio ? 'text-blue-400' : 'text-[#9B9A97]'}>
-                                    {profile.bio ? <Check className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border border-current" />}
-                                </span>
-                                Bio & interests
-                            </div>
-                            <div className="flex items-center gap-2 text-[#9B9A97]">
-                                <span className="text-red-400">
-                                    <X className="w-4 h-4" />
-                                </span>
-                                ID verification
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* AI Tip */}
-                    <div className="hidden sm:block bg-[#1E3A5F] rounded-lg p-3 max-w-[180px]">
-                        <p className="text-blue-400 text-xs font-medium mb-1">🤖 AI TIP</p>
-                        <p className="text-[#9B9A97] text-xs">Complete ID verification to unlock premium matches</p>
-                    </div>
-                </div>
-
-                {/* Profile Card */}
-                <div className="bg-[#1A1A1A] rounded-xl overflow-hidden">
-                    {/* Cover Photo */}
-                    <div className="h-32 bg-gradient-to-r from-blue-600 to-blue-400 relative">
-                        {coverPhoto && (
-                            <img src={coverPhoto} alt="" className="w-full h-full object-cover opacity-50" />
-                        )}
-                        <button className="absolute bottom-3 right-3 p-2 bg-[#1A1A1A]/80 rounded-lg text-white hover:bg-[#1A1A1A] transition-colors">
-                            <Camera className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    {/* Avatar & Info */}
-                    <div className="px-4 pb-4">
-                        {/* Avatar */}
-                        <div className="-mt-10 mb-3">
-                            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white text-2xl font-bold border-4 border-[#1A1A1A]">
-                                {photos.length > 0 ? (
-                                    <img src={photos[0].url} alt="" className="w-full h-full object-cover rounded-lg" />
+            <main className="flex-1 p-4 md:p-8">
+                <div className="max-w-4xl mx-auto space-y-6">
+                    {/* Hero Card */}
+                    <WoodenFrame>
+                        <div className="p-6">
+                            {/* Cover Photo */}
+                            <div className="aspect-[16/10] border-4 border-wood-dark overflow-hidden bg-cork relative mb-6">
+                                {coverPhoto ? (
+                                    <img
+                                        src={coverPhoto}
+                                        alt={profile.display_name}
+                                        className="w-full h-full object-cover"
+                                    />
                                 ) : (
-                                    profile.display_name?.charAt(0)?.toUpperCase() || '?'
+                                    <div className="w-full h-full flex items-center justify-center text-6xl">
+                                        👤
+                                    </div>
+                                )}
+                                
+                                {/* Photo Navigation Dots */}
+                                {photos.length > 1 && (
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                                        {photos.map((_, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => setActivePhotoIndex(i)}
+                                                className={`w-3 h-3 border-2 border-wood-dark transition-all ${
+                                                    i === activePhotoIndex 
+                                                        ? 'bg-primary-orange w-8' 
+                                                        : 'bg-parchment/80 hover:bg-parchment'
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
                                 )}
                             </div>
-                        </div>
 
-                        {/* Name */}
-                        <div className="flex items-start justify-between mb-4">
-                            <div>
-                                <h2 className="text-xl font-bold text-white">
-                                    {profile.display_name || 'Unknown'}
-                                    {profile.age && <span className="text-[#9B9A97] font-normal ml-2">{profile.age}</span>}
-                                </h2>
-                                <p className="text-[#9B9A97] text-sm">@{profile.display_name?.toLowerCase().replace(/\s/g, '') || 'user'}</p>
-                            </div>
-                            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#252525] hover:bg-[#303030] text-white text-sm rounded-lg transition-colors">
-                                <Heart className="w-4 h-4" />
-                                Like
-                            </button>
-                        </div>
-
-                        {/* Stats */}
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className="bg-[#252525] rounded-lg p-3 text-center">
-                                <p className="text-xl font-bold text-white">94</p>
-                                <p className="text-xs text-[#9B9A97]">Matches</p>
-                            </div>
-                            <div className="bg-[#252525] rounded-lg p-3 text-center">
-                                <p className="text-xl font-bold text-white">127</p>
-                                <p className="text-xs text-[#9B9A97]">Likes</p>
-                            </div>
-                            <div className="bg-[#252525] rounded-lg p-3 text-center">
-                                <p className="text-xl font-bold text-white">32</p>
-                                <p className="text-xs text-[#9B9A97]">Views</p>
-                            </div>
-                        </div>
-
-                        {/* Verified badge */}
-                        <div className="mt-3 flex items-center gap-2">
-                            <span className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                                <Check className="w-3 h-3 text-white" />
-                            </span>
-                            <span className="text-[#9B9A97] text-xs">Verified profile</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* About Card */}
-                <div className="bg-[#1A1A1A] rounded-xl p-4">
-                    <h3 className="text-white font-medium mb-3">About</h3>
-                    <p className="text-[#9B9A97] text-sm leading-relaxed">
-                        {profile.bio || 'No bio yet'}
-                    </p>
-
-                    {/* Location, Occupation */}
-                    {(profile.location || profile.occupation) && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            {profile.location && (
-                                <span className="px-3 py-1.5 bg-[#252525] text-[#9B9A97] text-sm rounded-lg">
-                                    📍 {profile.location}
-                                </span>
-                            )}
-                            {profile.occupation && (
-                                <span className="px-3 py-1.5 bg-[#252525] text-[#9B9A97] text-sm rounded-lg">
-                                    💼 {profile.occupation}
-                                </span>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Tags */}
-                    {profile.tags && profile.tags.length > 0 && (
-                        <div className="mt-4">
-                            <p className="text-[#9B9A97] text-xs mb-2">Interests</p>
-                            <div className="flex flex-wrap gap-2">
-                                {profile.tags.map((tag, i) => (
-                                    <span key={i} className="px-3 py-1.5 bg-[#252525] text-white text-sm rounded-lg">
-                                        {tag}
+                            {/* Info Section */}
+                            <div className="space-y-4">
+                                {/* Name & Age */}
+                                <div className="flex items-center gap-3">
+                                    <h1 className="font-pixel text-3xl text-wood-dark">
+                                        {profile.display_name || 'Unknown'}
+                                    </h1>
+                                    {profile.age && (
+                                        <span className="bg-landscape-green border-2 border-wood-dark px-3 py-1 font-pixel text-parchment">
+                                            LVL {profile.age}
+                                        </span>
+                                    )}
+                                    <span className="w-6 h-6 bg-landscape-green border-2 border-wood-dark flex items-center justify-center">
+                                        <Check className="w-4 h-4 text-parchment" />
                                     </span>
+                                </div>
+
+                                {/* Location & Occupation */}
+                                <div className="flex flex-wrap gap-4">
+                                    {profile.location && (
+                                        <span className="flex items-center gap-2 text-wood-dark">
+                                            <MapPin className="w-4 h-4 text-primary-orange" />
+                                            <span className="font-pixel text-sm">{profile.location}</span>
+                                        </span>
+                                    )}
+                                    {profile.occupation && (
+                                        <span className="flex items-center gap-2 text-wood-dark/70">
+                                            <Briefcase className="w-4 h-4" />
+                                            <span className="text-sm">{profile.occupation}</span>
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Bio */}
+                                {profile.bio && (
+                                    <div className="bg-cork/30 border-2 border-wood-dark p-4">
+                                        <p className="text-wood-dark leading-relaxed">{profile.bio}</p>
+                                    </div>
+                                )}
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-4 pt-4">
+                                    <PixelButton
+                                        variant="primary"
+                                        className="flex-1"
+                                    >
+                                        <Heart className="w-5 h-5" />
+                                        LIKE
+                                    </PixelButton>
+                                    <PixelButton
+                                        variant="secondary"
+                                        className="flex-1"
+                                        onClick={handleStartDM}
+                                        disabled={startingDM}
+                                    >
+                                        {startingDM ? (
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                        ) : (
+                                            <MessageCircle className="w-5 h-5" />
+                                        )}
+                                        MESSAGE
+                                    </PixelButton>
+                                    <button
+                                        onClick={() => router.back()}
+                                        className="w-14 h-14 bg-cork border-3 border-wood-dark flex items-center justify-center hover:bg-cork/70 transition-colors"
+                                    >
+                                        <X className="w-6 h-6 text-wood-dark" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </WoodenFrame>
+
+                    {/* Widgets Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Music Widget */}
+                        {profile.spotify && (
+                            <WoodenFrame>
+                                <div className="p-6">
+                                    <h3 className="font-pixel text-lg text-wood-dark mb-4">THEME SONG</h3>
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative">
+                                            <motion.div
+                                                animate={{ rotate: isPlaying ? 360 : 0 }}
+                                                transition={{
+                                                    duration: 3,
+                                                    repeat: isPlaying ? Infinity : 0,
+                                                    ease: "linear"
+                                                }}
+                                                className="w-16 h-16 bg-wood-dark border-4 border-primary-orange overflow-hidden flex items-center justify-center"
+                                            >
+                                                {profile.spotify.cover ? (
+                                                    <img src={profile.spotify.cover} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Music className="w-6 h-6 text-primary-orange" />
+                                                )}
+                                            </motion.div>
+                                            <button
+                                                onClick={() => setIsPlaying(!isPlaying)}
+                                                className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-orange border-2 border-wood-dark flex items-center justify-center text-parchment"
+                                            >
+                                                {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+                                            </button>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-pixel text-wood-dark truncate">
+                                                {profile.spotify.song}
+                                            </p>
+                                            <p className="text-wood-dark/70 text-sm truncate">
+                                                {profile.spotify.artist}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </WoodenFrame>
+                        )}
+
+                        {/* Interest Tags */}
+                        {profile.tags && profile.tags.length > 0 && (
+                            <WoodenFrame className={!profile.spotify ? 'md:col-span-2' : ''}>
+                                <div className="p-6">
+                                    <h3 className="font-pixel text-lg text-wood-dark mb-4">INTERESTS</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {profile.tags.map((tag, i) => (
+                                            <motion.span
+                                                key={i}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: 0.1 + i * 0.05 }}
+                                                className="bg-primary-orange text-parchment px-3 py-2 font-pixel text-sm border-2 border-wood-dark"
+                                            >
+                                                {tag}
+                                            </motion.span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </WoodenFrame>
+                        )}
+                    </div>
+
+                    {/* Prompts Card */}
+                    {profile.prompts && profile.prompts.length > 0 && (
+                        <WoodenFrame variant="cork">
+                            <div className="p-6 space-y-4">
+                                <h3 className="font-pixel text-xl text-wood-dark">ABOUT ME</h3>
+                                {profile.prompts.map((prompt, i) => (
+                                    <div key={i} className="bg-parchment border-2 border-wood-dark p-4">
+                                        <p className="font-pixel text-sm text-primary-orange mb-2">{prompt.question}</p>
+                                        <p className="text-wood-dark">{prompt.answer}</p>
+                                    </div>
                                 ))}
                             </div>
-                        </div>
+                        </WoodenFrame>
                     )}
-                </div>
 
-                {/* Photos Card */}
-                {photos.length > 1 && (
-                    <div className="bg-[#1A1A1A] rounded-xl p-4">
-                        <h3 className="text-white font-medium mb-3">Photos</h3>
-                        <div className="grid grid-cols-3 gap-2">
-                            {photos.map((photo, i) => (
-                                <div key={i} className="aspect-square rounded-lg overflow-hidden bg-[#252525]">
-                                    <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                    {/* Photo Grid */}
+                    {photos.length > 1 && (
+                        <WoodenFrame>
+                            <div className="p-6">
+                                <h3 className="font-pixel text-xl text-wood-dark mb-4">PHOTO GALLERY</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {photos.map((photo, i) => (
+                                        <motion.div
+                                            key={photo.id}
+                                            whileHover={{ scale: 1.02 }}
+                                            onClick={() => setActivePhotoIndex(i)}
+                                            className={`aspect-square border-3 overflow-hidden cursor-pointer ${
+                                                i === activePhotoIndex 
+                                                    ? 'border-primary-orange' 
+                                                    : 'border-wood-dark hover:border-primary-orange/50'
+                                            }`}
+                                        >
+                                            <img
+                                                src={photo.url}
+                                                alt=""
+                                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                                            />
+                                        </motion.div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Prompts Card */}
-                {profile.prompts && profile.prompts.length > 0 && (
-                    <div className="bg-[#1A1A1A] rounded-xl p-4 space-y-3">
-                        <h3 className="text-white font-medium">Prompts</h3>
-                        {profile.prompts.map((prompt, i) => (
-                            <div key={i} className="p-3 bg-[#252525] rounded-lg">
-                                <p className="text-xs text-blue-400 mb-1">{prompt.question}</p>
-                                <p className="text-white text-sm">{prompt.answer}</p>
                             </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
-                    <button
-                        onClick={() => router.back()}
-                        className="flex-1 py-3 bg-[#252525] text-[#9B9A97] rounded-xl hover:bg-[#303030] transition-colors flex items-center justify-center gap-2"
-                    >
-                        <X className="w-5 h-5" />
-                        Pass
-                    </button>
-                    <button
-                        className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                    >
-                        <Heart className="w-5 h-5" />
-                        Like
-                    </button>
-                    <button
-                        onClick={handleStartDM}
-                        disabled={startingDM}
-                        className="flex-1 py-3 bg-[#252525] text-white rounded-xl hover:bg-[#303030] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                        {startingDM ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                            <MessageCircle className="w-5 h-5" />
-                        )}
-                        Nhắn tin
-                    </button>
+                        </WoodenFrame>
+                    )}
                 </div>
             </main>
         </div>

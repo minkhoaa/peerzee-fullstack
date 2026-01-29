@@ -2,9 +2,24 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
-import { X, Star, Heart } from 'lucide-react';
+import { X, Star, Heart, Loader2 } from 'lucide-react';
 import ProfileCard from './ProfileCard';
 import type { DiscoverUser } from '@/hooks/useDiscover';
+
+// ============================================
+// HIGH CONTRAST COLOR TOKENS (WCAG AA)
+// ============================================
+const COLORS = {
+  text: '#2C1A1D',           // Very Dark Cocoa
+  textMuted: '#5D4037',      // Medium Brown
+  background: '#FFFFFF',      // Pure White
+  border: '#4A3228',          // Dark Coffee
+  pink: '#F4B0C8',            // Retro Pink
+  green: '#98D689',           // Pixel Green
+  blue: '#7EC8E3',            // Soft Blue
+  yellow: '#FFE082',          // Soft Yellow
+  red: '#E57373',             // Soft Red
+} as const;
 
 interface ProfileCardStackProps {
     users: DiscoverUser[];
@@ -16,8 +31,8 @@ interface ProfileCardStackProps {
 const SWIPE_THRESHOLD = 100;
 
 /**
- * ProfileCardStack - Swipeable card stack with Framer Motion
- * Strict Notion Dark theme styling
+ * ProfileCardStack - High Contrast Retro OS Style
+ * Swipeable card stack with pixel borders and hard shadows
  */
 export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading }: ProfileCardStackProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -85,31 +100,56 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading }:
     if (isLoading && users.length === 0) {
         return (
             <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center">
-                <Heart className="w-16 h-16 text-[#CD6E67] animate-pulse mb-4" />
-                <p className="text-sm text-[#7A6862] font-nunito font-semibold animate-pulse">Looking for your soulmate...</p>
+                <div 
+                    className="w-20 h-20 border-[4px] flex items-center justify-center mb-4"
+                    style={{ borderColor: COLORS.border, backgroundColor: COLORS.pink }}
+                >
+                    <Loader2 className="w-10 h-10 animate-spin" style={{ color: COLORS.border }} />
+                </div>
+                <p 
+                    className="font-pixel text-sm uppercase"
+                    style={{ color: COLORS.text }}
+                >
+                    SEARCHING FOR ADVENTURERS...
+                </p>
             </div>
         );
     }
 
-    // Empty state - Cozy Clay style
+    // Empty state - Retro OS style
     if (!currentUser) {
         return (
             <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center px-8">
-                <div className="w-20 h-20 mb-6 rounded-full bg-[#FDF0F1] shadow-lg shadow-[#CD6E67]/10 flex items-center justify-center">
-                    <Heart className="w-10 h-10 text-[#CD6E67]" />
+                <div 
+                    className="w-24 h-24 mb-6 border-[4px] flex items-center justify-center text-4xl"
+                    style={{ borderColor: COLORS.border, backgroundColor: COLORS.yellow }}
+                >
+                    🏰
                 </div>
-                <h2 className="text-xl font-black text-[#3E3229] text-center mb-2">
-                    No more profiles
+                <h2 
+                    className="font-pixel text-xl uppercase text-center mb-2"
+                    style={{ color: COLORS.text }}
+                >
+                    QUEST COMPLETE!
                 </h2>
-                <p className="text-sm text-[#7A6862] font-semibold text-center max-w-xs mb-6">
-                    You've seen everyone nearby. Check back later for new people.
+                <p 
+                    className="text-sm font-body text-center max-w-xs mb-6"
+                    style={{ color: COLORS.textMuted }}
+                >
+                    You've met everyone nearby. Check back later for new adventurers!
                 </p>
                 {onEmpty && (
                     <button
                         onClick={onEmpty}
-                        className="px-6 py-3 text-sm font-bold bg-[#CD6E67] text-white rounded-full shadow-md hover:bg-[#B55B55] transition-all hover:scale-105"
+                        className="px-6 py-3 font-pixel text-sm uppercase border-[3px] transition-all hover:translate-y-[-2px]"
+                        style={{ 
+                            backgroundColor: COLORS.pink, 
+                            borderColor: COLORS.border,
+                            color: COLORS.border,
+                            boxShadow: `4px 4px 0px ${COLORS.border}`
+                        }}
                     >
-                        Refresh
+                        🔄 REFRESH
                     </button>
                 )}
             </div>
@@ -119,7 +159,7 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading }:
     return (
         <div className="relative h-[calc(100vh-200px)] w-full max-w-sm mx-auto">
             {/* Card Stack */}
-            <div className="absolute inset-x-0 top-0 bottom-24">
+            <div className="absolute inset-x-0 top-0 bottom-28">
                 {/* Next card (behind) */}
                 {nextUser && (
                     <div className="absolute inset-0 scale-[0.95] opacity-50">
@@ -148,18 +188,38 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading }:
                     >
                         {/* Like indicator */}
                         <motion.div
-                            className="absolute top-8 left-8 z-20 px-6 py-3 border-4 border-[#CD6E67] rounded-[20px] rotate-[-15deg] bg-white shadow-xl"
-                            style={{ opacity: likeOpacity }}
+                            className="absolute top-8 left-8 z-20 px-6 py-3 border-[4px] rotate-[-15deg]"
+                            style={{ 
+                                opacity: likeOpacity,
+                                backgroundColor: COLORS.green,
+                                borderColor: COLORS.border,
+                                boxShadow: `4px 4px 0px ${COLORS.border}`
+                            }}
                         >
-                            <span className="text-xl font-black text-[#CD6E67]">LIKE</span>
+                            <span 
+                                className="font-pixel text-xl uppercase"
+                                style={{ color: COLORS.border }}
+                            >
+                                LIKE!
+                            </span>
                         </motion.div>
 
                         {/* Pass indicator */}
                         <motion.div
-                            className="absolute top-8 right-8 z-20 px-6 py-3 border-4 border-[#7A6862] rounded-[20px] rotate-[15deg] bg-white shadow-xl"
-                            style={{ opacity: passOpacity }}
+                            className="absolute top-8 right-8 z-20 px-6 py-3 border-[4px] rotate-[15deg]"
+                            style={{ 
+                                opacity: passOpacity,
+                                backgroundColor: COLORS.red,
+                                borderColor: COLORS.border,
+                                boxShadow: `4px 4px 0px ${COLORS.border}`
+                            }}
                         >
-                            <span className="text-xl font-black text-[#7A6862]">NOPE</span>
+                            <span 
+                                className="font-pixel text-xl uppercase"
+                                style={{ color: COLORS.background }}
+                            >
+                                NOPE
+                            </span>
                         </motion.div>
 
                         <ProfileCard user={currentUser} onContentClick={handleContentClick} />
@@ -167,40 +227,62 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading }:
                 </AnimatePresence>
             </div>
 
-            {/* Action Buttons - Clay style with extreme roundness */}
-            <div className="absolute bottom-4 inset-x-0 flex justify-center items-center gap-6">
+            {/* Action Buttons - Retro OS style */}
+            <div className="absolute bottom-4 inset-x-0 flex justify-center items-center gap-4">
                 {/* Pass Button */}
                 <button
                     onClick={() => handleButtonSwipe('PASS')}
-                    className="w-14 h-14 rounded-full bg-white text-[#7A6862] shadow-lg flex items-center justify-center hover:bg-gray-50 transition-transform hover:scale-110"
+                    className="w-16 h-16 border-[3px] flex items-center justify-center transition-all hover:translate-y-[-3px] active:translate-y-0"
+                    style={{ 
+                        backgroundColor: COLORS.background, 
+                        borderColor: COLORS.border,
+                        boxShadow: `4px 4px 0px ${COLORS.border}`
+                    }}
                     aria-label="Pass"
                 >
-                    <X className="w-6 h-6" />
+                    <X className="w-7 h-7" style={{ color: COLORS.red }} />
                 </button>
 
                 {/* Super Like */}
                 <button
                     onClick={() => handleButtonSwipe('SUPER_LIKE')}
-                    className="w-12 h-12 rounded-full bg-white text-blue-500 shadow-lg flex items-center justify-center hover:bg-blue-50 transition-transform hover:scale-110"
+                    className="w-14 h-14 border-[3px] flex items-center justify-center transition-all hover:translate-y-[-3px] active:translate-y-0"
+                    style={{ 
+                        backgroundColor: COLORS.yellow, 
+                        borderColor: COLORS.border,
+                        boxShadow: `3px 3px 0px ${COLORS.border}`
+                    }}
                     aria-label="Super Like"
                 >
-                    <Star className="w-5 h-5" />
+                    <Star className="w-6 h-6" style={{ color: COLORS.border }} />
                 </button>
 
-                {/* Like Button - Terra Cotta */}
+                {/* Like Button */}
                 <button
                     onClick={() => handleButtonSwipe('LIKE')}
-                    className="w-14 h-14 rounded-full bg-[#CD6E67] text-white shadow-lg shadow-[#CD6E67]/30 flex items-center justify-center hover:bg-[#B55B55] transition-transform hover:scale-110"
+                    className="w-16 h-16 border-[3px] flex items-center justify-center transition-all hover:translate-y-[-3px] active:translate-y-0"
+                    style={{ 
+                        backgroundColor: COLORS.pink, 
+                        borderColor: COLORS.border,
+                        boxShadow: `4px 4px 0px ${COLORS.border}`
+                    }}
                     aria-label="Like"
                 >
-                    <Heart className="w-6 h-6 fill-white" />
+                    <Heart className="w-7 h-7 fill-current" style={{ color: COLORS.border }} />
                 </button>
             </div>
 
             {/* Selected content indicator */}
             {selectedContent && (
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-[#FDF0F1] rounded-full text-xs text-[#3E3229] font-bold shadow-sm">
-                    Liking: {selectedContent.type}
+                <div 
+                    className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 border-[2px] font-pixel text-xs uppercase"
+                    style={{ 
+                        backgroundColor: COLORS.green, 
+                        borderColor: COLORS.border,
+                        color: COLORS.border
+                    }}
+                >
+                    ✨ LIKING: {selectedContent.type}
                 </div>
             )}
         </div>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, MessageCircle, Heart, Sparkles, ArrowRight, RefreshCw } from 'lucide-react';
 import { type MatchNotification } from '@/hooks/useMatchSocket';
 import api from '@/lib/api';
@@ -77,107 +78,169 @@ export default function MatchSuccessModal({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                onClick={onClose}
-            />
-
-            {/* Modal */}
-            <div className="relative bg-[#202020] border border-[#2F2F2F] rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
-                {/* Close button */}
-                <button
+        <AnimatePresence>
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+                {/* Backdrop */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-[#3E3229]/60 backdrop-blur-sm"
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-1 text-[#9B9A97] hover:text-[#E3E3E3] hover:bg-[#2F2F2F] rounded transition-colors"
+                />
+
+                {/* Modal - ToyWorld styled */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    transition={{ type: 'spring', duration: 0.5 }}
+                    className="relative bg-white border-2 border-[#ECC8CD]/40 rounded-[40px] p-6 max-w-md w-full mx-4 shadow-2xl shadow-[#CD6E67]/20"
                 >
-                    <X className="w-5 h-5" />
-                </button>
+                    {/* Confetti decoration */}
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-4xl">🎉</div>
 
-                {/* Content */}
-                <div className="text-center">
-                    {/* Avatars */}
-                    <div className="flex items-center justify-center gap-4 mb-4">
-                        {/* Current User Avatar */}
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
-                            {getInitials(currentUserName)}
-                        </div>
+                    {/* Close button */}
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={onClose}
+                        className="absolute top-4 right-4 p-2 text-[#7A6862] hover:text-[#CD6E67] hover:bg-[#FDF0F1] rounded-full transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </motion.button>
 
-                        {/* Heart Icon */}
-                        <div className="w-9 h-9 rounded-full bg-[#2F2F2F] flex items-center justify-center">
-                            <Heart className="w-4 h-4 text-red-400 fill-current" />
-                        </div>
-
-                        {/* Partner Avatar */}
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-white font-bold text-lg">
-                            {getInitials(match.partnerProfile.display_name)}
-                        </div>
-                    </div>
-
-                    <h2 className="text-[#E3E3E3] text-xl font-medium mb-1">
-                        It&apos;s a Match!
-                    </h2>
-
-                    {/* Description */}
-                    <p className="text-[#9B9A97] text-sm mb-5">
-                        You and <span className="text-[#E3E3E3]">{match.partnerProfile.display_name}</span> liked each other.
-                    </p>
-
-                    {/* Ice Breakers Section */}
-                    <div className="text-left mb-5">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2 text-[#9B9A97]">
-                                <Sparkles className="w-4 h-4 text-amber-400" />
-                                <span className="text-xs font-medium uppercase tracking-wider">Conversation starters</span>
-                            </div>
-                            <button
-                                onClick={handleRefreshIceBreakers}
-                                disabled={isLoading}
-                                className="p-1 text-[#9B9A97] hover:text-[#E3E3E3] hover:bg-[#2F2F2F] rounded transition-colors disabled:opacity-50"
-                                title="Get new suggestions"
+                    {/* Content */}
+                    <div className="text-center pt-4">
+                        {/* Avatars */}
+                        <div className="flex items-center justify-center gap-4 mb-4">
+                            {/* Current User Avatar */}
+                            <motion.div 
+                                initial={{ x: -50, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#CD6E67] to-[#E88B85] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-[#CD6E67]/30 border-4 border-white"
                             >
-                                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                            </button>
+                                {getInitials(currentUserName)}
+                            </motion.div>
+
+                            {/* Heart Icon */}
+                            <motion.div 
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.4, type: 'spring' }}
+                                className="w-10 h-10 rounded-full bg-[#FDF0F1] flex items-center justify-center border-2 border-[#ECC8CD]/40"
+                            >
+                                <Heart className="w-5 h-5 text-[#CD6E67] fill-current" />
+                            </motion.div>
+
+                            {/* Partner Avatar */}
+                            <motion.div 
+                                initial={{ x: 50, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                                className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-amber-400/30 border-4 border-white"
+                            >
+                                {getInitials(match.partnerProfile.display_name)}
+                            </motion.div>
                         </div>
 
-                        <div className="space-y-2">
-                            {isLoading ? (
-                                <div className="py-4 text-center text-[#9B9A97] text-sm">Loading...</div>
-                            ) : (
-                                iceBreakers.map((ib) => (
-                                    <button
-                                        key={ib.id}
-                                        onClick={() => handleUseIceBreaker(ib.prompt)}
-                                        className="w-full group flex items-center justify-between gap-3 p-3 bg-[#2A2A2A] hover:bg-[#333] border border-[#3A3A3A] hover:border-[#4A4A4A] rounded-lg transition-all text-left"
-                                    >
-                                        <p className="text-[#E3E3E3] text-sm leading-snug flex-1">
-                                            &quot;{ib.prompt}&quot;
-                                        </p>
-                                        <ArrowRight className="w-4 h-4 text-[#9B9A97] group-hover:text-[#E3E3E3] shrink-0 transition-colors" />
-                                    </button>
-                                ))
-                            )}
-                        </div>
-                    </div>
+                        <motion.h2 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="text-[#3E3229] text-2xl font-nunito font-bold mb-1"
+                        >
+                            It&apos;s a Match! 💕
+                        </motion.h2>
 
-                    {/* Actions */}
-                    <div className="flex gap-3">
-                        <button
-                            onClick={onClose}
-                            className="flex-1 px-4 py-2.5 text-[#9B9A97] hover:text-[#E3E3E3] hover:bg-[#2F2F2F] rounded-lg transition-colors text-sm font-medium"
+                        {/* Description */}
+                        <motion.p 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6 }}
+                            className="text-[#7A6862] text-sm mb-5"
                         >
-                            Keep Swiping
-                        </button>
-                        <button
-                            onClick={handleSayHello}
-                            className="flex-1 px-4 py-2.5 bg-[#E3E3E3] hover:bg-white text-[#191919] rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                            You and <span className="text-[#CD6E67] font-bold">{match.partnerProfile.display_name}</span> liked each other.
+                        </motion.p>
+
+                        {/* Ice Breakers Section - ToyWorld styled */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.7 }}
+                            className="text-left mb-5"
                         >
-                            <MessageCircle className="w-4 h-4" />
-                            Write my own
-                        </button>
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2 text-[#7A6862]">
+                                    <Sparkles className="w-4 h-4 text-amber-400" />
+                                    <span className="text-xs font-bold uppercase tracking-wider">Conversation starters</span>
+                                </div>
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={handleRefreshIceBreakers}
+                                    disabled={isLoading}
+                                    className="p-2 text-[#7A6862] hover:text-[#CD6E67] hover:bg-[#FDF0F1] rounded-full transition-colors disabled:opacity-50"
+                                    title="Get new suggestions"
+                                >
+                                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                </motion.button>
+                            </div>
+
+                            <div className="space-y-2">
+                                {isLoading ? (
+                                    <div className="py-4 text-center text-[#7A6862] text-sm">Loading... ✨</div>
+                                ) : (
+                                    iceBreakers.map((ib, index) => (
+                                        <motion.button
+                                            key={ib.id}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.8 + index * 0.1 }}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => handleUseIceBreaker(ib.prompt)}
+                                            className="w-full group flex items-center justify-between gap-3 p-3 bg-[#FDF0F1] hover:bg-[#ECC8CD]/30 border-2 border-[#ECC8CD]/40 hover:border-[#CD6E67]/50 rounded-[20px] transition-all text-left"
+                                        >
+                                            <p className="text-[#3E3229] text-sm leading-snug flex-1 font-medium">
+                                                &quot;{ib.prompt}&quot;
+                                            </p>
+                                            <ArrowRight className="w-4 h-4 text-[#7A6862] group-hover:text-[#CD6E67] shrink-0 transition-colors" />
+                                        </motion.button>
+                                    ))
+                                )}
+                            </div>
+                        </motion.div>
+
+                        {/* Actions - ToyWorld styled */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1 }}
+                            className="flex gap-3"
+                        >
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={onClose}
+                                className="flex-1 px-4 py-3 text-[#7A6862] hover:text-[#CD6E67] bg-[#FDF0F1] hover:bg-[#ECC8CD]/30 rounded-full transition-colors text-sm font-bold border-2 border-[#ECC8CD]/40"
+                            >
+                                Keep Swiping
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleSayHello}
+                                className="flex-1 px-4 py-3 bg-gradient-to-r from-[#CD6E67] to-[#E88B85] hover:from-[#B85C55] hover:to-[#CD6E67] text-white rounded-full transition-colors text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#CD6E67]/30 border-b-4 border-[#B85C55]/50"
+                            >
+                                <MessageCircle className="w-4 h-4" />
+                                Write my own
+                            </motion.button>
+                        </motion.div>
                     </div>
-                </div>
+                </motion.div>
             </div>
-        </div>
+        </AnimatePresence>
     );
 }

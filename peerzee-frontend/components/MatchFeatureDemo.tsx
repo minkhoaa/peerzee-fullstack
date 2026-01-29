@@ -347,7 +347,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.7}
             onDragEnd={isTop ? handleDragEnd : undefined}
-            className={`absolute inset-x-4 top-0 bg-[#202020] border border-[#2F2F2F] rounded-3xl overflow-hidden shadow-2xl ${isTop ? 'z-10 cursor-grab active:cursor-grabbing' : 'z-0'
+            className={`absolute inset-x-4 top-0 bg-white border-2 border-[#ECC8CD]/40 rounded-[40px] overflow-hidden shadow-xl shadow-[#CD6E67]/15 ${isTop ? 'z-10 cursor-grab active:cursor-grabbing' : 'z-0'
                 }`}
         >
             {/* Like/Nope Indicators */}
@@ -371,7 +371,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
             {/* Scrollable Container */}
             <div ref={scrollContainerRef} className="h-[72vh] overflow-y-auto scrollbar-hide">
                 {/* Photo Slider */}
-                <div className="relative aspect-[3/4] w-full bg-[#191919]">
+                <div className="relative aspect-[3/4] w-full bg-[#FDF0F1]">
                     <img
                         src={profile.photos[photoIndex].url}
                         alt={profile.name}
@@ -573,7 +573,7 @@ function ActionButtons({ onPass, onLike, onSuperLike, disabled }: ActionButtonsP
                 whileTap={{ scale: 0.95 }}
                 onClick={onPass}
                 disabled={disabled}
-                className="w-16 h-16 rounded-full border-2 border-[#E3E3E3] bg-[#191919]/80 backdrop-blur-sm flex items-center justify-center text-[#E3E3E3] hover:border-red-400 hover:text-red-400 transition-colors disabled:opacity-40 shadow-lg"
+                className="w-16 h-16 rounded-full border-4 border-[#ECC8CD] bg-white flex items-center justify-center text-[#7A6862] hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 shadow-xl shadow-[#CD6E67]/15"
                 aria-label="Pass"
             >
                 <X className="w-7 h-7" strokeWidth={2.5} />
@@ -585,7 +585,7 @@ function ActionButtons({ onPass, onLike, onSuperLike, disabled }: ActionButtonsP
                     whileTap={{ scale: 0.95 }}
                     onClick={onSuperLike}
                     disabled={disabled}
-                    className="w-12 h-12 rounded-full bg-[#2F2F2F] border border-[#3A3A3A] flex items-center justify-center text-[#9B9A97] hover:text-blue-400 hover:border-blue-400 transition-colors disabled:opacity-40 shadow-lg"
+                    className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 border-4 border-yellow-300 flex items-center justify-center text-white hover:from-yellow-500 hover:to-orange-500 transition-colors disabled:opacity-40 shadow-xl shadow-yellow-400/30"
                     aria-label="Super Like"
                 >
                     <Star className="w-5 h-5" />
@@ -597,7 +597,7 @@ function ActionButtons({ onPass, onLike, onSuperLike, disabled }: ActionButtonsP
                 whileTap={{ scale: 0.95 }}
                 onClick={onLike}
                 disabled={disabled}
-                className="w-16 h-16 rounded-full bg-[#E3E3E3] flex items-center justify-center text-[#191919] hover:bg-white transition-colors disabled:opacity-40 shadow-lg"
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#CD6E67] to-[#E88B85] flex items-center justify-center text-white hover:from-[#B85C55] hover:to-[#CD6E67] transition-colors disabled:opacity-40 shadow-xl shadow-[#CD6E67]/40 border-4 border-white/50"
                 aria-label="Like"
             >
                 <Check className="w-7 h-7" strokeWidth={2.5} />
@@ -613,20 +613,22 @@ function ActionButtons({ onPass, onLike, onSuperLike, disabled }: ActionButtonsP
 function EmptyState({ onRefresh }: { onRefresh: () => void }) {
     return (
         <div className="flex flex-col items-center justify-center h-[72vh] px-6 text-center">
-            <div className="text-7xl mb-6">🔍</div>
-            <h2 className="text-2xl font-semibold text-[#E3E3E3] mb-3">No more profiles</h2>
-            <p className="text-[#9B9A97] text-sm mb-8 max-w-xs">
-                You&apos;ve seen everyone nearby! Check back later for new people.
-            </p>
-            <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onRefresh}
-                className="flex items-center gap-2 px-6 py-3 bg-[#E3E3E3] text-[#191919] font-medium rounded-xl hover:bg-white transition-colors"
-            >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
-            </motion.button>
+            <div className="bg-white rounded-[40px] p-8 shadow-xl shadow-[#CD6E67]/15 border-2 border-[#ECC8CD]/40">
+                <div className="text-7xl mb-6">🔍</div>
+                <h2 className="text-2xl font-nunito font-bold text-[#3E3229] mb-3">No more profiles</h2>
+                <p className="text-[#7A6862] text-sm mb-8 max-w-xs">
+                    You&apos;ve seen everyone nearby! Check back later for new people. ✨
+                </p>
+                <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={onRefresh}
+                    className="flex items-center gap-2 px-8 py-3 bg-[#CD6E67] text-white font-bold rounded-full hover:bg-[#B85C55] transition-colors shadow-lg shadow-[#CD6E67]/30"
+                >
+                    <RefreshCw className="w-4 h-4" />
+                    Refresh
+                </motion.button>
+            </div>
         </div>
     );
 }
@@ -700,9 +702,9 @@ export default function MatchFeatureDemo() {
     const isFinished = currentIndex >= profiles.length;
 
     return (
-        <div className="min-h-screen bg-[#191919] font-[Inter,system-ui,sans-serif]">
+        <div className="min-h-screen bg-[#ECC8CD] font-[Inter,system-ui,sans-serif]">
             {/* Header */}
-            <header className="sticky top-0 z-30 bg-[#191919]/95 backdrop-blur-lg border-b border-[#2F2F2F]">
+            <header className="sticky top-0 z-30 bg-[#FDF0F1]/95 backdrop-blur-lg border-b-4 border-[#ECC8CD]/40 shadow-lg shadow-[#CD6E67]/10">
                 <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-center">
                     <h1 className="text-lg font-semibold text-[#E3E3E3]">Discover</h1>
                 </div>

@@ -79,61 +79,63 @@ export function VibeVinyl({ music, size = 'md', showDescription = true, classNam
         }
     };
 
-    // Empty state - "Add your Anthem"
+    // Empty state - "Add your Anthem" with ToyWorld theme
     if (!music) {
         return (
             <div className={`${className}`}>
-                <button
+                <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={onAddClick}
-                    className="w-full rounded-2xl border-2 border-dashed border-[#404040] hover:border-[#606060] bg-[#1A1A1A] hover:bg-[#202020] transition-all group cursor-pointer"
+                    className="w-full rounded-[30px] border-2 border-dashed border-[#ECC8CD] hover:border-[#CD6E67]/60 bg-white hover:bg-[#FDF0F1] transition-all group cursor-pointer shadow-lg shadow-[#ECC8CD]/20"
                 >
-                    <div className={`${config.padding} flex flex-col items-center justify-center`}>
+                    <div className={`${config.padding} flex flex-col items-center justify-center py-6`}>
                         {/* Empty vinyl placeholder */}
                         <div
-                            className="rounded-full border-2 border-dashed border-[#404040] group-hover:border-[#606060] flex items-center justify-center mb-4 transition-colors"
+                            className="rounded-full border-2 border-dashed border-[#ECC8CD] group-hover:border-[#CD6E67]/60 flex items-center justify-center mb-4 transition-colors bg-[#FDF0F1]"
                             style={{ width: config.vinyl, height: config.vinyl }}
                         >
-                            <div className="w-1/3 h-1/3 rounded-full bg-[#252525] flex items-center justify-center">
-                                <Plus className="w-1/2 h-1/2 text-[#666] group-hover:text-[#999] transition-colors" />
+                            <div className="w-1/3 h-1/3 rounded-full bg-[#ECC8CD]/50 flex items-center justify-center">
+                                <Plus className="w-1/2 h-1/2 text-[#CD6E67] group-hover:text-[#B85C55] transition-colors" />
                             </div>
                         </div>
-                        <p className={`text-[#9B9A97] font-medium ${config.text}`}>🎵 Add your Anthem</p>
-                        <p className="text-[#666] text-xs mt-1">Chọn bài hát đại diện cho bạn</p>
+                        <p className={`text-[#3E3229] font-nunito font-bold ${config.text}`}>🎵 Add your Anthem</p>
+                        <p className="text-[#7A6862] text-xs mt-1">Chọn bài hát đại diện cho bạn</p>
                     </div>
-                </button>
+                </motion.button>
             </div>
         );
     }
 
     const analysis = music.analysis;
-    const vibeColor = analysis?.color || '#6C5CE7';
+    const vibeColor = analysis?.color || '#CD6E67';
 
     return (
         <div className={`relative ${className}`}>
             {/* Outer Glow - Soft drop shadow */}
             <div
-                className="absolute inset-0 rounded-2xl blur-3xl opacity-30 -z-10 scale-110"
+                className="absolute inset-0 rounded-[30px] blur-3xl opacity-20 -z-10 scale-110"
                 style={{ backgroundColor: vibeColor }}
             />
 
-            {/* Main Container */}
+            {/* Main Container - ToyWorld styled */}
             <div
-                className={`rounded-2xl ${config.padding} relative overflow-hidden`}
+                className={`rounded-[30px] ${config.padding} relative overflow-hidden bg-white border-2 shadow-lg`}
                 style={{
-                    background: `linear-gradient(145deg, ${vibeColor}22 0%, ${vibeColor}08 100%)`,
-                    border: `1px solid ${vibeColor}33`,
-                    boxShadow: `0 0 40px ${vibeColor}22, inset 0 1px 0 ${vibeColor}22`,
+                    borderColor: `${vibeColor}44`,
+                    boxShadow: `0 8px 32px ${vibeColor}22`,
                 }}
             >
                 <div className="flex items-center gap-4">
                     {/* Vinyl Record with Framer Motion */}
                     <div className="relative flex-shrink-0">
                         <motion.div
-                            className="rounded-full relative overflow-hidden cursor-pointer"
+                            className="rounded-full relative overflow-hidden cursor-pointer border-4"
                             style={{
                                 width: config.vinyl,
                                 height: config.vinyl,
-                                boxShadow: `0 8px 32px ${vibeColor}44`,
+                                borderColor: `${vibeColor}44`,
+                                boxShadow: `0 8px 24px ${vibeColor}33`,
                             }}
                             onClick={togglePlay}
                             animate={{ rotate: isPlaying ? 360 : 0 }}
@@ -142,8 +144,8 @@ export function VibeVinyl({ music, size = 'md', showDescription = true, classNam
                                 duration: 10,
                                 ease: 'linear',
                             }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                         >
                             {/* Album cover as vinyl surface */}
                             {music.cover && !imageError ? (
@@ -158,7 +160,7 @@ export function VibeVinyl({ music, size = 'md', showDescription = true, classNam
                                     className="w-full h-full flex items-center justify-center"
                                     style={{ background: `linear-gradient(135deg, ${vibeColor} 0%, ${vibeColor}88 100%)` }}
                                 >
-                                    <Music className="w-1/2 h-1/2 text-white/60" />
+                                    <Music className="w-1/2 h-1/2 text-white/80" />
                                 </div>
                             )}
 
@@ -170,27 +172,27 @@ export function VibeVinyl({ music, size = 'md', showDescription = true, classNam
                                         circle at center,
                                         transparent 0px,
                                         transparent 3px,
-                                        rgba(0,0,0,0.08) 3px,
-                                        rgba(0,0,0,0.08) 4px
+                                        rgba(0,0,0,0.06) 3px,
+                                        rgba(0,0,0,0.06) 4px
                                     )`,
                                 }}
                             />
 
-                            {/* Center hole with play/pause */}
+                            {/* Center hole with play/pause - ToyWorld styled */}
                             <div
-                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1A1A1A]/90 flex items-center justify-center backdrop-blur-sm"
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/95 flex items-center justify-center backdrop-blur-sm"
                                 style={{
                                     width: config.center,
                                     height: config.center,
-                                    border: `2px solid ${vibeColor}`,
-                                    boxShadow: `0 0 12px ${vibeColor}66`,
+                                    border: `3px solid ${vibeColor}`,
+                                    boxShadow: `0 0 12px ${vibeColor}44`,
                                 }}
                             >
                                 {music.previewUrl && (
                                     isPlaying ? (
-                                        <Pause className="w-1/2 h-1/2 text-white" />
+                                        <Pause className="w-1/2 h-1/2" style={{ color: vibeColor }} />
                                     ) : (
-                                        <Play className="w-1/2 h-1/2 text-white ml-0.5" />
+                                        <Play className="w-1/2 h-1/2 ml-0.5" style={{ color: vibeColor }} />
                                     )
                                 )}
                             </div>
@@ -200,30 +202,31 @@ export function VibeVinyl({ music, size = 'md', showDescription = true, classNam
                         {isPlaying && (
                             <motion.div
                                 className="absolute inset-0 rounded-full pointer-events-none"
-                                style={{ border: `2px solid ${vibeColor}` }}
-                                animate={{ scale: [1, 1.1, 1], opacity: [0.8, 0, 0.8] }}
+                                style={{ border: `3px solid ${vibeColor}` }}
+                                animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
                                 transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
                             />
                         )}
                     </div>
 
-                    {/* Track Info */}
+                    {/* Track Info - ToyWorld styled */}
                     <div className="flex-1 min-w-0">
-                        <p className={`text-white font-bold truncate ${config.text}`}>
+                        <p className={`text-[#3E3229] font-nunito font-bold truncate ${config.text}`}>
                             {music.song}
                         </p>
-                        <p className={`text-white/60 truncate ${size === 'sm' ? 'text-[10px]' : 'text-xs'} mt-0.5`}>
+                        <p className={`text-[#7A6862] truncate ${size === 'sm' ? 'text-[10px]' : 'text-xs'} mt-0.5`}>
                             {music.artist}
                         </p>
 
-                        {/* Mood badge */}
+                        {/* Mood badge - candy styled */}
                         {analysis && (
                             <div className="mt-2">
                                 <span
-                                    className="inline-flex px-2.5 py-1 rounded-full text-white text-xs font-semibold"
+                                    className="inline-flex px-3 py-1 rounded-full text-white text-xs font-bold border-b-2"
                                     style={{
-                                        backgroundColor: `${vibeColor}cc`,
-                                        boxShadow: `0 2px 8px ${vibeColor}44`,
+                                        backgroundColor: vibeColor,
+                                        borderBottomColor: `${vibeColor}88`,
+                                        boxShadow: `0 4px 12px ${vibeColor}44`,
                                     }}
                                 >
                                     {analysis.mood}
@@ -233,17 +236,21 @@ export function VibeVinyl({ music, size = 'md', showDescription = true, classNam
                     </div>
                 </div>
 
-                {/* Keywords & Description */}
+                {/* Keywords & Description - ToyWorld styled */}
                 {showDescription && analysis && (
-                    <div className="mt-4 pt-4 border-t border-white/10">
-                        {/* Keywords */}
+                    <div className="mt-4 pt-4 border-t-2 border-[#ECC8CD]/30">
+                        {/* Keywords as candy tags */}
                         {analysis.keywords && analysis.keywords.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mb-3">
                                 {analysis.keywords.slice(0, 5).map((kw, i) => (
                                     <span
                                         key={i}
-                                        className="px-2 py-0.5 rounded-md text-white/80 text-[11px] font-medium"
-                                        style={{ backgroundColor: `${vibeColor}33` }}
+                                        className="px-2 py-1 rounded-full text-[11px] font-semibold border-b-2"
+                                        style={{ 
+                                            backgroundColor: `${vibeColor}22`,
+                                            color: vibeColor,
+                                            borderBottomColor: `${vibeColor}33`,
+                                        }}
                                     >
                                         {kw}
                                     </span>
@@ -253,7 +260,7 @@ export function VibeVinyl({ music, size = 'md', showDescription = true, classNam
 
                         {/* Description */}
                         {analysis.description && (
-                            <p className="text-white/70 text-xs italic leading-relaxed line-clamp-2">
+                            <p className="text-[#7A6862] text-xs italic leading-relaxed line-clamp-2">
                                 &ldquo;{analysis.description}&rdquo;
                             </p>
                         )}

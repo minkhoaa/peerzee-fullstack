@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sparkles, Send, Lock, Unlock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Sparkles, Send, Lock, Unlock, MessageCircle } from 'lucide-react';
 
 interface IcebreakerModalProps {
     question: string;
@@ -16,6 +17,7 @@ interface IcebreakerModalProps {
 /**
  * IcebreakerModal - Overlay that blocks chat until both users answer
  * Shows question, allows answer submission, reveals partner's answer after unlock
+ * ToyWorld/Cozy Clay themed
  */
 export default function IcebreakerModal({
     question,
@@ -41,80 +43,99 @@ export default function IcebreakerModal({
         }
     };
 
-    // If unlocked, show success state briefly
+    // If unlocked, show success state - ToyWorld styled
     if (isUnlocked) {
         return (
-            <div className="bg-[#202020] border border-[#2F2F2F] rounded-xl p-4 mb-4">
-                <div className="flex items-center gap-2 text-green-400 mb-3">
-                    <Unlock className="w-4 h-4" />
-                    <span className="text-sm font-medium">Chat Unlocked!</span>
-                </div>
-                <div className="text-sm text-[#9B9A97] mb-2">{question}</div>
-                <div className="flex gap-4">
-                    <div className="flex-1 p-3 bg-[#191919] rounded-lg border border-[#2F2F2F]">
-                        <div className="text-xs text-[#9B9A97] mb-1">You answered:</div>
-                        <div className="text-sm text-[#E3E3E3]">{myAnswer}</div>
+            <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white border-2 border-[#ECC8CD]/40 rounded-[30px] p-5 mb-4 shadow-lg shadow-[#CD6E67]/10"
+            >
+                <div className="flex items-center gap-2 text-green-500 mb-4">
+                    <div className="p-2 bg-green-100 rounded-full">
+                        <Unlock className="w-4 h-4" />
                     </div>
-                    <div className="flex-1 p-3 bg-[#191919] rounded-lg border border-[#2F2F2F]">
-                        <div className="text-xs text-[#9B9A97] mb-1">{partnerName} answered:</div>
-                        <div className="text-sm text-[#E3E3E3]">{partnerAnswer}</div>
+                    <span className="text-sm font-bold">Chat Unlocked! 🎉</span>
+                </div>
+                <div className="text-sm text-[#7A6862] mb-3 text-center italic">&ldquo;{question}&rdquo;</div>
+                <div className="flex gap-3">
+                    <div className="flex-1 p-4 bg-[#FDF0F1] rounded-[20px] border-2 border-[#ECC8CD]/30">
+                        <div className="text-xs text-[#CD6E67] font-bold mb-2">You answered:</div>
+                        <div className="text-sm text-[#3E3229] font-medium">{myAnswer}</div>
+                    </div>
+                    <div className="flex-1 p-4 bg-[#FDF0F1] rounded-[20px] border-2 border-[#ECC8CD]/30">
+                        <div className="text-xs text-[#CD6E67] font-bold mb-2">{partnerName} answered:</div>
+                        <div className="text-sm text-[#3E3229] font-medium">{partnerAnswer}</div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         );
     }
 
     return (
-        <div className="bg-[#202020] border border-[#2F2F2F] rounded-xl p-4 mb-4">
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white border-2 border-[#ECC8CD]/40 rounded-[30px] p-5 mb-4 shadow-lg shadow-[#CD6E67]/10"
+        >
             {/* Header */}
-            <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg">
-                    <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-gradient-to-br from-[#CD6E67]/20 to-[#E88B85]/20 rounded-full">
+                    <Sparkles className="w-5 h-5 text-[#CD6E67]" />
                 </div>
                 <div>
-                    <h3 className="text-sm font-medium text-[#E3E3E3]">Icebreaker</h3>
-                    <p className="text-xs text-[#9B9A97]">Answer to unlock the chat</p>
+                    <h3 className="text-sm font-nunito font-bold text-[#3E3229]">Icebreaker 💬</h3>
+                    <p className="text-xs text-[#7A6862]">Answer to unlock the chat</p>
                 </div>
-                <Lock className="w-4 h-4 text-[#9B9A97] ml-auto" />
+                <div className="ml-auto p-2 bg-[#FDF0F1] rounded-full">
+                    <Lock className="w-4 h-4 text-[#CD6E67]" />
+                </div>
             </div>
 
-            {/* Question */}
-            <div className="text-center py-4 px-6 mb-4 bg-[#191919] rounded-xl border border-[#2F2F2F]">
-                <p className="text-lg text-[#E3E3E3] font-medium">{question}</p>
+            {/* Question - Candy styled card */}
+            <div className="text-center py-5 px-6 mb-4 bg-gradient-to-br from-[#FDF0F1] to-white rounded-[20px] border-2 border-[#ECC8CD]/40 shadow-inner">
+                <MessageCircle className="w-6 h-6 text-[#CD6E67] mx-auto mb-2" />
+                <p className="text-lg text-[#3E3229] font-nunito font-bold">{question}</p>
             </div>
 
             {/* Answer Section */}
             {hasAnswered ? (
-                <div className="space-y-3">
-                    <div className="p-3 bg-[#191919] rounded-lg border border-green-500/30">
-                        <div className="text-xs text-green-400 mb-1">Your answer:</div>
-                        <div className="text-sm text-[#E3E3E3]">{myAnswer}</div>
+                <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-[20px] border-2 border-green-200">
+                        <div className="text-xs text-green-600 font-bold mb-2">✅ Your answer:</div>
+                        <div className="text-sm text-[#3E3229] font-medium">{myAnswer}</div>
                     </div>
-                    <div className="flex items-center justify-center gap-2 py-3 text-[#9B9A97]">
-                        <div className="w-2 h-2 bg-[#9B9A97] rounded-full animate-pulse" />
-                        <span className="text-sm">Waiting for {partnerName} to answer...</span>
+                    <div className="flex items-center justify-center gap-3 py-4 text-[#7A6862]">
+                        <motion.div 
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ repeat: Infinity, duration: 1.5 }}
+                            className="w-3 h-3 bg-[#CD6E67] rounded-full" 
+                        />
+                        <span className="text-sm font-medium">Waiting for {partnerName} to answer...</span>
                     </div>
                 </div>
             ) : (
-                <form onSubmit={handleSubmit} className="space-y-3">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <input
                         type="text"
                         value={answer}
                         onChange={(e) => setAnswer(e.target.value)}
                         placeholder="Type your answer..."
-                        className="w-full px-4 py-3 bg-[#191919] border border-[#2F2F2F] rounded-xl text-[#E3E3E3] placeholder-[#9B9A97] focus:outline-none focus:border-purple-500/50 transition-colors"
+                        className="w-full px-5 py-4 bg-[#FDF0F1] border-2 border-[#ECC8CD]/40 rounded-full text-[#3E3229] placeholder-[#7A6862] focus:outline-none focus:border-[#CD6E67]/50 focus:bg-white transition-all"
                         disabled={isSubmitting}
                     />
-                    <button
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         type="submit"
                         disabled={!answer.trim() || isSubmitting}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:from-purple-600 hover:to-pink-600 transition-all"
+                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[#CD6E67] to-[#E88B85] text-white rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:from-[#B85C55] hover:to-[#CD6E67] transition-all shadow-lg shadow-[#CD6E67]/30 border-b-4 border-[#B85C55]/50"
                     >
                         <Send className="w-4 h-4" />
                         {isSubmitting ? 'Submitting...' : 'Submit Answer'}
-                    </button>
+                    </motion.button>
                 </form>
             )}
-        </div>
+        </motion.div>
     );
 }

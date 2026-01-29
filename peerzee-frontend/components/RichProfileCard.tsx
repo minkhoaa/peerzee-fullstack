@@ -1,7 +1,7 @@
 'use client';
 
 import React, { forwardRef } from 'react';
-import { MapPin, Briefcase, GraduationCap } from 'lucide-react';
+import { MapPin, Briefcase, GraduationCap, Sparkles } from 'lucide-react';
 
 // Types
 export interface UserProfile {
@@ -27,15 +27,15 @@ interface RichProfileCardProps {
     style?: React.CSSProperties;
 }
 
-// Generate gradient avatar based on name
+// Generate gradient avatar based on name - ToyWorld colors
 function getAvatarGradient(name: string): string {
     const gradients = [
-        'from-blue-500 to-purple-600',
-        'from-pink-500 to-rose-500',
-        'from-emerald-500 to-teal-500',
-        'from-orange-500 to-amber-500',
-        'from-indigo-500 to-blue-500',
-        'from-violet-500 to-purple-500',
+        'from-[#CD6E67] to-[#E88B85]',
+        'from-amber-400 to-orange-400',
+        'from-emerald-400 to-teal-400',
+        'from-blue-400 to-indigo-400',
+        'from-violet-400 to-purple-400',
+        'from-pink-400 to-rose-400',
     ];
     const index = name.charCodeAt(0) % gradients.length;
     return gradients[index];
@@ -50,7 +50,7 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
             <div
                 ref={ref as React.Ref<HTMLDivElement>}
                 style={style}
-                className="absolute inset-x-4 top-0 bg-[#202020] border border-[#333333] rounded-2xl overflow-hidden shadow-2xl"
+                className="absolute inset-x-4 top-0 bg-white border-2 border-[#ECC8CD]/40 rounded-[40px] overflow-hidden shadow-xl shadow-[#CD6E67]/15"
             >
                 {/* Scrollable Content Container */}
                 <div className="h-[75vh] overflow-y-auto scrollbar-hide">
@@ -71,26 +71,26 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                         )}
 
                         {/* Gradient overlay for name */}
-                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#202020] to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
 
-                        {/* Name & Age */}
+                        {/* Name & Age - ToyWorld styled */}
                         <div className="absolute bottom-4 left-4 right-4">
-                            <h2 className="text-3xl font-semibold text-[#E3E3E3]">
+                            <h2 className="text-3xl font-nunito font-bold text-[#3E3229]">
                                 {user.display_name}
-                                {user.age && <span className="font-normal text-[#9B9A97] ml-2">{user.age}</span>}
+                                {user.age && <span className="font-normal text-[#7A6862] ml-2">{user.age}</span>}
                             </h2>
 
                             {/* Quick Info */}
                             <div className="flex flex-wrap gap-3 mt-2">
                                 {user.occupation && (
-                                    <div className="flex items-center gap-1.5 text-sm text-[#9B9A97]">
-                                        <Briefcase className="w-3.5 h-3.5" />
+                                    <div className="flex items-center gap-1.5 text-sm text-[#7A6862]">
+                                        <Briefcase className="w-3.5 h-3.5 text-[#CD6E67]" />
                                         <span>{user.occupation}</span>
                                     </div>
                                 )}
                                 {user.education && (
-                                    <div className="flex items-center gap-1.5 text-sm text-[#9B9A97]">
-                                        <GraduationCap className="w-3.5 h-3.5" />
+                                    <div className="flex items-center gap-1.5 text-sm text-[#7A6862]">
+                                        <GraduationCap className="w-3.5 h-3.5 text-[#CD6E67]" />
                                         <span>{user.education}</span>
                                     </div>
                                 )}
@@ -98,19 +98,22 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                         </div>
                     </div>
 
-                    {/* Content Sections */}
-                    <div className="p-5 space-y-6">
+                    {/* Content Sections - ToyWorld styled */}
+                    <div className="p-5 space-y-6 bg-white">
                         {/* My Vibe Section */}
                         {user.vibes && user.vibes.length > 0 && (
                             <section>
-                                <h3 className="text-xs font-medium text-[#9B9A97] uppercase tracking-wider mb-3">
-                                    My Vibe
-                                </h3>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Sparkles className="w-4 h-4 text-[#CD6E67]" />
+                                    <h3 className="text-xs font-bold text-[#7A6862] uppercase tracking-wider">
+                                        My Vibe
+                                    </h3>
+                                </div>
                                 <div className="flex flex-wrap gap-2">
                                     {user.vibes.map((vibe, index) => (
                                         <span
                                             key={index}
-                                            className="px-3 py-1.5 bg-[#2F2F2F] text-[#E3E3E3] text-sm rounded-full border border-[#3A3A3A]"
+                                            className="px-4 py-2 bg-[#FDF0F1] text-[#CD6E67] text-sm rounded-full border-2 border-[#ECC8CD]/40 font-semibold"
                                         >
                                             {vibe}
                                         </span>
@@ -119,32 +122,32 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                             </section>
                         )}
 
-                        {/* About Me */}
+                        {/* About Me - ToyWorld styled */}
                         {user.bio && (
                             <section>
-                                <h3 className="text-xs font-medium text-[#9B9A97] uppercase tracking-wider mb-3">
+                                <h3 className="text-xs font-bold text-[#7A6862] uppercase tracking-wider mb-3">
                                     About Me
                                 </h3>
-                                <p className="text-[#E3E3E3] text-sm leading-relaxed">
+                                <p className="text-[#3E3229] text-sm leading-relaxed">
                                     {user.bio}
                                 </p>
                             </section>
                         )}
 
-                        {/* Prompts - Notion Callout Style */}
+                        {/* Prompts - ToyWorld Callout Style */}
                         {user.prompts && user.prompts.length > 0 && (
                             <section className="space-y-4">
                                 {user.prompts.map((prompt, index) => (
                                     <div
                                         key={index}
-                                        className="bg-[#262626] p-4 rounded-lg flex gap-3 border border-[#333333]"
+                                        className="bg-[#FDF0F1] p-4 rounded-[20px] flex gap-3 border-2 border-[#ECC8CD]/40"
                                     >
                                         <span className="text-2xl flex-shrink-0">{prompt.emoji}</span>
                                         <div>
-                                            <p className="text-sm font-medium text-[#E3E3E3] mb-1">
+                                            <p className="text-sm font-bold text-[#3E3229] mb-1">
                                                 {prompt.question}
                                             </p>
-                                            <p className="text-sm text-[#9B9A97]">
+                                            <p className="text-sm text-[#7A6862]">
                                                 {prompt.answer}
                                             </p>
                                         </div>
@@ -153,17 +156,17 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                             </section>
                         )}
 
-                        {/* Photo Grid */}
+                        {/* Photo Grid - ToyWorld styled */}
                         {hasPhotos && user.photos.length > 1 && (
                             <section>
-                                <h3 className="text-xs font-medium text-[#9B9A97] uppercase tracking-wider mb-3">
+                                <h3 className="text-xs font-bold text-[#7A6862] uppercase tracking-wider mb-3">
                                     More Photos
                                 </h3>
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-2 gap-3">
                                     {user.photos.slice(1, 5).map((photo, index) => (
                                         <div
                                             key={index}
-                                            className="aspect-square rounded-lg overflow-hidden bg-[#2F2F2F]"
+                                            className="aspect-square rounded-[20px] overflow-hidden bg-[#FDF0F1] border-2 border-[#ECC8CD]/40"
                                         >
                                             <img
                                                 src={photo}
@@ -176,11 +179,11 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                             </section>
                         )}
 
-                        {/* Location */}
+                        {/* Location - ToyWorld styled */}
                         {(user.location || user.distance) && (
-                            <section className="flex items-center gap-2 text-[#9B9A97] pb-24">
-                                <MapPin className="w-4 h-4" />
-                                <span className="text-sm">
+                            <section className="flex items-center gap-2 text-[#7A6862] pb-24">
+                                <MapPin className="w-4 h-4 text-[#CD6E67]" />
+                                <span className="text-sm font-medium">
                                     {user.distance || user.location}
                                 </span>
                             </section>

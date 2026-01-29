@@ -1,43 +1,97 @@
-export default function AuthCard({ children }: { children: React.ReactNode }) {
+import { Home, Lock } from "lucide-react";
+import Link from "next/link";
+import { WoodenFrame, PushPin } from "@/components/village";
+
+interface AuthCardProps {
+  children: React.ReactNode;
+  showCharacterPreview?: boolean;
+  characterType?: "login" | "register";
+  onRegister?: () => void;
+  onLogin?: () => void;
+}
+
+export default function AuthCard({ 
+  children, 
+  showCharacterPreview = true,
+  characterType = "login"
+}: AuthCardProps) {
   return (
-    <div className="min-h-screen w-full bg-[#ECC8CD] flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl min-h-[600px] bg-[#FDF0F1] rounded-[40px] shadow-2xl shadow-[#CD6E67]/20 overflow-hidden flex flex-col lg:flex-row">
-        {/* Left Panel - Illustration */}
-        <div className="w-full lg:w-1/2 h-64 lg:h-auto bg-[#CD6E67] relative flex flex-col items-center justify-center p-10 text-center">
-          {/* Decorative Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-10 left-10 w-20 h-20 rounded-full bg-white"></div>
-            <div className="absolute top-32 right-16 w-16 h-16 rounded-full bg-white"></div>
-            <div className="absolute bottom-20 left-20 w-24 h-24 rounded-full bg-white"></div>
-            <div className="absolute bottom-32 right-24 w-12 h-12 rounded-full bg-white"></div>
-            <div className="absolute top-1/2 left-1/3 w-8 h-8 rounded-full bg-white"></div>
-            <div className="absolute top-1/3 right-1/4 w-10 h-10 rounded-full bg-white"></div>
-          </div>
-
-          {/* Content */}
-          <div className="relative z-10">
-            {/* Illustration Placeholder - You can replace with an actual 3D image */}
-            <div className="mb-8 flex justify-center">
-              <div className="w-40 h-40 bg-white/20 rounded-[40px] flex items-center justify-center backdrop-blur-sm">
-                <svg className="w-24 h-24 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                </svg>
-              </div>
+    <div className="min-h-screen grass-dots flex items-center justify-center p-8">
+      {/* Header */}
+      <div className="fixed top-0 left-0 right-0 bg-[var(--wood-dark)] border-b-4 border-[var(--wood-shadow)] px-6 py-4 z-50">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
+            <div className="w-12 h-12 bg-[var(--primary-orange)] border-3 border-[var(--border-dark)] flex items-center justify-center">
+              <Home className="w-7 h-7 text-[var(--parchment)]" />
             </div>
-
-            <h1 className="text-white font-black text-4xl mb-4 font-nunito">
-              Welcome to Peerzee!
-            </h1>
-            <p className="text-white/80 text-lg font-bold max-w-md mx-auto">
-              Find your coding partner or your soulmate in the coziest way.
-            </p>
+            <div>
+              <h1 className="font-pixel text-2xl text-[var(--parchment)] tracking-wider">PEERZEE VILLAGE</h1>
+              <p className="text-xs text-[var(--parchment-dark)] font-mono uppercase tracking-widest">PASSPORT CONTROL</p>
+            </div>
+          </Link>
+          
+          <Link
+            href="/"
+            className="absolute right-6 top-1/2 -translate-y-1/2 font-pixel text-[var(--parchment)] hover:text-[var(--accent-yellow)] transition-colors"
+          >
+            ← BACK
+          </Link>
+        </div>
+      </div>
+      
+      <div className="max-w-4xl w-full grid md:grid-cols-2 gap-8 mt-20">
+        {/* Main Form Panel */}
+        <WoodenFrame>
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+            <PushPin color="red" />
           </div>
-        </div>
-
-        {/* Right Panel - Form */}
-        <div className="w-full lg:w-1/2 bg-[#FDF0F1] p-8 lg:p-12 flex flex-col justify-center">
-          {children}
-        </div>
+          
+          <div className="p-8">
+            {children}
+          </div>
+        </WoodenFrame>
+        
+        {/* Character Preview / Info Panel */}
+        {showCharacterPreview && (
+          <div className="flex flex-col gap-6">
+            <WoodenFrame className="flex-1">
+              <div className="p-8 flex flex-col items-center justify-center h-full">
+                <div className="w-48 h-48 bg-gradient-to-b from-[var(--wood-dark)] to-[var(--wood-shadow)] border-4 border-[var(--border-dark)] mb-4 flex items-center justify-center relative overflow-hidden">
+                  <Lock className="w-20 h-20 text-[var(--parchment)]/30" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <span className="font-pixel text-2xl text-[var(--parchment)]">
+                      {characterType === "login" ? "RETURNING" : "NEW"}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="w-full bg-[var(--wood-dark)] border-3 border-[var(--border-dark)] px-6 py-3">
+                  <p className="font-pixel text-xl text-center text-[var(--parchment)]">
+                    {characterType === "login" ? "RESIDENT" : "VILLAGER"}
+                  </p>
+                </div>
+              </div>
+            </WoodenFrame>
+            
+            <Link
+              href={characterType === "login" ? "/register" : "/login"}
+              className="bg-[var(--parchment)] border-3 border-[var(--border-dark)] p-4 hover:bg-[var(--parchment-dark)] transition-colors text-center block"
+            >
+              <p className="font-mono text-sm text-[var(--text-pixel)]/70 mb-1 uppercase tracking-wide">
+                {characterType === "login" ? "New here?" : "Already a resident?"}
+              </p>
+              <p className="font-pixel text-xl text-[var(--primary-orange)] hover:text-[var(--primary-red)]">
+                {characterType === "login" ? "REGISTER →" : "LOGIN →"}
+              </p>
+            </Link>
+            
+            <div className="bg-[var(--parchment)] border-3 border-[var(--border-dark)] p-4 text-center">
+              <p className="text-xs text-[var(--text-pixel)]/60 italic">
+                "Return to Town Square" link available after login
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

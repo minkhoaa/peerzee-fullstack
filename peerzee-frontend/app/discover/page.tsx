@@ -2,19 +2,21 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MessageCircle, Settings, Heart, Video, Search, X, Sparkles, MapPin, Users, GraduationCap, Filter } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Settings, Heart, Video, Search, X, Sparkles, MapPin, Users, GraduationCap, Filter, Star, Briefcase } from 'lucide-react';
 import { ProfileCardStack } from '@/components/discover';
 import ModeSwitcher from '@/components/discover/ModeSwitcher';
 import { LocationRequest } from '@/components/discover/LocationRequest';
 import { useDiscover } from '@/hooks/useDiscover';
 import { useMatchContext } from '@/components/MatchProvider';
 import api, { discoverApi, swipeApi, userApi, SearchResult, SearchResponse } from '@/lib/api';
+import { WoodenFrame, PixelButton } from '@/components/village';
+import { GlobalHeader } from '@/components/layout';
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 
 /**
  * DiscoverPage - Production-ready matching interface with AI Search
- * Strict Notion Dark Mode theme
+ * Peerzee Village theme
  * Uses React Query for data fetching with cursor pagination
  */
 export default function DiscoverPage() {
@@ -162,244 +164,271 @@ export default function DiscoverPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#ECC8CD]">
-            {/* Header */}
-            <header className="sticky top-0 z-30 bg-[#FDF0F1]/95 backdrop-blur-lg border-b border-[#CD6E67]/10 shadow-sm">
-                <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button
-                        onClick={() => router.back()}
-                        className="p-2 -ml-2 text-[#7A6862] hover:text-[#3E3229] rounded-full hover:bg-[#ECC8CD]/50 transition-colors"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-
-                    <h1 className="text-lg font-extrabold text-[#3E3229]">Discover</h1>
-
-                    <div className="flex items-center gap-1">
+        <div className="min-h-screen grass-dots">
+            {/* Global Header */}
+            <GlobalHeader
+                title="QUEST BOARD"
+                subtitle="Discover • Find Adventurers"
+                action={
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={() => router.push('/likers')}
-                            className="relative p-2 text-[#7A6862] hover:text-[#CD6E67] rounded-full hover:bg-white transition-all hover:scale-110"
+                            className="relative w-10 h-10 flex items-center justify-center border-2 transition-all hover:opacity-80"
+                            style={{ backgroundColor: '#6B5344', borderColor: '#261E1A' }}
                             title="Who Liked You"
                         >
-                            <Heart className="w-5 h-5" />
+                            <Heart className="w-5 h-5" style={{ color: '#E0C097' }} />
                             {likersCount > 0 && (
-                                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#CD6E67] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center font-pixel text-[10px] rounded-full border-2"
+                                    style={{ backgroundColor: '#EC4913', borderColor: '#B0320A', color: '#FDF5E6' }}>
                                     {likersCount > 9 ? '9+' : likersCount}
                                 </span>
                             )}
                         </button>
                         <button
                             onClick={() => router.push('/video-dating')}
-                            className="p-2 text-[#7A6862] hover:text-[#CD6E67] rounded-full hover:bg-white transition-all hover:scale-110"
+                            className="w-10 h-10 flex items-center justify-center border-2 transition-all hover:opacity-80"
+                            style={{ backgroundColor: '#6B5344', borderColor: '#261E1A' }}
                             title="Video Chat"
                         >
-                            <Video className="w-5 h-5" />
+                            <Video className="w-5 h-5" style={{ color: '#E0C097' }} />
                         </button>
                         <button
                             onClick={() => setShowSearch(!showSearch)}
-                            className={`p-2 rounded-full hover:bg-white transition-all hover:scale-110 ${showSearch ? 'text-[#CD6E67] bg-white' : 'text-[#7A6862]'}`}
+                            className="w-10 h-10 flex items-center justify-center border-2 transition-all hover:opacity-80"
+                            style={{ 
+                                backgroundColor: showSearch ? '#EC4913' : '#6B5344', 
+                                borderColor: '#261E1A' 
+                            }}
                             title="AI Search"
                         >
-                            <Sparkles className="w-5 h-5" />
+                            <Sparkles className="w-5 h-5" style={{ color: '#E0C097' }} />
                         </button>
-                        <div className={`w-2 h-2 rounded-full mx-1 ${isConnected ? 'bg-green-400' : 'bg-[#7A6862]'}`} />
-                        <button
-                            onClick={() => router.push('/chat')}
-                            className="p-2 text-[#7A6862] hover:text-[#CD6E67] rounded-full hover:bg-white transition-all hover:scale-110"
-                        >
-                            <MessageCircle className="w-5 h-5" />
-                        </button>
-                        <button className="p-2 text-[#7A6862] hover:text-[#CD6E67] rounded-full hover:bg-white transition-all hover:scale-110">
-                            <Settings className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            {/* AI Search Panel */}
-            {showSearch && (
-                <div className="max-w-4xl mx-auto px-4 py-4 bg-[#FDF0F1]/50 border-b border-[#CD6E67]/10">
-                    {/* Search Input */}
-                    <div className="relative mb-3">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A6862]" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyPress={handleSearchKeyPress}
-                            placeholder="Mô tả người bạn muốn tìm..."
-                            className="w-full pl-10 pr-20 py-3 bg-white border-2 border-[#ECC8CD] rounded-full text-sm text-[#3E3229] placeholder:text-[#7A6862] focus:outline-none focus:border-[#CD6E67] transition-colors shadow-sm"
+                        <div 
+                            className="w-3 h-3 border-2" 
+                            style={{ 
+                                backgroundColor: isConnected ? '#4CAF50' : '#8B0000', 
+                                borderColor: '#261E1A' 
+                            }} 
                         />
                         <button
-                            onClick={handleSearch}
-                            disabled={isSearching || !searchQuery.trim()}
-                            className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 text-xs font-bold rounded-full transition-all ${searchQuery.trim() && !isSearching
-                                ? 'bg-[#CD6E67] text-white hover:bg-[#B55B55] shadow-sm'
-                                : 'bg-[#ECC8CD] text-[#7A6862] cursor-not-allowed'
-                                }`}
+                            onClick={() => router.push('/chat')}
+                            className="w-10 h-10 flex items-center justify-center border-2 transition-all hover:opacity-80"
+                            style={{ backgroundColor: '#6B5344', borderColor: '#261E1A' }}
                         >
-                            {isSearching ? '...' : 'Tìm'}
+                            <MessageCircle className="w-5 h-5" style={{ color: '#E0C097' }} />
                         </button>
                     </div>
+                }
+            />
 
-                    {/* Sample Queries */}
-                    {!searchFilters && (
-                        <div className="flex flex-wrap gap-1.5">
-                            {sampleQueries.map((q, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => setSearchQuery(q)}
-                                    className="px-2 py-1 text-[#9B9A97] text-xs hover:bg-[#2F2F2F] rounded transition-colors"
-                                >
-                                    {q}
-                                </button>
-                            ))}
+            {/* System Message */}
+            {users.length > 0 && !searchResults.length && (
+                <div className="max-w-4xl mx-auto px-4 mt-4">
+                    <div className="bg-[var(--parchment)] border-3 border-[var(--border-dark)] px-4 py-2 flex items-center gap-2">
+                        <div className="w-6 h-6 bg-[var(--accent-blue)] flex items-center justify-center flex-shrink-0">
+                            <span className="text-[var(--parchment)] text-xs">ℹ️</span>
                         </div>
-                    )}
-
-                    {/* Extracted Filters */}
-                    {searchFilters && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs text-[#9B9A97]">AI:</span>
-                            {searchFilters.gender && (
-                                <span className="px-2 py-0.5 bg-[#2F2F2F] text-[#E3E3E3] text-xs rounded">
-                                    {searchFilters.gender === 'FEMALE' ? '👩 Nữ' : '👨 Nam'}
-                                </span>
-                            )}
-                            {searchFilters.city && (
-                                <span className="px-2 py-0.5 bg-[#2F2F2F] text-[#E3E3E3] text-xs rounded flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" /> {searchFilters.city}
-                                </span>
-                            )}
-                            {searchFilters.intent && (
-                                <span className="px-2 py-0.5 bg-[#2F2F2F] text-[#E3E3E3] text-xs rounded flex items-center gap-1">
-                                    {searchFilters.intent === 'STUDY' && <><GraduationCap className="w-3 h-3" /> Học</>}
-                                    {searchFilters.intent === 'DATE' && <><Heart className="w-3 h-3" /> Hẹn hò</>}
-                                    {searchFilters.intent === 'FRIEND' && <><Users className="w-3 h-3" /> Bạn</>}
-                                </span>
-                            )}
-                            {searchFilters.semantic_text && (
-                                <span className="px-2 py-0.5 bg-[#2F2F2F] text-[#9B9A97] text-xs rounded truncate max-w-[150px]">
-                                    🔍 {searchFilters.semantic_text}
-                                </span>
-                            )}
-                            <button onClick={clearSearch} className="ml-auto p-1 text-[#9B9A97] hover:text-[#E3E3E3] hover:bg-[#2F2F2F] rounded transition-colors">
-                                <X className="w-3 h-3" />
-                            </button>
-                        </div>
-                    )}
+                        <p className="font-mono text-xs md:text-sm text-[var(--text-pixel)]">
+                            <span className="font-medium">SYSTEM MESSAGE:</span> {users.length} adventurers nearby waiting to meet you!
+                        </p>
+                    </div>
                 </div>
             )}
 
-            {/* Search Results - Formal Design */}
+            {/* AI Search Panel */}
+            {showSearch && (
+                <div className="max-w-4xl mx-auto px-4 py-4">
+                    <WoodenFrame variant="parchment">
+                        <div className="p-4">
+                            <h3 className="font-pixel text-lg text-[var(--text-pixel)] mb-3">🔮 AI QUEST SEARCH</h3>
+                            
+                            {/* Search Input */}
+                            <div className="relative mb-3">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-pixel)]/50" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyPress={handleSearchKeyPress}
+                                    placeholder="Mô tả người bạn muốn tìm..."
+                                    className="carved-input w-full pl-10 pr-20"
+                                />
+                                <button
+                                    onClick={handleSearch}
+                                    disabled={isSearching || !searchQuery.trim()}
+                                    className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 font-pixel text-xs border-2 border-[var(--border-dark)] transition-all ${searchQuery.trim() && !isSearching
+                                        ? 'bg-[var(--landscape-green)] text-[var(--parchment)] hover:bg-[var(--landscape-green)]/80'
+                                        : 'bg-[var(--wood-light)] text-[var(--parchment-dark)] cursor-not-allowed'
+                                        }`}
+                                >
+                                    {isSearching ? '...' : 'SEARCH'}
+                                </button>
+                            </div>
+
+                            {/* Sample Queries */}
+                            {!searchFilters && (
+                                <div className="flex flex-wrap gap-2">
+                                    {sampleQueries.map((q, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setSearchQuery(q)}
+                                            className="px-3 py-1.5 text-[var(--text-pixel)] text-xs hover:bg-[var(--primary-orange)] hover:text-[var(--parchment)] transition-colors bg-white border-2 border-[var(--border-dark)]"
+                                        >
+                                            {q}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Extracted Filters */}
+                            {searchFilters && (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-pixel text-xs text-[var(--text-pixel)]">FILTERS:</span>
+                                    {searchFilters.gender && (
+                                        <span className="px-3 py-1 bg-[var(--accent-pink)] text-[var(--parchment)] text-xs border-2 border-[var(--border-dark)] font-medium">
+                                            {searchFilters.gender === 'FEMALE' ? '👩 Nữ' : '👨 Nam'}
+                                        </span>
+                                    )}
+                                    {searchFilters.city && (
+                                        <span className="px-3 py-1 bg-[var(--accent-blue)] text-[var(--parchment)] text-xs border-2 border-[var(--border-dark)] flex items-center gap-1 font-medium">
+                                            <MapPin className="w-3 h-3" /> {searchFilters.city}
+                                        </span>
+                                    )}
+                                    {searchFilters.intent && (
+                                        <span className="px-3 py-1 bg-[var(--landscape-green)] text-[var(--parchment)] text-xs border-2 border-[var(--border-dark)] flex items-center gap-1 font-medium">
+                                            {searchFilters.intent === 'STUDY' && <><GraduationCap className="w-3 h-3" /> Học</>}
+                                            {searchFilters.intent === 'DATE' && <><Heart className="w-3 h-3" /> Hẹn hò</>}
+                                            {searchFilters.intent === 'FRIEND' && <><Users className="w-3 h-3" /> Bạn</>}
+                                        </span>
+                                    )}
+                                    {searchFilters.semantic_text && (
+                                        <span className="px-3 py-1 bg-[var(--primary-orange)] text-[var(--parchment)] text-xs border-2 border-[var(--border-dark)] truncate max-w-[150px] font-medium">
+                                            🔍 {searchFilters.semantic_text}
+                                        </span>
+                                    )}
+                                    <button onClick={clearSearch} className="ml-auto p-1.5 text-[var(--text-pixel)] hover:text-[var(--primary-red)] bg-white border-2 border-[var(--border-dark)] hover:bg-[var(--primary-red)]/10 transition-colors">
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </WoodenFrame>
+                </div>
+            )}
+
+            {/* Search Results */}
             {searchResults.length > 0 && (
                 <div className="max-w-lg mx-auto px-4 py-4">
-                    {/* Results header */}
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 className="text-white font-medium text-sm">Kết quả tìm kiếm</h3>
-                            <p className="text-[#9B9A97] text-xs">{searchResults.length} người phù hợp</p>
-                        </div>
-                        <button
-                            onClick={clearSearch}
-                            className="text-xs text-[#9B9A97] hover:text-white px-2 py-1 hover:bg-[#2F2F2F] rounded transition-colors"
-                        >
-                            Xóa bộ lọc
-                        </button>
-                    </div>
-
-                    {/* Results list */}
-                    <div className="space-y-3">
-                        {searchResults.slice(0, 10).map((user, index) => {
-                            const scoreColor = user.matchScore >= 70 ? 'text-emerald-400' : user.matchScore >= 40 ? 'text-amber-400' : 'text-[#9B9A97]';
-                            const scoreBorder = user.matchScore >= 70 ? 'border-emerald-500/30' : user.matchScore >= 40 ? 'border-amber-500/30' : 'border-[#2F2F2F]';
-
-                            return (
-                                <div
-                                    key={user.id}
-                                    className={`bg-[#1A1A1A] border ${scoreBorder} rounded-xl p-4 hover:bg-[#1E1E1E] transition-all cursor-pointer`}
-                                    onClick={() => router.push(`/profile/${user.id}`)}
+                    <WoodenFrame variant="parchment">
+                        <div className="p-4">
+                            {/* Results header */}
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 className="font-pixel text-lg text-[var(--text-pixel)]">QUEST RESULTS</h3>
+                                    <p className="text-xs text-[var(--text-pixel)]/70">{searchResults.length} adventurers found</p>
+                                </div>
+                                <button
+                                    onClick={clearSearch}
+                                    className="font-pixel text-xs text-[var(--primary-orange)] hover:text-[var(--primary-red)] px-3 py-1.5 border-2 border-[var(--border-dark)] hover:bg-[var(--primary-red)]/10 transition-colors"
                                 >
-                                    <div className="flex gap-4">
-                                        {/* Avatar with rank */}
-                                        <div className="relative shrink-0">
-                                            <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#252525]">
-                                                {user.photos?.[0]?.url ? (
-                                                    <img src={user.photos[0].url} alt="" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-xl text-[#505050]">👤</div>
-                                                )}
-                                            </div>
-                                            <span className="absolute -top-1 -left-1 w-5 h-5 bg-[#252525] border border-[#2F2F2F] rounded-full flex items-center justify-center text-[10px] text-[#9B9A97] font-medium">
-                                                {index + 1}
-                                            </span>
-                                        </div>
+                                    CLEAR
+                                </button>
+                            </div>
 
-                                        {/* User info */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-white font-medium truncate">{user.display_name || 'Unknown'}</span>
-                                                    {user.age && <span className="text-xs text-[#9B9A97]">• {user.age} tuổi</span>}
+                            {/* Results list */}
+                            <div className="space-y-3">
+                                {searchResults.slice(0, 10).map((user, index) => {
+                                    const scoreColor = user.matchScore >= 70 ? 'bg-[var(--landscape-green)]' : user.matchScore >= 40 ? 'bg-[var(--accent-yellow)]' : 'bg-[var(--wood-light)]';
+
+                                    return (
+                                        <div
+                                            key={user.id}
+                                            className="bg-white border-3 border-[var(--border-dark)] p-4 hover:bg-[var(--parchment-dark)] transition-all cursor-pointer"
+                                            onClick={() => router.push(`/profile/${user.id}`)}
+                                        >
+                                            <div className="flex gap-4">
+                                                {/* Avatar with rank */}
+                                                <div className="relative shrink-0">
+                                                    <div className="w-14 h-14 overflow-hidden bg-[var(--wood-light)] border-2 border-[var(--border-dark)]">
+                                                        {user.photos?.[0]?.url ? (
+                                                            <img src={user.photos[0].url} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-xl text-[var(--parchment)]">👤</div>
+                                                        )}
+                                                    </div>
+                                                    <span className="absolute -top-1 -left-1 w-5 h-5 bg-[var(--primary-orange)] border-2 border-[var(--border-dark)] flex items-center justify-center text-[10px] text-[var(--parchment)] font-pixel">
+                                                        {index + 1}
+                                                    </span>
                                                 </div>
-                                                <span className={`text-lg font-semibold ${scoreColor}`}>
-                                                    {user.matchScore}%
-                                                </span>
-                                            </div>
 
-                                            {user.occupation && (
-                                                <p className="text-xs text-[#9B9A97] mb-2">{user.occupation}</p>
-                                            )}
-
-                                            {/* Match reason - formal style */}
-                                            {user.matchReason && (
-                                                <div className="flex items-center gap-1.5 mb-2">
-                                                    <div className="w-1 h-1 rounded-full bg-blue-400"></div>
-                                                    <span className="text-xs text-blue-400">{user.matchReason}</span>
-                                                </div>
-                                            )}
-
-                                            {/* Tags */}
-                                            {user.tags && user.tags.length > 0 && (
-                                                <div className="flex gap-1.5 flex-wrap">
-                                                    {user.tags.slice(0, 4).map((tag, i) => (
-                                                        <span
-                                                            key={i}
-                                                            className="px-2 py-0.5 bg-[#252525] text-[#9B9A97] text-[11px] rounded-md"
-                                                        >
-                                                            {tag}
+                                                {/* User info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-pixel text-[var(--text-pixel)] truncate">{user.display_name || 'Unknown'}</span>
+                                                            {user.age && <span className="text-xs text-[var(--text-pixel)]/70">LVL {user.age}</span>}
+                                                        </div>
+                                                        <span className={`px-2 py-0.5 font-pixel text-sm text-[var(--parchment)] ${scoreColor} border-2 border-[var(--border-dark)]`}>
+                                                            {user.matchScore}%
                                                         </span>
-                                                    ))}
-                                                    {user.tags.length > 4 && (
-                                                        <span className="px-2 py-0.5 text-[#505050] text-[11px]">
-                                                            +{user.tags.length - 4}
-                                                        </span>
+                                                    </div>
+
+                                                    {user.occupation && (
+                                                        <p className="text-xs text-[var(--text-pixel)]/70 mb-2">{user.occupation}</p>
+                                                    )}
+
+                                                    {/* Match reason */}
+                                                    {user.matchReason && (
+                                                        <div className="flex items-center gap-1.5 mb-2">
+                                                            <Star className="w-3 h-3 text-[var(--accent-yellow)] fill-[var(--accent-yellow)]" />
+                                                            <span className="text-xs text-[var(--accent-blue)]">{user.matchReason}</span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Tags */}
+                                                    {user.tags && user.tags.length > 0 && (
+                                                        <div className="flex gap-1.5 flex-wrap">
+                                                            {user.tags.slice(0, 4).map((tag, i) => (
+                                                                <span
+                                                                    key={i}
+                                                                    className="px-2 py-0.5 bg-white text-[var(--text-pixel)] text-[11px] border border-[var(--border-dark)] font-medium"
+                                                                >
+                                                                    {tag}
+                                                                </span>
+                                                            ))}
+                                                            {user.tags.length > 4 && (
+                                                                <span className="px-2 py-0.5 text-[var(--text-pixel)]/70 text-[11px]">
+                                                                    +{user.tags.length - 4}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                            </div>
 
-                                    {/* Score bar */}
-                                    <div className="mt-3 pt-3 border-t border-[#252525]">
-                                        <div className="flex items-center justify-between text-[10px] text-[#505050] mb-1">
-                                            <span>Độ tương thích</span>
-                                            <span>{user.matchScore >= 70 ? 'Rất cao' : user.matchScore >= 40 ? 'Khá cao' : 'Trung bình'}</span>
+                                            {/* Score bar */}
+                                            <div className="mt-3 pt-3 border-t-2 border-[var(--border-dark)]">
+                                                <div className="flex items-center justify-between text-[10px] text-[var(--text-pixel)]/70 mb-1">
+                                                    <span>COMPATIBILITY</span>
+                                                    <span>{user.matchScore >= 70 ? 'LEGENDARY' : user.matchScore >= 40 ? 'RARE' : 'COMMON'}</span>
+                                                </div>
+                                                <div className="h-3 bg-[var(--wood-light)] border-2 border-[var(--border-dark)] overflow-hidden">
+                                                    <div
+                                                        className={`h-full transition-all ${user.matchScore >= 70 ? 'bg-[var(--landscape-green)]' :
+                                                            user.matchScore >= 40 ? 'bg-[var(--accent-yellow)]' :
+                                                                'bg-[var(--wood-shadow)]'
+                                                            }`}
+                                                        style={{ width: `${user.matchScore}%` }}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="h-1.5 bg-[#252525] rounded-full overflow-hidden">
-                                            <div
-                                                className={`h-full rounded-full transition-all ${user.matchScore >= 70 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' :
-                                                    user.matchScore >= 40 ? 'bg-gradient-to-r from-amber-500 to-amber-400' :
-                                                        'bg-gray-500'
-                                                    }`}
-                                                style={{ width: `${user.matchScore}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </WoodenFrame>
                 </div>
             )}
 
@@ -424,9 +453,11 @@ export default function DiscoverPage() {
 
                     {/* Show distance info when location enabled */}
                     {hasLocation === true && userCoords && (
-                        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-[#7A6862] font-semibold">
-                            <MapPin className="w-4 h-4 text-[#CD6E67]" />
-                            <span>Tìm kiếm trong bán kính 50km</span>
+                        <div className="mt-4">
+                            <div className="bg-[var(--parchment)] border-3 border-[var(--border-dark)] px-4 py-2 flex items-center justify-center gap-2">
+                                <MapPin className="w-4 h-4 text-[var(--primary-orange)]" />
+                                <span className="font-mono text-sm text-[var(--text-pixel)]">Searching within 50km radius</span>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -434,7 +465,7 @@ export default function DiscoverPage() {
 
             {/* Main Content - only show when not in search mode */}
             {!searchResults.length && (
-                <main className="max-w-4xl mx-auto px-4 flex flex-col items-center">
+                <main className="max-w-4xl mx-auto px-4 flex flex-col items-center pb-8">
                     <ProfileCardStack
                         users={users}
                         onSwipe={handleSwipe}
@@ -442,6 +473,17 @@ export default function DiscoverPage() {
                         isLoading={isLoading || isChangingMode}
                     />
                 </main>
+            )}
+
+            {/* Cards remaining indicator */}
+            {users.length > 0 && !searchResults.length && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
+                    <div className="bg-[var(--parchment)] border-3 border-[var(--border-dark)] px-4 py-2">
+                        <p className="font-pixel text-xs md:text-sm text-[var(--text-pixel)]">
+                            {users.length} ADVENTURERS WAITING
+                        </p>
+                    </div>
+                </div>
             )}
         </div>
     );

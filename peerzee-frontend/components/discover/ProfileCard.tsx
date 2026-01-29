@@ -5,14 +5,28 @@ import { MapPin, Briefcase, GraduationCap, Music, Instagram } from 'lucide-react
 import type { DiscoverUser } from '@/hooks/useDiscover';
 import ProfilePropertiesGrid from './ProfilePropertiesGrid';
 
+// ============================================
+// HIGH CONTRAST COLOR TOKENS (WCAG AA)
+// ============================================
+const COLORS = {
+  text: '#2C1A1D',           // Very Dark Cocoa
+  textMuted: '#5D4037',      // Medium Brown
+  background: '#FFFFFF',      // Pure White
+  border: '#4A3228',          // Dark Coffee
+  pink: '#F4B0C8',            // Retro Pink
+  green: '#98D689',           // Pixel Green
+  yellow: '#FFE082',          // Soft Yellow
+  cardBg: '#FFF9F5',          // Warm White
+} as const;
+
 interface ProfileCardProps {
     user: DiscoverUser;
     onContentClick?: (contentId: string, contentType: 'photo' | 'prompt' | 'vibe') => void;
 }
 
 /**
- * ProfileCard - Notion Dark Theme styled profile card
- * Scrollable profile doc with cover image, details, and prompts
+ * ProfileCard - High Contrast Retro OS Style
+ * Scrollable profile with pixel borders and hard shadows
  */
 export default function ProfileCard({ user, onContentClick }: ProfileCardProps) {
     const cardRef = useRef<HTMLDivElement>(null);
@@ -25,7 +39,8 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
     return (
         <div
             ref={cardRef}
-            className="w-full h-full bg-[#FDF0F1] rounded-[40px] shadow-xl shadow-[#CD6E67]/15 overflow-hidden flex flex-col"
+            className="w-full h-full border-[4px] rounded-lg overflow-hidden flex flex-col shadow-[6px_6px_0px_#4A3228]"
+            style={{ borderColor: COLORS.border, backgroundColor: COLORS.cardBg }}
         >
             {/* Cover Image - 40% height */}
             <div className="relative h-[40%] min-h-[240px] flex-shrink-0">
@@ -36,14 +51,37 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                     onClick={() => user.photos?.[0]?.id && onContentClick?.(user.photos[0].id, 'photo')}
                 />
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#FDF0F1] via-transparent to-transparent" />
+                <div 
+                    className="absolute inset-0"
+                    style={{ background: `linear-gradient(to top, ${COLORS.cardBg}, transparent 50%)` }}
+                />
+                
+                {/* Distance Badge */}
+                {user.distance_km !== undefined && user.distance_km !== null && (
+                    <div 
+                        className="absolute top-3 right-3 px-3 py-1 border-[2px] flex items-center gap-1 font-pixel text-xs"
+                        style={{ 
+                            backgroundColor: COLORS.green, 
+                            borderColor: COLORS.border,
+                            color: COLORS.border 
+                        }}
+                    >
+                        <MapPin className="w-3 h-3" />
+                        {user.distance_km < 1
+                            ? `${Math.round(user.distance_km * 1000)}m`
+                            : `${user.distance_km.toFixed(1)}km`}
+                    </div>
+                )}
             </div>
 
             {/* Scrollable Body - 60% */}
             <div className="flex-1 overflow-y-auto px-5 pb-5 -mt-8 relative z-10">
                 {/* Avatar + Name + Age + Location */}
                 <div className="flex items-end gap-4 mb-4">
-                    <div className="w-20 h-20 rounded-[20px] overflow-hidden border-4 border-white bg-[#ECC8CD] shadow-md flex-shrink-0">
+                    <div 
+                        className="w-20 h-20 overflow-hidden border-[3px] flex-shrink-0"
+                        style={{ borderColor: COLORS.border, backgroundColor: COLORS.pink }}
+                    >
                         <img
                             src={user.photos?.[1]?.url || coverPhoto}
                             alt={user.display_name}
@@ -51,41 +89,52 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                         />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h2 className="text-2xl font-black text-[#3E3229] truncate">
+                        <h2 
+                            className="font-pixel text-xl truncate uppercase"
+                            style={{ color: COLORS.text }}
+                        >
                             {user.display_name}
-                            {user.age && <span className="ml-2 font-extrabold">{user.age}</span>}
-                        </h2>
-                        <div className="flex items-center gap-2 mt-1">
-                            {user.location && (
-                                <p className="text-sm text-[#7A6862] font-semibold flex items-center gap-1">
-                                    <MapPin className="w-3.5 h-3.5" />
-                                    {user.location}
-                                </p>
-                            )}
-                            {/* Distance badge from PostGIS */}
-                            {user.distance_km !== undefined && user.distance_km !== null && (
-                                <span className="px-2 py-1 bg-[#ECC8CD] text-[#3E3229] text-xs rounded-full flex items-center gap-1 font-bold shadow-sm">
-                                    <MapPin className="w-3 h-3" />
-                                    {user.distance_km < 1
-                                        ? `${Math.round(user.distance_km * 1000)}m`
-                                        : `${user.distance_km.toFixed(1)}km`}
+                            {user.age && (
+                                <span 
+                                    className="ml-2 px-2 py-0.5 text-sm border-[2px]"
+                                    style={{ 
+                                        backgroundColor: COLORS.yellow, 
+                                        borderColor: COLORS.border 
+                                    }}
+                                >
+                                    LVL {user.age}
                                 </span>
                             )}
-                        </div>
+                        </h2>
+                        {user.location && (
+                            <p 
+                                className="text-sm font-bold flex items-center gap-1 mt-1"
+                                style={{ color: COLORS.textMuted }}
+                            >
+                                <MapPin className="w-3.5 h-3.5" />
+                                {user.location}
+                            </p>
+                        )}
                     </div>
                 </div>
 
                 {/* Occupation & Education */}
                 <div className="space-y-2 mb-5">
                     {user.occupation && (
-                        <div className="flex items-center gap-2 text-sm text-[#7A6862] font-semibold">
-                            <Briefcase className="w-4 h-4 flex-shrink-0 text-[#CD6E67]" />
+                        <div 
+                            className="flex items-center gap-2 text-sm font-bold"
+                            style={{ color: COLORS.text }}
+                        >
+                            <Briefcase className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.border }} />
                             <span className="truncate">{user.occupation}</span>
                         </div>
                     )}
                     {user.education && (
-                        <div className="flex items-center gap-2 text-sm text-[#7A6862] font-semibold">
-                            <GraduationCap className="w-4 h-4 flex-shrink-0 text-[#CD6E67]" />
+                        <div 
+                            className="flex items-center gap-2 text-sm font-bold"
+                            style={{ color: COLORS.text }}
+                        >
+                            <GraduationCap className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.border }} />
                             <span className="truncate">{user.education}</span>
                         </div>
                     )}
@@ -99,15 +148,24 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                 {/* Tags / Vibes */}
                 {user.tags && user.tags.length > 0 && (
                     <div className="mb-5">
-                        <h3 className="text-xs font-extrabold text-[#7A6862] uppercase tracking-wider mb-3">
-                            My Vibe
+                        <h3 
+                            className="font-pixel text-xs uppercase tracking-wider mb-3"
+                            style={{ color: COLORS.textMuted }}
+                        >
+                            ⚔️ MY VIBES
                         </h3>
                         <div className="flex flex-wrap gap-2">
                             {user.tags.map((tag, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => onContentClick?.(`tag-${idx}`, 'vibe')}
-                                    className="px-3 py-2 text-sm bg-white text-[#3E3229] font-bold rounded-[15px] shadow-sm hover:bg-[#CD6E67] hover:text-white transition-all"
+                                    className="px-3 py-1.5 text-xs font-bold border-[2px] transition-all hover:translate-y-[-2px]"
+                                    style={{ 
+                                        backgroundColor: COLORS.background, 
+                                        borderColor: COLORS.border,
+                                        color: COLORS.text,
+                                        boxShadow: `2px 2px 0px ${COLORS.border}`
+                                    }}
                                 >
                                     {tag}
                                 </button>
@@ -119,10 +177,16 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                 {/* Bio */}
                 {user.bio && (
                     <div className="mb-5">
-                        <h3 className="text-xs font-extrabold text-[#7A6862] uppercase tracking-wider mb-3">
-                            About Me
+                        <h3 
+                            className="font-pixel text-xs uppercase tracking-wider mb-3"
+                            style={{ color: COLORS.textMuted }}
+                        >
+                            📜 ABOUT ME
                         </h3>
-                        <p className="text-sm text-[#3E3229] font-semibold leading-relaxed">
+                        <p 
+                            className="text-sm font-body leading-relaxed"
+                            style={{ color: COLORS.text }}
+                        >
                             {user.bio}
                         </p>
                     </div>
@@ -135,25 +199,41 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                             <button
                                 key={prompt.id || idx}
                                 onClick={() => onContentClick?.(prompt.id || `prompt-${idx}`, 'prompt')}
-                                className="w-full text-left p-4 bg-white rounded-[20px] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all"
+                                className="w-full text-left p-4 border-[3px] transition-all hover:translate-y-[-2px]"
+                                style={{ 
+                                    backgroundColor: COLORS.background, 
+                                    borderColor: COLORS.border,
+                                    boxShadow: `3px 3px 0px ${COLORS.border}`
+                                }}
                             >
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-lg">{prompt.emoji || '💬'}</span>
-                                    <span className="text-xs font-extrabold text-[#7A6862] uppercase tracking-wide">
+                                    <span 
+                                        className="font-pixel text-xs uppercase tracking-wide"
+                                        style={{ color: COLORS.textMuted }}
+                                    >
                                         {prompt.question}
                                     </span>
                                 </div>
-                                <p className="text-sm text-[#3E3229] font-semibold">{prompt.answer}</p>
+                                <p 
+                                    className="text-sm font-body font-bold"
+                                    style={{ color: COLORS.text }}
+                                >
+                                    {prompt.answer}
+                                </p>
                             </button>
                         ))}
                     </div>
                 )}
 
                 {/* Spotify & Instagram */}
-                <div className="flex items-center gap-4 text-xs text-[#7A6862] font-semibold">
+                <div 
+                    className="flex items-center gap-4 text-xs font-bold"
+                    style={{ color: COLORS.textMuted }}
+                >
                     {user.spotify && (
                         <div className="flex items-center gap-1.5">
-                            <Music className="w-4 h-4 text-[#CD6E67]" />
+                            <Music className="w-4 h-4" style={{ color: COLORS.green }} />
                             <span className="truncate max-w-[120px]">
                                 {user.spotify.song}
                             </span>
@@ -161,7 +241,7 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                     )}
                     {user.instagram && (
                         <div className="flex items-center gap-1.5">
-                            <Instagram className="w-4 h-4 text-[#CD6E67]" />
+                            <Instagram className="w-4 h-4" style={{ color: COLORS.pink }} />
                             <span>{user.instagram}</span>
                         </div>
                     )}

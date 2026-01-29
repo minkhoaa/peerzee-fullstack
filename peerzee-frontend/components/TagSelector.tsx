@@ -24,21 +24,21 @@ export function TagSelector({ selectedTags, onChange, maxTags = 5 }: TagSelector
     const category = TAG_CATEGORIES[activeCategory];
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-4">
             {/* Selected tags */}
             {selectedTags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                     {selectedTags.map((tag) => {
                         const tagData = TAG_CATEGORIES.flatMap((c) => c.tags).find((t) => t.label === tag);
                         return (
                             <button
                                 key={tag}
                                 onClick={() => toggleTag(tag)}
-                                className="flex items-center gap-1 px-2 py-1 bg-blue-600/20 text-blue-400 text-sm rounded-lg hover:bg-blue-600/30 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#CD6E67]/20 text-[#CD6E67] text-sm font-bold rounded-full hover:bg-[#CD6E67]/30 transition-colors"
                             >
                                 <span>{tagData?.emoji}</span>
                                 <span>{tag}</span>
-                                <X className="w-3 h-3 ml-0.5" />
+                                <X className="w-3.5 h-3.5 ml-0.5" />
                             </button>
                         );
                     })}
@@ -46,19 +46,19 @@ export function TagSelector({ selectedTags, onChange, maxTags = 5 }: TagSelector
             )}
 
             {/* Counter */}
-            <p className="text-xs text-[#9B9A97]">
-                Đã chọn {selectedTags.length}/{maxTags} tags
+            <p className="text-sm font-semibold text-[#7A6862]">
+                Selected {selectedTags.length}/{maxTags} tags
             </p>
 
             {/* Category tabs */}
-            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 {TAG_CATEGORIES.map((cat, i) => (
                     <button
                         key={cat.name}
                         onClick={() => setActiveCategory(i)}
-                        className={`flex items-center gap-1 px-2.5 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors ${i === activeCategory
-                                ? 'bg-[#303030] text-white'
-                                : 'text-[#9B9A97] hover:bg-[#252525]'
+                        className={`flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-full whitespace-nowrap transition-all ${i === activeCategory
+                                ? 'bg-[#CD6E67] text-white shadow-md'
+                                : 'text-[#7A6862] hover:bg-[#ECC8CD]/50 bg-white'
                             }`}
                     >
                         <span>{cat.emoji}</span>
@@ -68,7 +68,7 @@ export function TagSelector({ selectedTags, onChange, maxTags = 5 }: TagSelector
             </div>
 
             {/* Tags grid */}
-            <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
                 {category.tags.map((tag) => {
                     const isSelected = selectedTags.includes(tag.label);
                     const isDisabled = !isSelected && selectedTags.length >= maxTags;
@@ -77,11 +77,11 @@ export function TagSelector({ selectedTags, onChange, maxTags = 5 }: TagSelector
                             key={tag.label}
                             onClick={() => toggleTag(tag.label)}
                             disabled={isDisabled}
-                            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${isSelected
-                                    ? 'bg-blue-600 text-white'
+                            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-[15px] transition-all ${isSelected
+                                    ? 'bg-[#CD6E67] text-white shadow-md'
                                     : isDisabled
-                                        ? 'bg-[#1A1A1A] text-[#505050] cursor-not-allowed'
-                                        : 'bg-[#252525] text-white hover:bg-[#303030]'
+                                        ? 'bg-[#ECC8CD]/30 text-[#7A6862]/50 cursor-not-allowed'
+                                        : 'bg-white text-[#3E3229] hover:bg-[#FDF0F1] hover:scale-[1.02] shadow-sm border-b-4 border-[#ECC8CD]/30'
                                 }`}
                         >
                             <span>{tag.emoji}</span>

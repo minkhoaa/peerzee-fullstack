@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, X, Plus, Trash2, Loader2, MapPin, Ruler, Music, Play, Pause } from 'lucide-react';
+import { Camera, X, Loader2, MapPin, Music, Play, Pause, Edit, Heart, Star, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { profileApi } from '@/lib/api';
 import { searchLocations } from '@/lib/vietnam-locations';
 import { TagSelector } from '@/components/TagSelector';
-import { ProfileHero } from '@/components/profile/ProfileHero';
 import { MusicSearchModal } from '@/components/profile/MusicSearchModal';
 import ProfilePhotos from '@/components/profile/ProfilePhotos';
-import { ZODIAC_SIGNS, getTagDisplay } from '@/lib/profile-tags';
+import { ZODIAC_SIGNS } from '@/lib/profile-tags';
+import { WoodenFrame, PixelButton, CarvedInput, CarvedTextarea } from '@/components/village';
+import { GlobalHeader } from '@/components/layout';
 
 interface MusicData {
     trackId?: string;
@@ -60,10 +61,8 @@ export default function MyProfilePage() {
     });
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const [locationQuery, setLocationQuery] = useState('');
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
     const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
-    const [activeTab, setActiveTab] = useState<'posts' | 'photos'>('photos');
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMusicModalOpen, setMusicModalOpen] = useState(false);
     const [isEditingPhotos, setIsEditingPhotos] = useState(false);
@@ -135,6 +134,7 @@ export default function MyProfilePage() {
         if (!file) return;
         setUploading(true);
         try {
+            const photos = profile?.photos?.sort((a, b) => (a.order || 0) - (b.order || 0)) || [];
             const res = await profileApi.uploadPhoto(file, photos.length === 0);
             setProfile(res.data);
         } catch (err) {
@@ -169,7 +169,6 @@ export default function MyProfilePage() {
 
     const handleSelectMusic = async (music: MusicData) => {
         try {
-            // Update profile state immediately for instant feedback
             setProfile(prev => prev ? { ...prev, spotify: music } : null);
             setMusicModalOpen(false);
         } catch (err) {
@@ -191,25 +190,25 @@ export default function MyProfilePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+            <div className="min-h-screen grass-dots flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-primary-orange border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
 
     if (!profile) {
         return (
-            <div className="min-h-screen bg-[#0D0D0D] flex flex-col items-center justify-center gap-4">
-                <p className="text-[#9B9A97]">Không thể tải profile</p>
-                <button onClick={() => router.push('/discover')} className="text-sm text-white hover:underline">
-                    ← Quay lại
-                </button>
+            <div className="min-h-screen grass-dots flex flex-col items-center justify-center gap-4">
+                <div className="text-6xl">😢</div>
+                <p className="font-pixel text-wood-dark">COULD NOT LOAD PROFILE</p>
+                <PixelButton onClick={() => router.push('/discover')}>
+                    ← GO BACK
+                </PixelButton>
             </div>
         );
     }
 
     const photos = profile.photos?.sort((a, b) => (a.order || 0) - (b.order || 0)) || [];
-    const coverPhoto = photos[0]?.url;
     const avatarUrl = photos[0]?.url;
 
     const musicData = profile.spotify && 'cover' in profile.spotify
@@ -219,7 +218,27 @@ export default function MyProfilePage() {
             : null;
 
     return (
-        <div className="min-h-screen bg-[#ECC8CD] px-4 py-8 flex flex-col items-center gap-8">
+        <div className="min-h-screen grass-dots flex flex-col">
+            <GlobalHeader
+                title="CHARACTER SHEET"
+                subtitle="Hero Registry • My Profile"
+                showBack
+                onBack={() => router.back()}
+                action={
+                    <button
+                        onClick={() => setShowEditModal(true)}
+                        className="px-3 py-1.5 font-pixel text-xs uppercase border-2 transition-all hover:opacity-80"
+                        style={{
+                            backgroundColor: '#6B5344',
+                            borderColor: '#261E1A',
+                            color: '#E0C097',
+                        }}
+                    >
+                        ✏️ EDIT
+                    </button>
+                }
+            />
+
             <input
                 ref={fileInputRef}
                 type="file"
@@ -228,241 +247,289 @@ export default function MyProfilePage() {
                 onChange={handlePhotoUpload}
             />
 
-            {/* Container */}
-            <div className="max-w-5xl w-full space-y-8">
-                {/* Hero Card */}
-                <ProfileHero
-                    coverPhoto={coverPhoto}
-                    avatarUrl={avatarUrl}
-                    displayName={profile.display_name || 'Unknown'}
-                    username={profile.display_name?.toLowerCase().replace(/\s/g, '') || 'user'}
-                    bio={profile.bio}
-                    stats={stats}
-                    uploading={uploading}
-                    onEditClick={() => setShowEditModal(true)}
-                    onCoverUploadClick={() => fileInputRef.current?.click()}
-                />
+            <div className="flex-1 p-4 md:p-8">
+                <div className="max-w-6xl mx-auto">
+                    <div className="grid lg:grid-cols-[400px_1fr] gap-6">
+                        {/* Hero Card */}
+                        <div>
+                            <WoodenFrame>
+                                <div className="p-6">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h2 className="font-pixel text-2xl text-wood-dark">HERO CARD</h2>
+                                        <PixelButton
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => setShowEditModal(true)}
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                            EDIT
+                                        </PixelButton>
+                                    </div>
 
-                {/* Toy Widgets Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-                    {/* Vinyl Player Widget */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.1 }}
-                        whileHover={{ scale: 1.02 }}
-                        onClick={() => setMusicModalOpen(true)}
-                        className="bg-[#FDF0F1] p-6 rounded-[40px] shadow-md flex items-center gap-4 cursor-pointer hover:shadow-lg transition-all"
-                    >
-                        {musicData ? (
-                            <>
-                                <div className="relative">
-                                    <motion.div
-                                        animate={{ rotate: isPlaying ? 360 : 0 }}
-                                        transition={{
-                                            duration: 3,
-                                            repeat: isPlaying ? Infinity : 0,
-                                            ease: "linear"
-                                        }}
-                                        className="w-16 h-16 rounded-full bg-[#3E3229] border-4 border-[#CD6E67] overflow-hidden flex items-center justify-center"
+                                    <div className="relative mb-6">
+                                        <div className="aspect-square border-4 border-wood-dark overflow-hidden bg-gradient-to-br from-accent-blue to-accent-blue/70">
+                                            {avatarUrl ? (
+                                                <img
+                                                    src={avatarUrl}
+                                                    alt="Profile"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <span className="font-pixel text-6xl text-parchment">?</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="absolute bottom-3 right-3 w-12 h-12 bg-primary-orange border-3 border-wood-dark flex items-center justify-center hover:bg-primary-red transition-colors"
+                                        >
+                                            <Camera className="w-6 h-6 text-parchment" />
+                                        </button>
+
+                                        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-landscape-green border-3 border-wood-dark px-6 py-2">
+                                            <p className="font-pixel text-xl text-parchment text-center">LEVEL {profile.age || '?'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 mt-8">
+                                        <div className="text-center">
+                                            <h3 className="font-pixel text-3xl text-wood-dark mb-1">{profile.display_name || 'Unknown'}</h3>
+                                            <p className="text-wood-dark/70">Age {profile.age || '?'}</p>
+                                        </div>
+
+                                        <div className="bg-cork/30 border-2 border-wood-dark p-4">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Briefcase className="w-4 h-4 text-wood-dark" />
+                                                <span className="font-pixel text-sm text-wood-dark">CLASS</span>
+                                            </div>
+                                            <p className="text-sm text-wood-dark">{profile.occupation || 'Not set'}</p>
+                                        </div>
+
+                                        <div className="bg-cork/30 border-2 border-wood-dark p-4">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <MapPin className="w-4 h-4 text-wood-dark" />
+                                                <span className="font-pixel text-sm text-wood-dark">REGION</span>
+                                            </div>
+                                            <p className="text-sm text-wood-dark">{profile.location || 'Not set'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-6 grid grid-cols-3 gap-2">
+                                        <div className="bg-parchment border-2 border-wood-dark p-3 text-center">
+                                            <Heart className="w-5 h-5 text-accent-pink mx-auto mb-1" />
+                                            <div className="font-pixel text-xl text-accent-pink">{stats.likes}</div>
+                                            <div className="text-xs text-wood-dark/60">LIKES</div>
+                                        </div>
+                                        <div className="bg-parchment border-2 border-wood-dark p-3 text-center">
+                                            <Star className="w-5 h-5 text-accent-yellow mx-auto mb-1" />
+                                            <div className="font-pixel text-xl text-accent-yellow">{stats.matches}</div>
+                                            <div className="text-xs text-wood-dark/60">MATCHES</div>
+                                        </div>
+                                        <div className="bg-parchment border-2 border-wood-dark p-3 text-center">
+                                            <span className="text-xl mx-auto mb-1 block">👁️</span>
+                                            <div className="font-pixel text-xl text-landscape-green">{stats.views}</div>
+                                            <div className="text-xs text-wood-dark/60">VIEWS</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-6 bg-cork/30 border-2 border-wood-dark p-4">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="font-pixel text-sm text-wood-dark">PROFILE POWER</span>
+                                            <span className="font-pixel text-sm text-primary-orange">{strength}%</span>
+                                        </div>
+                                        <div className="h-4 bg-parchment border-2 border-wood-dark">
+                                            <div
+                                                className="h-full bg-landscape-green transition-all"
+                                                style={{ width: `${strength}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </WoodenFrame>
+                        </div>
+
+                        {/* Main Content */}
+                        <div className="space-y-6">
+                            {/* Music Widget */}
+                            <WoodenFrame>
+                                <div className="p-6">
+                                    <h3 className="font-pixel text-xl text-wood-dark mb-4">THEME SONG</h3>
+                                    <div
+                                        onClick={() => setMusicModalOpen(true)}
+                                        className="bg-parchment border-3 border-wood-dark p-4 flex items-center gap-4 cursor-pointer hover:border-primary-orange transition-colors"
                                     >
-                                        {musicData.cover ? (
-                                            <img src={musicData.cover} alt="" className="w-full h-full object-cover" />
+                                        {musicData ? (
+                                            <>
+                                                <div className="relative">
+                                                    <motion.div
+                                                        animate={{ rotate: isPlaying ? 360 : 0 }}
+                                                        transition={{
+                                                            duration: 3,
+                                                            repeat: isPlaying ? Infinity : 0,
+                                                            ease: "linear"
+                                                        }}
+                                                        className="w-16 h-16 bg-wood-dark border-4 border-primary-orange overflow-hidden flex items-center justify-center"
+                                                    >
+                                                        {musicData.cover ? (
+                                                            <img src={musicData.cover} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <Music className="w-6 h-6 text-primary-orange" />
+                                                        )}
+                                                    </motion.div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setIsPlaying(!isPlaying);
+                                                        }}
+                                                        className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-orange border-2 border-wood-dark flex items-center justify-center text-parchment"
+                                                    >
+                                                        {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+                                                    </button>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-pixel text-wood-dark truncate">
+                                                        {musicData.song}
+                                                    </p>
+                                                    <p className="text-wood-dark/70 text-sm truncate">
+                                                        {musicData.artist}
+                                                    </p>
+                                                </div>
+                                            </>
                                         ) : (
-                                            <Music className="w-6 h-6 text-[#CD6E67]" />
+                                            <>
+                                                <div className="w-16 h-16 bg-cork/50 border-2 border-dashed border-wood-dark flex items-center justify-center">
+                                                    <Music className="w-6 h-6 text-wood-dark/50" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-pixel text-wood-dark/70">No music set</p>
+                                                    <p className="text-wood-dark/50 text-sm">Add your anthem</p>
+                                                </div>
+                                            </>
                                         )}
-                                    </motion.div>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsPlaying(!isPlaying);
-                                        }}
-                                        className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#CD6E67] rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform"
-                                    >
-                                        {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
-                                    </button>
+                                    </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-[#3E3229] truncate text-sm">
-                                        {musicData.song}
-                                    </p>
-                                    <p className="text-[#7A6862] text-xs truncate">
-                                        {musicData.artist}
-                                    </p>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="w-16 h-16 rounded-full bg-[#ECC8CD] border-2 border-dashed border-[#CD6E67] flex items-center justify-center">
-                                    <Music className="w-6 h-6 text-[#CD6E67]/50" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-bold text-[#7A6862] text-sm">No music set</p>
-                                    <p className="text-[#7A6862] text-xs">Add your anthem</p>
-                                </div>
-                            </>
-                        )}
-                    </motion.div>
+                            </WoodenFrame>
 
-                    {/* Interest Tags (Candy Jar) */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-[#FDF0F1] p-6 rounded-[40px] shadow-md col-span-1 md:col-span-2 flex flex-wrap gap-3 items-center"
-                    >
-                        <span className="text-[#CD6E67] font-bold mr-2">Loves:</span>
-                        {profile.tags && profile.tags.length > 0 ? (
-                            profile.tags.map((tag, i) => (
-                                <motion.span
-                                    key={i}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.3 + i * 0.05 }}
-                                    whileHover={{ y: -4 }}
-                                    className="bg-white text-[#3E3229] px-4 py-2 rounded-full font-bold shadow-sm border-b-4 border-[#ECC8CD]/50 cursor-default"
-                                >
-                                    {tag}
-                                </motion.span>
-                            ))
-                        ) : (
-                            <span className="text-[#7A6862] font-semibold text-sm">No interests added yet</span>
-                        )}
-                    </motion.div>
-                </div>
+                            {/* Interests */}
+                            <WoodenFrame>
+                                <div className="p-6">
+                                    <h3 className="font-pixel text-xl text-wood-dark mb-4">INTERESTS</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {profile.tags && profile.tags.length > 0 ? (
+                                            profile.tags.map((tag, i) => (
+                                                <span
+                                                    key={i}
+                                                    className="bg-primary-orange text-parchment px-3 py-2 font-pixel text-sm border-2 border-wood-dark"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="text-wood-dark/70 text-sm">No interests added yet</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </WoodenFrame>
 
-                {/* Content Tabs & Grid */}
-                <div className="w-full space-y-6">
-                    {/* Tab Switcher */}
-                    <div className="flex justify-center">
-                        <div className="bg-[#FDF0F1] p-2 rounded-full inline-flex shadow-inner">
-                            <button
-                                onClick={() => setActiveTab('photos')}
-                                className={`px-8 py-3 rounded-full font-bold transition-all ${
-                                    activeTab === 'photos'
-                                        ? 'bg-[#CD6E67] text-white shadow-md'
-                                        : 'text-[#7A6862] hover:bg-[#ECC8CD]/20'
-                                }`}
-                            >
-                                📸 Photos
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('posts')}
-                                className={`px-8 py-3 rounded-full font-bold transition-all ${
-                                    activeTab === 'posts'
-                                        ? 'bg-[#CD6E67] text-white shadow-md'
-                                        : 'text-[#7A6862] hover:bg-[#ECC8CD]/20'
-                                }`}
-                            >
-                                📝 Posts
-                            </button>
+                            {/* Photos/Inventory */}
+                            <WoodenFrame>
+                                <div className="p-6">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <h3 className="font-pixel text-xl text-wood-dark">PHOTO INVENTORY</h3>
+                                            <p className="text-xs text-wood-dark/60">Upload up to 6 photos</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-pixel text-sm text-primary-orange">
+                                                {photos.length}/6 SLOTS
+                                            </span>
+                                            <PixelButton
+                                                variant={isEditingPhotos ? 'primary' : 'secondary'}
+                                                size="sm"
+                                                onClick={() => setIsEditingPhotos(!isEditingPhotos)}
+                                            >
+                                                {isEditingPhotos ? '✓ DONE' : '✏️ EDIT'}
+                                            </PixelButton>
+                                        </div>
+                                    </div>
+
+                                    <ProfilePhotos
+                                        photos={photos}
+                                        isOwnProfile={true}
+                                        isEditing={isEditingPhotos}
+                                        onUpload={handlePhotoUploadFile}
+                                        onDelete={handleDeletePhoto}
+                                    />
+                                </div>
+                            </WoodenFrame>
+
+                            {/* Bio */}
+                            {profile.bio && (
+                                <WoodenFrame variant="cork">
+                                    <div className="p-6">
+                                        <h3 className="font-pixel text-xl text-wood-dark mb-4">ABOUT ME</h3>
+                                        <p className="text-wood-dark leading-relaxed">{profile.bio}</p>
+                                    </div>
+                                </WoodenFrame>
+                            )}
                         </div>
                     </div>
-
-                    {/* Photo Grid */}
-                    {activeTab === 'photos' && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="space-y-4"
-                        >
-                            {/* Edit Toggle Button */}
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={() => setIsEditingPhotos(!isEditingPhotos)}
-                                    className={`px-6 py-2 rounded-full font-bold transition-all ${
-                                        isEditingPhotos
-                                            ? 'bg-[#CD6E67] text-white shadow-md'
-                                            : 'bg-[#FDF0F1] text-[#7A6862] hover:bg-[#F3DDE0]'
-                                    }`}
-                                >
-                                    {isEditingPhotos ? '✓ Xong' : '✏️ Chỉnh sửa'}
-                                </button>
-                            </div>
-
-                            {/* ProfilePhotos Component */}
-                            <ProfilePhotos
-                                photos={photos}
-                                isOwnProfile={true}
-                                isEditing={isEditingPhotos}
-                                onUpload={handlePhotoUploadFile}
-                                onDelete={handleDeletePhoto}
-                            />
-                        </motion.div>
-                    )}
-
-                    {/* Posts Tab (Empty State) */}
-                    {activeTab === 'posts' && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-center py-12"
-                        >
-                            <div className="text-6xl mb-4">📝</div>
-                            <p className="text-[#7A6862] font-semibold">No posts yet</p>
-                        </motion.div>
-                    )}
                 </div>
             </div>
 
             {/* Edit Modal */}
             {showEditModal && (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-[#FDF0F1] rounded-[40px] w-full max-w-lg p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
+                        className="bg-parchment border-4 border-wood-dark w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-2xl font-black text-[#3E3229] font-nunito">Edit Profile</h3>
+                            <h3 className="font-pixel text-2xl text-wood-dark">EDIT PROFILE</h3>
                             <button
                                 onClick={() => setShowEditModal(false)}
-                                className="w-10 h-10 rounded-full bg-[#ECC8CD] hover:bg-[#CD6E67] text-[#3E3229] hover:text-white flex items-center justify-center transition-all"
+                                className="w-10 h-10 bg-cork border-2 border-wood-dark hover:bg-primary-red hover:text-parchment flex items-center justify-center transition-all"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <div className="space-y-5">
-                            <div>
-                                <label className="text-sm font-bold text-[#3E3229] mb-2 block ml-2">Display Name</label>
-                                <input
-                                    type="text"
-                                    value={editForm.display_name}
-                                    onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
-                                    className="w-full px-5 py-3 bg-white border-2 border-transparent rounded-full text-[#3E3229] font-semibold focus:outline-none focus:border-[#CD6E67] focus:ring-4 focus:ring-[#CD6E67]/10 transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-sm font-bold text-[#3E3229] mb-2 block ml-2">Bio</label>
-                                <textarea
-                                    value={editForm.bio}
-                                    onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                                    rows={4}
-                                    className="w-full px-5 py-3 bg-white border-2 border-transparent rounded-[20px] text-[#3E3229] font-semibold focus:outline-none focus:border-[#CD6E67] focus:ring-4 focus:ring-[#CD6E67]/10 transition-all resize-none"
-                                />
-                            </div>
+
+                        <div className="space-y-4">
+                            <CarvedInput
+                                label="Display Name"
+                                pixelLabel
+                                value={editForm.display_name}
+                                onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
+                            />
+
+                            <CarvedTextarea
+                                label="Bio"
+                                pixelLabel
+                                value={editForm.bio}
+                                onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                                rows={4}
+                            />
+
                             <div className="relative">
-                                <label className="text-sm font-bold text-[#3E3229] mb-2 block ml-2">Location</label>
-                                <div className="relative">
-                                    <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#7A6862]" />
-                                    <input
-                                        type="text"
-                                        value={editForm.location}
-                                        onChange={(e) => {
-                                            setEditForm({ ...editForm, location: e.target.value });
-                                            setLocationSuggestions(searchLocations(e.target.value));
-                                            setShowLocationDropdown(true);
-                                        }}
-                                        onFocus={() => {
-                                            setLocationSuggestions(searchLocations(editForm.location));
-                                            setShowLocationDropdown(true);
-                                        }}
-                                        placeholder="Choose city"
-                                        className="w-full pl-12 pr-5 py-3 bg-white border-2 border-transparent rounded-full text-[#3E3229] font-semibold focus:outline-none focus:border-[#CD6E67] focus:ring-4 focus:ring-[#CD6E67]/10 transition-all"
-                                    />
-                                </div>
+                                <CarvedInput
+                                    label="Location"
+                                    pixelLabel
+                                    value={editForm.location}
+                                    onChange={(e) => {
+                                        setEditForm({ ...editForm, location: e.target.value });
+                                        setLocationSuggestions(searchLocations(e.target.value));
+                                        setShowLocationDropdown(true);
+                                    }}
+                                    onFocus={() => {
+                                        setLocationSuggestions(searchLocations(editForm.location));
+                                        setShowLocationDropdown(true);
+                                    }}
+                                    placeholder="Choose city"
+                                />
                                 {showLocationDropdown && locationSuggestions.length > 0 && (
-                                    <div className="absolute z-10 mt-2 w-full max-h-48 overflow-auto bg-white border-2 border-[#ECC8CD] rounded-[20px] shadow-xl">
+                                    <div className="absolute z-10 mt-1 w-full max-h-48 overflow-auto bg-parchment border-3 border-wood-dark">
                                         {locationSuggestions.slice(0, 10).map((loc) => (
                                             <button
                                                 key={loc}
@@ -471,7 +538,7 @@ export default function MyProfilePage() {
                                                     setEditForm({ ...editForm, location: loc });
                                                     setShowLocationDropdown(false);
                                                 }}
-                                                className="w-full px-5 py-3 text-left text-sm font-semibold text-[#3E3229] hover:bg-[#FDF0F1] transition-colors"
+                                                className="w-full px-4 py-2 text-left text-sm text-wood-dark hover:bg-cork/50 transition-colors"
                                             >
                                                 {loc}
                                             </button>
@@ -479,37 +546,29 @@ export default function MyProfilePage() {
                                     </div>
                                 )}
                             </div>
-                            <div>
-                                <label className="text-sm font-bold text-[#3E3229] mb-2 block ml-2">Occupation</label>
-                                <input
-                                    type="text"
-                                    value={editForm.occupation}
-                                    onChange={(e) => setEditForm({ ...editForm, occupation: e.target.value })}
-                                    className="w-full px-5 py-3 bg-white border-2 border-transparent rounded-full text-[#3E3229] font-semibold focus:outline-none focus:border-[#CD6E67] focus:ring-4 focus:ring-[#CD6E67]/10 transition-all"
-                                />
-                            </div>
 
-                            {/* Height & Zodiac */}
+                            <CarvedInput
+                                label="Occupation"
+                                pixelLabel
+                                value={editForm.occupation}
+                                onChange={(e) => setEditForm({ ...editForm, occupation: e.target.value })}
+                            />
+
                             <div className="grid grid-cols-2 gap-4">
+                                <CarvedInput
+                                    label="Height (cm)"
+                                    pixelLabel
+                                    type="number"
+                                    value={editForm.height}
+                                    onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
+                                    placeholder="170"
+                                />
                                 <div>
-                                    <label className="text-sm font-bold text-[#3E3229] mb-2 block ml-2">Height (cm)</label>
-                                    <div className="relative">
-                                        <Ruler className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#7A6862]" />
-                                        <input
-                                            type="number"
-                                            value={editForm.height}
-                                            onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
-                                            placeholder="170"
-                                            className="w-full pl-12 pr-5 py-3 bg-white border-2 border-transparent rounded-full text-[#3E3229] font-semibold focus:outline-none focus:border-[#CD6E67] focus:ring-4 focus:ring-[#CD6E67]/10 transition-all"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-bold text-[#3E3229] mb-2 block ml-2">Zodiac</label>
+                                    <label className="font-pixel text-sm text-wood-dark mb-2 block">ZODIAC</label>
                                     <select
                                         value={editForm.zodiac}
                                         onChange={(e) => setEditForm({ ...editForm, zodiac: e.target.value })}
-                                        className="w-full px-5 py-3 bg-white border-2 border-transparent rounded-full text-[#3E3229] font-semibold focus:outline-none focus:border-[#CD6E67] focus:ring-4 focus:ring-[#CD6E67]/10 transition-all appearance-none"
+                                        className="w-full px-4 py-3 bg-parchment border-3 border-wood-dark text-wood-dark focus:border-primary-orange outline-none transition-colors"
                                     >
                                         <option value="">Choose...</option>
                                         {ZODIAC_SIGNS.map((z) => (
@@ -521,9 +580,8 @@ export default function MyProfilePage() {
                                 </div>
                             </div>
 
-                            {/* Tags */}
                             <div>
-                                <label className="text-sm font-bold text-[#3E3229] mb-2 block ml-2">Interests</label>
+                                <label className="font-pixel text-sm text-wood-dark mb-2 block">INTERESTS</label>
                                 <TagSelector
                                     selectedTags={editForm.tags}
                                     onChange={(tags) => setEditForm({ ...editForm, tags })}
@@ -531,21 +589,24 @@ export default function MyProfilePage() {
                                 />
                             </div>
                         </div>
-                        <div className="flex gap-4 mt-8">
-                            <button
+
+                        <div className="flex gap-4 mt-6">
+                            <PixelButton
+                                variant="secondary"
+                                className="flex-1"
                                 onClick={() => setShowEditModal(false)}
-                                className="flex-1 py-3 bg-[#ECC8CD] text-[#3E3229] font-bold rounded-full hover:bg-[#E5C0C5] transition-colors"
                             >
-                                Cancel
-                            </button>
-                            <button
+                                CANCEL
+                            </PixelButton>
+                            <PixelButton
+                                variant="success"
+                                className="flex-1"
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="flex-1 py-3 bg-[#CD6E67] text-white font-bold rounded-full hover:bg-[#B55B55] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                                Save Changes
-                            </button>
+                                SAVE CHANGES
+                            </PixelButton>
                         </div>
                     </motion.div>
                 </div>

@@ -114,32 +114,32 @@ export default function EngagementModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-[#3E3229]/60 backdrop-blur-sm z-50"
                     />
 
-                    {/* Bottom Sheet */}
+                    {/* Bottom Sheet - ToyWorld styled */}
                     <motion.div
                         initial={{ y: '100%' }}
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed bottom-0 left-0 right-0 z-50 bg-[#202020] border-t border-[#2F2F2F] rounded-t-3xl overflow-hidden"
+                        className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-4 border-[#ECC8CD]/40 rounded-t-[40px] overflow-hidden shadow-2xl shadow-[#CD6E67]/20"
                     >
-                        {/* Success Animation */}
+                        {/* Success Animation - ToyWorld styled */}
                         <AnimatePresence>
                             {showSuccess && (
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="absolute inset-0 flex items-center justify-center bg-[#202020] z-10"
+                                    className="absolute inset-0 flex items-center justify-center bg-white z-10"
                                 >
                                     <div className="text-center">
                                         <motion.div
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
                                             transition={{ type: 'spring', delay: 0.1 }}
-                                            className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mx-auto mb-4"
+                                            className="w-20 h-20 rounded-full bg-gradient-to-br from-[#CD6E67] to-[#E88B85] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#CD6E67]/30"
                                         >
                                             <Heart className="w-10 h-10 text-white fill-white" />
                                         </motion.div>
@@ -147,9 +147,9 @@ export default function EngagementModal({
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.2 }}
-                                            className="text-lg font-medium text-[#E3E3E3]"
+                                            className="text-lg font-nunito font-bold text-[#3E3229]"
                                         >
-                                            Sent to {recipientName}!
+                                            Sent to {recipientName}! 💕
                                         </motion.p>
                                     </div>
                                 </motion.div>
@@ -157,35 +157,37 @@ export default function EngagementModal({
                         </AnimatePresence>
 
                         {/* Handle Bar */}
-                        <div className="flex justify-center pt-3 pb-2">
-                            <div className="w-10 h-1 rounded-full bg-[#4A4A4A]" />
+                        <div className="flex justify-center pt-4 pb-2">
+                            <div className="w-12 h-1.5 rounded-full bg-[#ECC8CD]" />
                         </div>
 
                         {/* Header */}
-                        <div className="flex items-center justify-between px-5 py-3 border-b border-[#2F2F2F]">
+                        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-[#ECC8CD]/30">
                             <div className="flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-pink-400" />
-                                <h3 className="text-sm font-medium text-[#E3E3E3]">
+                                <Sparkles className="w-4 h-4 text-[#CD6E67]" />
+                                <h3 className="text-sm font-nunito font-bold text-[#3E3229]">
                                     {getHeaderText()}
                                 </h3>
                             </div>
-                            <button
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
                                 onClick={onClose}
-                                className="p-1.5 rounded-full hover:bg-[#2F2F2F] transition-colors"
+                                className="p-2 rounded-full hover:bg-[#FDF0F1] transition-colors"
                             >
-                                <X className="w-5 h-5 text-[#9B9A97]" />
-                            </button>
+                                <X className="w-5 h-5 text-[#7A6862]" />
+                            </motion.button>
                         </div>
 
-                        {/* Content Preview */}
+                        {/* Content Preview - ToyWorld styled */}
                         {target && (
                             <div className="px-5 py-4">
-                                <div className="bg-[#262626] border border-[#2F2F2F] rounded-xl p-4">
+                                <div className="bg-[#FDF0F1] border-2 border-[#ECC8CD]/40 rounded-[20px] p-4">
                                     <div className="flex items-start gap-3">
                                         {target.emoji && (
                                             <span className="text-xl">{target.emoji}</span>
                                         )}
-                                        <p className="text-sm text-[#9B9A97] line-clamp-2">
+                                        <p className="text-sm text-[#7A6862] line-clamp-2 font-medium">
                                             {target.preview}
                                         </p>
                                     </div>
@@ -193,22 +195,24 @@ export default function EngagementModal({
                             </div>
                         )}
 
-                        {/* Quick Replies */}
+                        {/* Quick Replies - ToyWorld styled */}
                         <div className="px-5 pb-3">
                             <div className="flex flex-wrap gap-2">
                                 {getSuggestedReplies().map((reply, i) => (
-                                    <button
+                                    <motion.button
                                         key={i}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                         onClick={() => setMessage(reply)}
-                                        className="px-3 py-1.5 text-xs text-[#9B9A97] bg-[#2F2F2F] rounded-full border border-[#3A3A3A] hover:bg-[#3A3A3A] hover:text-[#E3E3E3] transition-colors"
+                                        className="px-4 py-2 text-xs text-[#7A6862] bg-white rounded-full border-2 border-[#ECC8CD]/40 hover:bg-[#FDF0F1] hover:text-[#CD6E67] hover:border-[#CD6E67]/50 transition-colors font-semibold"
                                     >
                                         {reply}
-                                    </button>
+                                    </motion.button>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Input Area */}
+                        {/* Input Area - ToyWorld styled */}
                         <div className="px-5 pb-8">
                             <div className="relative">
                                 <textarea
@@ -217,7 +221,7 @@ export default function EngagementModal({
                                     onChange={(e) => setMessage(e.target.value)}
                                     placeholder="Write something genuine..."
                                     rows={3}
-                                    className="w-full px-4 py-3 bg-[#2F2F2F] border border-[#3A3A3A] rounded-xl text-[#E3E3E3] text-sm placeholder:text-[#6B6B6B] resize-none focus:outline-none focus:border-[#4A4A4A] transition-colors"
+                                    className="w-full px-5 py-4 bg-[#FDF0F1] border-2 border-[#ECC8CD]/40 rounded-[25px] text-[#3E3229] text-sm placeholder:text-[#7A6862] resize-none focus:outline-none focus:border-[#CD6E67]/50 focus:bg-white transition-all"
                                 />
 
                                 {/* Send Button */}
@@ -227,10 +231,10 @@ export default function EngagementModal({
                                         whileTap={{ scale: 0.98 }}
                                         onClick={handleSend}
                                         disabled={!message.trim() || isSending}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#CD6E67] to-[#E88B85] text-white text-sm font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#CD6E67]/30 border-b-4 border-[#B85C55]/50"
                                     >
                                         <Send className="w-4 h-4" />
-                                        {isSending ? 'Sending...' : 'Send Like'}
+                                        {isSending ? 'Sending...' : 'Send Like 💕'}
                                     </motion.button>
                                 </div>
                             </div>

@@ -5,6 +5,7 @@ import { VideoStage } from "@/components/match/VideoStage";
 import { ChatPanel } from "@/components/match/ChatPanel";
 import { ModeSelector } from "@/components/match/ModeSelector";
 import { useVideoDating } from "@/hooks/useVideoDating";
+import { GlobalHeader } from "@/components/layout";
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 type GenderPref = 'male' | 'female' | 'all';
@@ -145,32 +146,42 @@ export default function MatchPage() {
   }
 
   return (
-    <div className="h-[100dvh] w-full bg-[#ECC8CD] p-4 flex gap-4 overflow-hidden flex-col lg:flex-row">
-      {/* Left Panel: Video/Stage */}
-      <VideoStage
-        mode={mode}
-        state={state}
-        interests={interests}
-        localStream={localStream}
-        remoteStream={remoteStream}
-        remoteHasVideo={remoteHasVideo}
-        withVideo={withVideo}
-        isCameraOff={isCameraOff}
-        isMuted={isMuted}
-        onStop={handleStop}
-        onNext={handleNext}
-        onToggleMute={handleToggleMute}
-        onToggleCamera={handleToggleCamera}
+    <div className="h-[100dvh] w-full grass-dots flex flex-col overflow-hidden">
+      <GlobalHeader
+        title="DUNGEON FINDER"
+        subtitle={mode === 'video' ? 'Video Match • Looking for party...' : 'Text Match • Looking for party...'}
+        showBack
+        onBack={handleStop}
+        showNotifications={false}
       />
+      
+      <div className="flex-1 p-4 flex gap-4 overflow-hidden flex-col lg:flex-row">
+        {/* Left Panel: Video/Stage */}
+        <VideoStage
+          mode={mode}
+          state={state}
+          interests={interests}
+          localStream={localStream}
+          remoteStream={remoteStream}
+          remoteHasVideo={remoteHasVideo}
+          withVideo={withVideo}
+          isCameraOff={isCameraOff}
+          isMuted={isMuted}
+          onStop={handleStop}
+          onNext={handleNext}
+          onToggleMute={handleToggleMute}
+          onToggleCamera={handleToggleCamera}
+        />
 
-      {/* Right Panel: Chat */}
-      <ChatPanel
-        state={state}
-        matchInfo={matchInfo}
-        interests={interests}
-        messages={messages}
-        onSendMessage={handleSendMessage}
-      />
+        {/* Right Panel: Chat */}
+        <ChatPanel
+          state={state}
+          matchInfo={matchInfo}
+          interests={interests}
+          messages={messages}
+          onSendMessage={handleSendMessage}
+        />
+      </div>
     </div>
   );
 }
