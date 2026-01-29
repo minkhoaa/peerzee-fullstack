@@ -163,59 +163,76 @@ export default function DiscoverPage() {
 
     return (
         <div className="min-h-screen bg-retro-bg">
-            {/* Header */}
-            <header className="sticky top-0 z-30 bg-retro-white border-b-3 border-cocoa shadow-pixel">
-                <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            {/* Header - Wooden Beam Style */}
+            <header className="sticky top-0 z-30 bg-wood-dark border-b-4 border-wood-shadow shadow-wood relative">
+                {/* Wood grain texture overlay */}
+                <div 
+                    className="absolute inset-0 opacity-10 pointer-events-none"
+                    style={{
+                        backgroundImage: `repeating-linear-gradient(
+                            90deg,
+                            transparent,
+                            transparent 20px,
+                            rgba(0,0,0,0.1) 20px,
+                            rgba(0,0,0,0.1) 21px
+                        )`
+                    }}
+                />
+                <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between relative">
                     <button
                         onClick={() => router.back()}
-                        className="p-2 -ml-2 text-cocoa hover:text-pixel-pink-dark border-3 border-transparent hover:border-cocoa rounded-lg hover:shadow-pixel-sm transition-all active:translate-y-0.5 active:shadow-none"
+                        className="p-2 -ml-2 text-parchment hover:text-pixel-orange bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-all active:translate-y-0.5 active:shadow-none"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>
 
-                    <h1 className="font-pixel text-2xl text-cocoa uppercase tracking-widest flex items-center gap-2"><Search className="w-5 h-5" strokeWidth={2.5} /> DISCOVER</h1>
+                    <h1 className="font-pixel text-xl text-parchment uppercase tracking-widest flex items-center gap-2"><Search className="w-5 h-5" strokeWidth={2.5} /> DISCOVER</h1>
 
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => router.push('/likers')}
-                            className="relative p-2 text-cocoa hover:text-pixel-pink-dark border-3 border-transparent hover:border-cocoa rounded-lg hover:bg-pixel-pink hover:shadow-pixel-sm transition-all active:translate-y-0.5 active:shadow-none"
+                            className="relative p-2 text-parchment hover:text-pixel-orange bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-all active:translate-y-0.5 active:shadow-none"
                             title="Who Liked You"
                         >
                             <Star className="w-5 h-5" strokeWidth={2.5} />
                             {likersCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-pixel-red border-2 border-cocoa text-white text-[10px] font-pixel rounded-lg flex items-center justify-center shadow-pixel-sm">
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-pixel-red border-2 border-wood-shadow text-white text-[10px] font-pixel flex items-center justify-center shadow-pixel-sm">
                                     {likersCount > 9 ? '9+' : likersCount}
                                 </span>
                             )}
                         </button>
                         <button
                             onClick={() => router.push('/match')}
-                            className="p-2 text-cocoa hover:text-pixel-pink-dark border-3 border-transparent hover:border-cocoa rounded-lg hover:bg-pixel-blue hover:shadow-pixel-sm transition-all active:translate-y-0.5 active:shadow-none"
+                            className="p-2 text-parchment hover:text-pixel-orange bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-all active:translate-y-0.5 active:shadow-none"
                             title="Arcade Match (Text/Video)"
                         >
                             <Video className="w-5 h-5" />
                         </button>
                         <button
                             onClick={() => setShowSearch(!showSearch)}
-                            className={`p-2 border-3 rounded-lg transition-all active:translate-y-0.5 active:shadow-none ${showSearch ? 'text-cocoa bg-pixel-yellow border-cocoa shadow-pixel-sm' : 'text-cocoa border-transparent hover:border-cocoa hover:bg-pixel-yellow hover:shadow-pixel-sm'}`}
+                            className={`p-2 border-2 transition-all active:translate-y-0.5 active:shadow-none ${showSearch ? 'text-parchment bg-pixel-orange border-wood-shadow shadow-pixel-sm' : 'text-parchment bg-wood-medium border-wood-shadow hover:bg-wood-light'}`}
                             title="AI Search"
                         >
                             <Telescope className="w-5 h-5" strokeWidth={2.5} />
                         </button>
-                        <div className={`w-3 h-3 border-2 border-cocoa rounded-lg mx-1 ${isConnected ? 'bg-pixel-green' : 'bg-cocoa-light'}`} />
+                        <div className={`w-3 h-3 border-2 border-wood-shadow mx-1 ${isConnected ? 'bg-pixel-green' : 'bg-cocoa-light'}`} />
                         <button
                             onClick={() => router.push('/chat')}
-                            className="p-2 text-cocoa hover:text-pixel-pink-dark border-3 border-transparent hover:border-cocoa rounded-lg hover:bg-pixel-pink hover:shadow-pixel-sm transition-all active:translate-y-0.5 active:shadow-none"
+                            className="p-2 text-parchment hover:text-pixel-orange bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-all active:translate-y-0.5 active:shadow-none"
                         >
                             <MessageSquareText className="w-5 h-5" strokeWidth={2.5} />
                         </button>
-                        <button className="p-2 text-cocoa hover:text-pixel-pink-dark border-3 border-transparent hover:border-cocoa rounded-lg hover:bg-pixel-blue hover:shadow-pixel-sm transition-all active:translate-y-0.5 active:shadow-none">
+                        <button className="p-2 text-parchment hover:text-pixel-orange bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-all active:translate-y-0.5 active:shadow-none">
                             <Settings className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
-                {/* Decorative Pixel Line */}
-                <div className="h-1 bg-gradient-to-r from-pixel-pink via-pixel-blue to-pixel-green" />
+                {/* Decorative Nail/Rivet Line */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 flex justify-around items-center px-8">
+                    {[...Array(12)].map((_, i) => (
+                        <div key={i} className="w-1.5 h-1.5 rounded-full bg-wood-shadow border border-wood-light/30" />
+                    ))}
+                </div>
             </header>
 
             {/* AI Search Panel */}
@@ -372,7 +389,7 @@ export default function DiscoverPage() {
                                                         </span>
                                                     ))}
                                                     {user.tags.length > 4 && (
-                                                        <span className="px-2 py-0.5 text-cocoa-light font-pixel text-[11px]">
+                                                        <span className="px-2 py-0.5 bg-cocoa-light text-retro-white font-pixel text-[11px] border-2 border-cocoa rounded-lg">
                                                             +{user.tags.length - 4}
                                                         </span>
                                                     )}

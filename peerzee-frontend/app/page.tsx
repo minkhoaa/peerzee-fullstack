@@ -93,34 +93,53 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-retro-bg text-cocoa antialiased transition-colors duration-300">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-retro-white border-b-3 border-cocoa shadow-pixel">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+      {/* Navigation - Wooden Beam Style */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-wood-dark border-b-4 border-wood-shadow shadow-wood">
+        {/* Wood grain texture overlay */}
+        <div 
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              90deg,
+              transparent,
+              transparent 20px,
+              rgba(0,0,0,0.1) 20px,
+              rgba(0,0,0,0.1) 21px
+            )`
+          }}
+        />
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between relative">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-cocoa border-2 border-cocoa flex items-center justify-center shadow-pixel-sm">
-              <Monitor className="w-5 h-5 text-retro-white" strokeWidth={2.5} />
+            <div className="w-9 h-9 bg-pixel-orange border-2 border-wood-shadow flex items-center justify-center shadow-pixel-sm">
+              <Monitor className="w-5 h-5 text-parchment" strokeWidth={2.5} />
             </div>
-            <span className="font-pixel text-lg uppercase tracking-widest">Peerzee</span>
+            <span className="font-pixel text-lg uppercase tracking-widest text-parchment">Peerzee</span>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-2">
-            <button onClick={toggleTheme} className="p-2 rounded-lg border-2 border-cocoa hover:bg-pixel-blue transition-colors">
-              {theme === "light" ? Icons.moon : Icons.sun}
+            <button onClick={toggleTheme} className="p-2 bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-colors active:translate-y-0.5">
+              <span className="text-parchment">{theme === "light" ? Icons.moon : Icons.sun}</span>
             </button>
-            <Link href="/discover" className="px-3 py-2 text-sm font-bold text-cocoa hover:bg-pixel-pink/30 rounded-lg border-2 border-transparent hover:border-cocoa transition-colors flex items-center gap-1">
+            <Link href="/discover" className="px-3 py-2 text-sm font-pixel uppercase tracking-wider text-parchment/80 hover:text-parchment bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-colors flex items-center gap-1">
               <Globe className="w-4 h-4" strokeWidth={2.5} />
               Discover
             </Link>
-            <Link href="/community" className="px-3 py-2 text-sm font-bold text-cocoa hover:bg-pixel-purple/30 rounded-lg border-2 border-transparent hover:border-cocoa transition-colors flex items-center gap-1">
+            <Link href="/community" className="px-3 py-2 text-sm font-pixel uppercase tracking-wider text-parchment/80 hover:text-parchment bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-colors flex items-center gap-1">
               <Users className="w-4 h-4" strokeWidth={2.5} />
               Community
             </Link>
-            <Link href="/login" className="px-3 py-2 text-sm font-bold text-cocoa hover:bg-pixel-blue/30 rounded-lg border-2 border-transparent hover:border-cocoa transition-colors">
+            <Link href="/login" className="px-3 py-2 text-sm font-pixel uppercase tracking-wider text-parchment/80 hover:text-parchment bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-colors">
               Login
             </Link>
-            <Link href="/register" className="px-4 py-2 text-sm font-pixel uppercase tracking-widest bg-pixel-pink border-2 border-cocoa text-cocoa rounded-lg shadow-pixel-sm hover:bg-pixel-pink-dark transition-colors active:translate-y-0.5 active:shadow-none">
+            <Link href="/register" className="px-4 py-2 text-sm font-pixel uppercase tracking-widest bg-pixel-orange border-2 border-wood-shadow text-parchment shadow-pixel-sm hover:brightness-110 transition-all active:translate-y-0.5 active:shadow-none">
               Start
             </Link>
           </motion.div>
+        </div>
+        {/* Decorative Nail/Rivet Line */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 flex justify-around items-center px-8">
+          {[...Array(12)].map((_, i) => (
+            <div key={i} className="w-1.5 h-1.5 rounded-full bg-wood-shadow border border-wood-light/30" />
+          ))}
         </div>
       </nav>
 

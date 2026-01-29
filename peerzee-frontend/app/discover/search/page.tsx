@@ -65,20 +65,39 @@ export default function SearchPage() {
 
     return (
         <div className="min-h-screen bg-retro-bg">
-            {/* Header */}
-            <header className="sticky top-0 z-30 bg-retro-white border-b-3 border-cocoa">
-                <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
+            {/* Header - Wooden Beam Style */}
+            <header className="sticky top-0 z-30 bg-wood-dark border-b-4 border-wood-shadow shadow-wood relative">
+                {/* Wood grain texture overlay */}
+                <div 
+                    className="absolute inset-0 opacity-10 pointer-events-none"
+                    style={{
+                        backgroundImage: `repeating-linear-gradient(
+                            90deg,
+                            transparent,
+                            transparent 20px,
+                            rgba(0,0,0,0.1) 20px,
+                            rgba(0,0,0,0.1) 21px
+                        )`
+                    }}
+                />
+                <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3 relative">
                     <button
                         onClick={() => router.back()}
-                        className="p-2 -ml-2 text-cocoa-light hover:text-cocoa rounded-lg hover:bg-cocoa/10 transition-colors"
+                        className="p-2 -ml-2 text-parchment hover:text-pixel-orange bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>
 
                     <div className="flex-1 flex items-center gap-2">
-                        <Award className="w-5 h-5 text-pixel-pink" strokeWidth={2.5} />
-                        <h1 className="text-lg font-pixel text-cocoa">AI Search</h1>
+                        <Award className="w-5 h-5 text-pixel-orange" strokeWidth={2.5} />
+                        <h1 className="text-lg font-pixel text-parchment">AI Search</h1>
                     </div>
+                </div>
+                {/* Decorative Nail/Rivet Line */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 flex justify-around items-center px-8">
+                    {[...Array(12)].map((_, i) => (
+                        <div key={i} className="w-1.5 h-1.5 rounded-full bg-wood-shadow border border-wood-light/30" />
+                    ))}
                 </div>
             </header>
 

@@ -4,34 +4,48 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* ========================================
+     FRESH SAGE & COOL TAUPE PALETTE
+     ======================================== */
+  
   /* BACKGROUNDS */
-  --color-retro-bg: #D0E8F2;           /* Pastel Blue (App Background) */
+  --color-retro-bg: #E8F3E8;           /* Fresh Pale Sage Green (App Background) */
   --color-retro-white: #FFFFFF;        /* Card/Panel Background (High Contrast) */
-  --color-retro-paper: #FFF9F0;        /* Parchment/Note Background */
+  --color-retro-paper: #F9F7F1;        /* Warm off-white for paper notes */
+  --color-retro-cream: #F9F7F1;        /* Alias for paper */
   
-  /* BORDERS & TEXT (High Contrast) */
-  --color-cocoa: #4A3228;              /* Primary Dark Brown (Borders & Main Text) */
-  --color-cocoa-light: #8D6E63;        /* Secondary Text */
+  /* WOOD TONES (For Header & Frame) */
+  --color-wood-dark: #3D2E24;          /* Dark Wood (Header Background) */
+  --color-wood-medium: #5C4033;        /* Medium Wood */
+  --color-wood-light: #8B6914;         /* Light Wood Accent */
+  --color-wood-shadow: #2A1F17;        /* Darkest Wood Shadow */
+  --color-parchment: #F5E6C8;          /* Light Parchment for text on dark wood */
   
-  /* ACCENTS */
-  --color-pixel-pink: #FF9EB5;         /* Primary Action (Buttons) */
-  --color-pixel-pink-dark: #E06C87;    /* Hover State */
-  --color-pixel-blue: #BBEFFF;         /* Secondary Accents */
-  --color-pixel-green: #98D689;        /* Success/Online */
-  --color-pixel-red: #FF6B6B;          /* Error/Danger */
-  --color-pixel-yellow: #FFE66D;       /* Warning/Highlight */
-  --color-pixel-purple: #C9B1FF;       /* Special/Magic */
+  /* TEXT & BORDERS (COOL TONES) */
+  --color-cocoa: #62544B;              /* Cool Taupe (Primary Borders & Main Text) */
+  --color-cocoa-light: #8E8279;        /* Lighter Taupe (Secondary Text) */
+  
+  /* ACCENTS (Adjusted for cool tones) */
+  --color-pixel-pink: #F4AAB9;         /* Cooler Pink (Primary Action) */
+  --color-pixel-pink-dark: #E08A9B;    /* Hover State */
+  --color-pixel-blue: #B8E4F0;         /* Cooler Blue */
+  --color-pixel-green: #9DD69D;        /* Fresh Green (Success/Online) */
+  --color-pixel-red: #F08080;          /* Softer Red (Error/Danger) */
+  --color-pixel-yellow: #F5E17A;       /* Warm Yellow (Warning/Highlight) */
+  --color-pixel-purple: #C4B3E8;       /* Cool Purple (Special/Magic) */
+  --color-pixel-orange: #E07020;       /* Burning Orange (Logo Accent) */
   
   /* FONT FAMILIES */
   --font-pixel: 'VT323', monospace;    /* HEADINGS & BUTTONS ONLY */
   --font-body: 'Nunito', sans-serif;   /* BODY TEXT & INPUTS (Readability) */
   
-  /* HARD SHADOWS (No Blur - Pixel Art Style) */
-  --shadow-pixel: 4px 4px 0px #4A3228;
-  --shadow-pixel-sm: 2px 2px 0px #4A3228;
-  --shadow-pixel-lg: 6px 6px 0px #4A3228;
-  --shadow-pixel-inset: inset 2px 2px 0px rgba(74, 50, 40, 0.2);
-  --shadow-pixel-pink: 4px 4px 0px #E06C87;
+  /* HARD SHADOWS (Cool Taupe - Pixel Art Style) */
+  --shadow-pixel: 4px 4px 0px #62544B;
+  --shadow-pixel-sm: 2px 2px 0px #62544B;
+  --shadow-pixel-lg: 6px 6px 0px #62544B;
+  --shadow-pixel-inset: inset 2px 2px 0px rgba(98, 84, 75, 0.2);
+  --shadow-pixel-pink: 4px 4px 0px #E08A9B;
+  --shadow-wood: 0 4px 0px #2A1F17;    /* Wood plank shadow */
   
   /* BORDER WIDTH */
   --border-width-3: 3px;
@@ -52,12 +66,12 @@
 
 
 body {
-    background-color: #D0E8F2; /* Pastel Blue base */
-    background-image: radial-gradient(#4A3228 1px, transparent 1px);
-    background-size: 20px 20px;
+    background-color: #E8F3E8; /* Fresh Pale Sage Green */
+    background-image: radial-gradient(#62544B 1px, transparent 1px);
+    background-size: 24px 24px;
     background-attachment: fixed;
     font-family: 'Nunito', sans-serif;
-    color: #4A3228;
+    color: #62544B;
 }
 
 /* Prevent horizontal scrollbar */
@@ -71,9 +85,9 @@ body {
 /* Pixel Card Container */
 .pixel-card {
     background-color: #FFFFFF;
-    border: 3px solid #4A3228;
+    border: 3px solid #62544B;
     border-radius: 0.75rem;
-    box-shadow: 4px 4px 0px #4A3228;
+    box-shadow: 4px 4px 0px #62544B;
 }
 
 /* Pixel Button Base */
@@ -81,14 +95,14 @@ body {
     font-family: 'VT323', monospace;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border: 3px solid #4A3228;
-    box-shadow: 4px 4px 0px #4A3228;
+    border: 3px solid #62544B;
+    box-shadow: 4px 4px 0px #62544B;
     transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .pixel-btn:hover {
     transform: translate(-1px, -1px);
-    box-shadow: 5px 5px 0px #4A3228;
+    box-shadow: 5px 5px 0px #62544B;
 }
 
 .pixel-btn:active {
@@ -99,34 +113,34 @@ body {
 /* Pixel Input */
 .pixel-input {
     background-color: #FFFFFF;
-    border: 3px solid #4A3228;
-    box-shadow: inset 2px 2px 0px rgba(74, 50, 40, 0.2);
+    border: 3px solid #62544B;
+    box-shadow: inset 2px 2px 0px rgba(98, 84, 75, 0.2);
     font-family: 'Nunito', sans-serif;
 }
 
 .pixel-input:focus {
     outline: none;
-    border-color: #FF9EB5;
+    border-color: #F4AAB9;
 }
 
 /* Pixel Avatar */
 .pixel-avatar {
-    border: 3px solid #4A3228;
-    box-shadow: 2px 2px 0px #4A3228;
+    border: 3px solid #62544B;
+    box-shadow: 2px 2px 0px #62544B;
 }
 
 /* Pixel Badge */
 .pixel-badge {
     font-family: 'VT323', monospace;
     text-transform: uppercase;
-    border: 2px solid #4A3228;
-    box-shadow: 2px 2px 0px #4A3228;
+    border: 2px solid #62544B;
+    box-shadow: 2px 2px 0px #62544B;
 }
 
 /* Retro Heading Styles */
 .retro-heading {
     font-family: 'VT323', monospace;
-    color: #4A3228;
+    color: #62544B;
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }

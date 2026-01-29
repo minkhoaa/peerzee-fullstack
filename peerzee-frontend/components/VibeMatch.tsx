@@ -192,7 +192,7 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
                             <p className="text-cocoa/70 text-sm truncate font-medium">{currentMusic.artist}</p>
                             {analysis && (
                                 <div className="mt-2 flex items-center gap-2">
-                                    <span className="px-2 py-0.5 bg-retro-white/80 rounded-lg text-cocoa text-xs font-bold border border-cocoa">
+                                    <span className="px-2 py-0.5 bg-cocoa rounded-sm text-retro-white text-xs font-bold border-2 border-cocoa">
                                         {analysis.mood}
                                     </span>
                                 </div>
@@ -207,7 +207,7 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
                                 {analysis.keywords.map((kw, i) => (
                                     <span
                                         key={i}
-                                        className="px-2 py-1 bg-retro-white/80 rounded-lg text-cocoa text-xs font-bold border border-cocoa"
+                                        className="px-2 py-1 bg-cocoa rounded-sm text-retro-white text-xs font-bold border-2 border-cocoa"
                                     >
                                         {kw}
                                     </span>

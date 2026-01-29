@@ -8,21 +8,21 @@ import { NoteCard, WriteNote, TownCrier, VillageNav } from '@/components/communi
 import { GlobalHeader } from '@/components/layout';
 
 // ============================================
-// VILLAGE THEME COLORS
+// FRESH SAGE & COOL TAUPE PALETTE
 // ============================================
 const COLORS = {
-  grassGreen: '#4CAF50',
-  grassDark: '#388E3C',
-  parchment: '#FDF5E6',
-  parchmentDark: '#F5E6D3',
-  cork: '#D7A86E',
-  corkDark: '#C49A52',
-  wood: '#8B5A2B',
-  woodDark: '#4A3B32',
-  text: '#3E2723',
-  textLight: '#FDF5E6',
-  textMuted: '#795548',
-  orange: '#E65100',
+  // Backgrounds
+  bgSage: '#E8F3E8',           // Fresh Pale Sage Green (App Background)
+  paper: '#F9F7F1',            // Warm off-white for paper notes
+  white: '#FFFFFF',            // High contrast white
+  // Cool Taupe tones
+  taupe: '#62544B',            // Cool Taupe (Borders & Main Text)
+  taupeMuted: '#8E8279',       // Lighter Taupe (Secondary)
+  // Board frame
+  boardFrame: '#7A6B5E',       // Cool frame color
+  boardFrameDark: '#5C4F44',   // Darker frame border
+  // Accents
+  pink: '#F4AAB9',
 } as const;
 
 // Pin colors for variety
@@ -180,38 +180,21 @@ export default function CommunityPage() {
   };
 
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        backgroundColor: COLORS.grassGreen,
-        backgroundImage: `
-          radial-gradient(circle, ${COLORS.grassDark} 1px, transparent 1px),
-          radial-gradient(circle, ${COLORS.grassDark} 1px, transparent 1px)
-        `,
-        backgroundSize: '20px 20px',
-        backgroundPosition: '0 0, 10px 10px',
-      }}
-    >
+    <div className="min-h-screen bg-retro-bg">
       {/* ========== GLOBAL HEADER ========== */}
       <GlobalHeader 
         title="QUEST BOARD"
         subtitle="Town Square • Community"
         action={
           <div className="hidden md:flex">
-            <div
-              className="flex items-center gap-2 px-3 py-1.5 border-2"
-              style={{
-                backgroundColor: '#6B5344',
-                borderColor: '#261E1A',
-              }}
-            >
-              <Search className="w-4 h-4 text-[#E0C097]" />
+            <div className="flex items-center gap-2 px-3 py-1.5 border-3 border-cocoa bg-retro-paper shadow-pixel-sm">
+              <Search className="w-4 h-4 text-cocoa" strokeWidth={2.5} />
               <input
                 type="text"
                 placeholder="Search notices..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent outline-none text-sm w-40 placeholder:text-[#AC7F55] text-[#E0C097]"
+                className="bg-transparent outline-none text-sm w-40 placeholder:text-cocoa-light text-cocoa font-body"
               />
             </div>
           </div>
@@ -231,58 +214,39 @@ export default function CommunityPage() {
         <main className="flex-1 max-w-2xl">
           {/* Bulletin Board Frame */}
           <div
-            className="border-8 p-1"
+            className="border-8 p-1 rounded-xl"
             style={{
-              backgroundColor: COLORS.wood,
-              borderColor: COLORS.woodDark,
-              boxShadow: '8px 8px 0 #3E2723',
+              backgroundColor: COLORS.boardFrame,
+              borderColor: COLORS.boardFrameDark,
+              boxShadow: '6px 6px 0 #62544B',
             }}
           >
-            {/* Cork Board Inner */}
+            {/* Cork Board Inner - Paper background */}
             <div
-              className="p-4 min-h-[600px]"
+              className="p-4 min-h-[600px] rounded-lg"
               style={{
-                backgroundColor: COLORS.cork,
+                backgroundColor: COLORS.paper,
                 backgroundImage: `
-                  radial-gradient(ellipse, rgba(0,0,0,0.05) 0%, transparent 70%),
-                  repeating-linear-gradient(
-                    45deg,
-                    transparent,
-                    transparent 5px,
-                    rgba(0,0,0,0.02) 5px,
-                    rgba(0,0,0,0.02) 10px
-                  )
+                  radial-gradient(ellipse, rgba(0,0,0,0.02) 0%, transparent 70%)
                 `,
               }}
             >
               {/* Board Header */}
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h2
-                    className="font-pixel text-2xl"
-                    style={{ color: COLORS.text }}
-                  >
+                  <h2 className="font-pixel text-2xl text-cocoa font-bold">
                     Town Square
                   </h2>
-                  <p
-                    className="font-pixel text-2xl"
-                    style={{ color: COLORS.text }}
-                  >
+                  <p className="font-pixel text-xl text-cocoa-light">
                     Notices
                   </p>
                 </div>
                 {/* Date Card */}
-                <div
-                  className="border-3 px-4 py-2 text-center"
-                  style={{
-                    backgroundColor: COLORS.parchment,
-                    borderColor: COLORS.woodDark,
-                  }}
-                >
-                  <p className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
+                <div className="border-3 px-4 py-2 text-center border-cocoa bg-retro-white shadow-pixel-sm rounded-sm">
+                  <p className="text-xs font-medium font-body text-cocoa-light">
                     Today&apos;s Date:
                   </p>
-                  <p className="font-pixel text-lg" style={{ color: COLORS.text }}>
+                  <p className="font-pixel text-lg text-cocoa font-bold">
                     {villageDate}
                   </p>
                 </div>
@@ -301,7 +265,7 @@ export default function CommunityPage() {
                 <div className="flex items-center justify-center py-20">
                   <div className="text-center">
                     <div className="text-4xl mb-3 animate-bounce">📜</div>
-                    <p className="font-pixel text-sm" style={{ color: COLORS.text }}>
+                    <p className="font-pixel text-sm text-cocoa font-bold">
                       Loading notices...
                     </p>
                   </div>
@@ -323,40 +287,20 @@ export default function CommunityPage() {
 
               {/* Promo Card */}
               <div className="mt-6">
-                <div
-                  className="border-4 p-4 relative overflow-hidden"
-                  style={{
-                    backgroundColor: '#E3F2FD',
-                    borderColor: COLORS.woodDark,
-                  }}
-                >
+                <div className="border-3 border-cocoa p-4 relative overflow-hidden bg-pixel-blue/30 shadow-pixel">
                   {/* NEW badge */}
-                  <div
-                    className="absolute -top-1 -right-1 px-3 py-1 font-pixel text-xs"
-                    style={{
-                      backgroundColor: COLORS.orange,
-                      color: COLORS.textLight,
-                    }}
-                  >
+                  <div className="absolute -top-1 -right-1 px-3 py-1 font-pixel text-xs bg-pixel-pink text-cocoa border-2 border-cocoa">
                     NEW!
                   </div>
                   <div className="text-center">
                     <span className="text-3xl">🏪</span>
-                    <h3 className="font-pixel text-lg mt-2" style={{ color: COLORS.text }}>
+                    <h3 className="font-pixel text-lg mt-2 text-cocoa">
                       GENERAL STORE SALE
                     </h3>
-                    <p className="text-sm" style={{ color: COLORS.textMuted }}>
+                    <p className="text-sm font-body text-cocoa-light">
                       50% OFF ALL SEEDS
                     </p>
-                    <button
-                      className="mt-3 px-6 py-2 font-pixel text-sm uppercase border-3"
-                      style={{
-                        backgroundColor: COLORS.orange,
-                        borderColor: COLORS.woodDark,
-                        color: COLORS.textLight,
-                        boxShadow: `3px 3px 0 ${COLORS.woodDark}`,
-                      }}
-                    >
+                    <button className="mt-3 px-6 py-2 font-pixel text-sm uppercase border-3 border-cocoa bg-pixel-pink text-cocoa shadow-pixel hover:-translate-y-0.5 transition-transform">
                       VISIT SHOP
                     </button>
                   </div>

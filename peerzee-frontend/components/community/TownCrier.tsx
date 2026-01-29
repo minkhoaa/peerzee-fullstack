@@ -13,7 +13,7 @@ interface TownCrierProps {
 
 /**
  * TownCrier - Right sidebar component
- * Retro Pixel OS design system
+ * Fresh Sage & Cool Taupe palette with high contrast
  */
 export function TownCrier({
   trendingTopics,
@@ -24,8 +24,8 @@ export function TownCrier({
   return (
     <div className="space-y-4">
       {/* Town Crier Header */}
-      <div className="border-3 border-cocoa p-4 bg-retro-cream shadow-pixel">
-        <h2 className="font-pixel text-xl text-center uppercase tracking-wide text-cocoa">
+      <div className="border-3 border-cocoa p-4 bg-retro-paper shadow-pixel">
+        <h2 className="font-pixel text-xl text-center uppercase tracking-wide text-cocoa font-bold">
           TOWN CRIER
         </h2>
         <p className="text-xs text-center uppercase tracking-widest mt-1 font-body font-bold text-cocoa-light">
@@ -34,10 +34,10 @@ export function TownCrier({
       </div>
 
       {/* Talk of the Town (Trending) */}
-      <div className="border-3 border-cocoa p-4 bg-retro-cream shadow-pixel">
+      <div className="border-3 border-cocoa p-4 bg-retro-paper shadow-pixel">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-pixel-pink" />
-          <h3 className="font-pixel text-sm uppercase text-cocoa">
+          <TrendingUp className="w-4 h-4 text-pixel-pink" strokeWidth={2.5} />
+          <h3 className="font-pixel text-sm uppercase text-cocoa font-bold">
             TALK OF THE TOWN
           </h3>
         </div>
@@ -47,12 +47,13 @@ export function TownCrier({
             <button
               key={topic.id}
               onClick={() => onTopicClick?.(topic.tag)}
-              className="w-full flex items-center justify-between py-1.5 hover:bg-cocoa/10 transition-colors rounded px-2 -mx-2"
+              className="w-full flex items-center justify-between py-1.5 hover:bg-retro-bg transition-colors rounded px-2 -mx-2"
             >
-              <span className="text-sm font-body font-bold text-pixel-pink">
+              <span className="text-sm font-body font-bold text-cocoa">
                 {topic.tag}
               </span>
-              <span className="text-xs font-pixel px-2 py-0.5 border border-cocoa bg-cocoa/10 text-cocoa-light">
+              {/* Paper Label Badge - solid opaque parchment */}
+              <span className="text-xs font-pixel px-2 py-1 border-2 border-cocoa bg-parchment text-cocoa font-bold shadow-pixel-sm">
                 {topic.postCount > 999 ? `${(topic.postCount / 1000).toFixed(1)}k` : topic.postCount}
               </span>
             </button>
@@ -61,10 +62,10 @@ export function TownCrier({
       </div>
 
       {/* New Villagers */}
-      <div className="border-3 border-cocoa p-4 bg-retro-cream shadow-pixel">
+      <div className="border-3 border-cocoa p-4 bg-retro-paper shadow-pixel">
         <div className="flex items-center gap-2 mb-3">
-          <Users className="w-4 h-4 text-cocoa" />
-          <h3 className="font-pixel text-sm uppercase text-cocoa">
+          <Users className="w-4 h-4 text-cocoa" strokeWidth={2.5} />
+          <h3 className="font-pixel text-sm uppercase text-cocoa font-bold">
             NEW VILLAGERS
           </h3>
         </div>
@@ -76,7 +77,7 @@ export function TownCrier({
               onClick={() => onVillagerClick?.(villager.id)}
               className="relative group"
             >
-              <div className="w-full aspect-square border-2 border-cocoa overflow-hidden">
+              <div className="w-full aspect-square border-2 border-cocoa overflow-hidden bg-retro-white">
                 {villager.avatarUrl ? (
                   <img
                     src={villager.avatarUrl}
@@ -90,10 +91,10 @@ export function TownCrier({
                 )}
               </div>
               {villager.isOnline && (
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-white rounded-full bg-pixel-mint" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-retro-white rounded-full bg-pixel-green" />
               )}
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-pixel opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 bg-cocoa text-white">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-pixel opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 bg-cocoa text-retro-white border-2 border-cocoa">
                 {villager.username}
               </div>
             </button>
@@ -101,24 +102,24 @@ export function TownCrier({
         </div>
 
         {/* Scroll indicator */}
-        <div className="mt-3 p-2 flex items-center justify-center bg-cocoa/10">
-          <Bird className="w-6 h-6 text-cocoa-light" strokeWidth={2.5} />
+        <div className="mt-3 p-2 flex items-center justify-center bg-retro-white border-2 border-cocoa">
+          <Bird className="w-6 h-6 text-cocoa" strokeWidth={2.5} />
         </div>
       </div>
 
       {/* Footer Links */}
-      <div className="border-3 border-cocoa p-3 bg-retro-cream shadow-pixel">
+      <div className="border-3 border-cocoa p-3 bg-retro-paper shadow-pixel">
         <div className="flex items-center justify-center gap-4">
-          <button className="flex items-center gap-1 text-xs font-pixel uppercase hover:underline text-cocoa-light">
-            <BookOpen className="w-3 h-3" />
+          <button className="flex items-center gap-1 text-xs font-pixel uppercase hover:text-pixel-pink transition-colors text-cocoa font-bold">
+            <BookOpen className="w-3 h-3" strokeWidth={2.5} />
             RULES
           </button>
-          <button className="flex items-center gap-1 text-xs font-pixel uppercase hover:underline text-cocoa-light">
-            <HelpCircle className="w-3 h-3" />
+          <button className="flex items-center gap-1 text-xs font-pixel uppercase hover:text-pixel-pink transition-colors text-cocoa font-bold">
+            <HelpCircle className="w-3 h-3" strokeWidth={2.5} />
             HELP
           </button>
-          <button className="flex items-center gap-1 text-xs font-pixel uppercase hover:underline text-cocoa-light">
-            <Shield className="w-3 h-3" />
+          <button className="flex items-center gap-1 text-xs font-pixel uppercase hover:text-pixel-pink transition-colors text-cocoa font-bold">
+            <Shield className="w-3 h-3" strokeWidth={2.5} />
             PRIVACY
           </button>
         </div>

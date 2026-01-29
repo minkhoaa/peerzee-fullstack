@@ -18,7 +18,7 @@ interface NoteCardProps {
 
 /**
  * NoteCard - A pinned note on the bulletin board
- * Retro Pixel OS aesthetic
+ * Fresh Sage & Cool Taupe palette
  */
 export function NoteCard({ 
   post, 
@@ -57,11 +57,11 @@ export function NoteCard({
       </div>
 
       {/* Note Card */}
-      <div className="p-5 pt-6 border-3 border-cocoa relative bg-retro-cream shadow-pixel">
+      <div className="p-5 pt-6 border-3 border-cocoa relative bg-retro-paper shadow-pixel">
         {/* Author Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 border-2 border-cocoa overflow-hidden flex-shrink-0">
+            <div className="w-10 h-10 border-2 border-cocoa overflow-hidden flex-shrink-0 bg-retro-white">
               {post.author.avatarUrl ? (
                 <img
                   src={post.author.avatarUrl}
@@ -75,7 +75,7 @@ export function NoteCard({
               )}
             </div>
             <div>
-              <p className="font-pixel text-sm text-cocoa">
+              <p className="font-pixel text-sm text-cocoa font-bold">
                 {post.author.username}
               </p>
               <p className="text-xs font-body font-bold text-cocoa-light">
@@ -91,10 +91,10 @@ export function NoteCard({
                 onClick={() => setShowMenu(!showMenu)}
                 className="p-1 hover:bg-cocoa/10 rounded transition-colors text-cocoa-light"
               >
-                <MoreHorizontal className="w-5 h-5" />
+                <MoreHorizontal className="w-5 h-5" strokeWidth={2.5} />
               </button>
               {showMenu && (
-                <div className="absolute right-0 top-full mt-1 py-1 border-3 border-cocoa z-20 min-w-[120px] bg-retro-cream shadow-pixel">
+                <div className="absolute right-0 top-full mt-1 py-1 border-3 border-cocoa z-20 min-w-[120px] bg-retro-paper shadow-pixel">
                   <button
                     onClick={() => {
                       onDelete?.(post.id);
@@ -102,7 +102,7 @@ export function NoteCard({
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 hover:bg-pixel-red/20 text-pixel-red text-sm font-body font-bold"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" strokeWidth={2.5} />
                     Delete
                   </button>
                 </div>
@@ -119,7 +119,7 @@ export function NoteCard({
         {/* Image */}
         {post.imageUrls && post.imageUrls.length > 0 && (
           <div className="mb-3 -mx-2">
-            <div className="rounded-xl border-3 border-cocoa overflow-hidden shadow-pixel-sm">
+            <div className="rounded-lg border-3 border-cocoa overflow-hidden shadow-pixel-sm">
               <img
                 src={post.imageUrls[0]}
                 alt="Post image"
@@ -135,7 +135,7 @@ export function NoteCard({
             {post.tags.map((tag, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 text-xs font-pixel border border-cocoa bg-cocoa/10 text-cocoa"
+                className="px-2 py-1 text-xs font-pixel border-2 border-cocoa bg-cocoa text-retro-white font-bold rounded-sm"
               >
                 #{tag}
               </span>
@@ -154,15 +154,16 @@ export function NoteCard({
             <Heart
               className="w-4 h-4"
               fill={post.isLiked ? 'currentColor' : 'none'}
+              strokeWidth={2.5}
             />
             <span className="text-sm font-body font-bold">{post.stats.likes}</span>
           </button>
           <button className="flex items-center gap-1 transition-colors hover:scale-105 text-cocoa-light">
-            <MessageSquare className="w-4 h-4" />
+            <MessageSquare className="w-4 h-4" strokeWidth={2.5} />
             <span className="text-sm font-body font-bold">{post.stats.comments}</span>
           </button>
           {post.stats.likes > 50 && (
-            <span className="ml-auto text-xs font-pixel text-pixel-pink">
+            <span className="ml-auto text-xs font-pixel text-pixel-pink font-bold">
               Read More
             </span>
           )}

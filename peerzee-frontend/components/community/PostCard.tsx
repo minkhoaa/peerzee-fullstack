@@ -230,7 +230,7 @@ export default function PostCard({
             {post.tags.map((tag, index) => (
               <button
                 key={index}
-                className="px-2 py-1 rounded border border-cocoa font-pixel text-xs uppercase hover:bg-pixel-pink/20 transition-colors bg-cocoa/10 text-cocoa"
+                className="px-2 py-1 rounded-sm border-2 border-cocoa font-pixel text-xs uppercase hover:bg-cocoa-light transition-colors bg-cocoa text-retro-white"
               >
                 {tag.startsWith('#') ? tag : `#${tag}`}
               </button>

@@ -45,22 +45,41 @@ export default function LikersPage() {
 
     return (
         <div className="min-h-screen bg-retro-bg">
-            {/* Header */}
-            <header className="sticky top-0 z-30 bg-retro-white border-b-3 border-cocoa shadow-pixel">
-                <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+            {/* Header - Wooden Beam Style */}
+            <header className="sticky top-0 z-30 bg-wood-dark border-b-4 border-wood-shadow shadow-wood relative">
+                {/* Wood grain texture overlay */}
+                <div 
+                    className="absolute inset-0 opacity-10 pointer-events-none"
+                    style={{
+                        backgroundImage: `repeating-linear-gradient(
+                            90deg,
+                            transparent,
+                            transparent 20px,
+                            rgba(0,0,0,0.1) 20px,
+                            rgba(0,0,0,0.1) 21px
+                        )`
+                    }}
+                />
+                <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between relative">
                     <button
                         onClick={() => router.back()}
-                        className="p-2 -ml-2 text-cocoa hover:bg-pixel-blue rounded-lg border-2 border-transparent hover:border-cocoa transition-colors"
+                        className="p-2 -ml-2 text-parchment hover:text-pixel-orange bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>
 
                     <div className="flex items-center gap-2">
-                        <Star className="w-5 h-5 text-pixel-pink fill-pixel-pink" strokeWidth={2.5} />
-                        <h1 className="text-lg font-pixel uppercase tracking-widest text-cocoa">Likes</h1>
+                        <Star className="w-5 h-5 text-pixel-orange fill-pixel-orange" strokeWidth={2.5} />
+                        <h1 className="text-lg font-pixel uppercase tracking-widest text-parchment">Likes</h1>
                     </div>
 
                     <div className="w-9" /> {/* Spacer */}
+                </div>
+                {/* Decorative Nail/Rivet Line */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 flex justify-around items-center px-8">
+                    {[...Array(12)].map((_, i) => (
+                        <div key={i} className="w-1.5 h-1.5 rounded-full bg-wood-shadow border border-wood-light/30" />
+                    ))}
                 </div>
             </header>
 

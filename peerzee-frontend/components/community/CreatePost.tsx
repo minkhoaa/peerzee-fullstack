@@ -185,7 +185,7 @@ export default function CreatePost({
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded border border-cocoa font-pixel text-xs uppercase bg-cocoa/10 text-cocoa"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-sm border-2 border-cocoa font-pixel text-xs uppercase bg-cocoa text-retro-white"
                 >
                   #{tag}
                   <button

@@ -11,7 +11,7 @@ interface WriteNoteProps {
 
 /**
  * WriteNote - Input area for creating new posts
- * Retro Pixel OS design system
+ * Fresh Sage & Cool Taupe palette
  */
 export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps) {
   const [content, setContent] = useState('');
@@ -34,20 +34,20 @@ export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps
   };
 
   return (
-    <div className="border-3 border-cocoa p-4 bg-retro-cream shadow-pixel">
+    <div className="border-3 border-cocoa p-4 bg-retro-paper shadow-pixel">
       {/* Header */}
-      <h3 className="font-pixel text-lg mb-3 flex items-center gap-2 text-cocoa">
+      <h3 className="font-pixel text-lg mb-3 flex items-center gap-2 text-cocoa font-bold">
         <PenLine className="w-5 h-5" strokeWidth={2.5} /> Write a Note
       </h3>
 
       {/* Input Area */}
       <div className="flex gap-3">
         {/* Avatar */}
-        <div className="w-10 h-10 border-2 border-cocoa flex-shrink-0 overflow-hidden bg-cocoa/10">
+        <div className="w-10 h-10 border-2 border-cocoa flex-shrink-0 overflow-hidden bg-retro-white">
           {userAvatar ? (
             <img src={userAvatar} alt="You" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center bg-cocoa/10">
               <User className="w-5 h-5 text-cocoa" strokeWidth={2.5} />
             </div>
           )}
@@ -75,13 +75,13 @@ export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps
             className="p-2 rounded hover:bg-cocoa/10 transition-colors text-cocoa-light"
             title="Add image"
           >
-            <Image className="w-5 h-5" />
+            <Image className="w-5 h-5" strokeWidth={2.5} />
           </button>
           <button
             className="p-2 rounded hover:bg-cocoa/10 transition-colors text-cocoa-light"
             title="Add emoji"
           >
-            <Smile className="w-5 h-5" />
+            <Smile className="w-5 h-5" strokeWidth={2.5} />
           </button>
         </div>
 
@@ -89,10 +89,10 @@ export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps
         <button
           onClick={handleSubmit}
           disabled={!content.trim() || isSubmitting}
-          className={`px-5 py-2 font-pixel text-sm uppercase border-2 border-cocoa transition-all hover:translate-y-[-2px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${
+          className={`px-5 py-2 font-pixel text-sm uppercase border-3 border-cocoa transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 font-bold ${
             content.trim() 
               ? 'bg-pixel-pink text-cocoa shadow-pixel-sm' 
-              : 'bg-cocoa/10 text-cocoa-light'
+              : 'bg-retro-white text-cocoa-light'
           }`}
         >
           {isSubmitting ? (

@@ -11,7 +11,7 @@ import {
   LogOut,
   Users,
   Bell,
-  Monitor
+  Scroll
 } from "lucide-react";
 
 interface NavItem {
@@ -29,33 +29,55 @@ interface GlobalHeaderProps {
 // Formal Icon System: strokeWidth={2.5} for thick Retro look
 // Video mode is now integrated into Match (Arcade Lobby)
 const navItems: NavItem[] = [
-  { href: "/discover", icon: <Globe size={20} strokeWidth={2.5} />, label: "Discover" },
-  { href: "/match", icon: <Search size={20} strokeWidth={2.5} />, label: "Match" },
-  { href: "/chat", icon: <MessageSquareText size={20} strokeWidth={2.5} />, label: "Chat" },
-  { href: "/community", icon: <Users size={20} strokeWidth={2.5} />, label: "Community" },
-  { href: "/likers", icon: <Star size={20} strokeWidth={2.5} />, label: "Likers" },
-  { href: "/profile", icon: <IdCard size={20} strokeWidth={2.5} />, label: "Profile" },
+  { href: "/discover", icon: <Globe size={18} strokeWidth={2.5} />, label: "Discover" },
+  { href: "/match", icon: <Search size={18} strokeWidth={2.5} />, label: "Match" },
+  { href: "/chat", icon: <MessageSquareText size={18} strokeWidth={2.5} />, label: "Chat" },
+  { href: "/community", icon: <Users size={18} strokeWidth={2.5} />, label: "Community" },
+  { href: "/likers", icon: <Star size={18} strokeWidth={2.5} />, label: "Likers" },
+  { href: "/profile", icon: <IdCard size={18} strokeWidth={2.5} />, label: "Profile" },
 ];
 
 export default function GlobalHeader({ title, subtitle, action }: GlobalHeaderProps) {
   const pathname = usePathname();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-retro-white border-b-3 border-cocoa shadow-pixel">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+    <header className="fixed top-0 left-0 right-0 z-50 bg-wood-dark border-b-4 border-wood-shadow shadow-wood">
+      {/* Wood grain texture overlay */}
+      <div 
+        className="absolute inset-0 opacity-10 pointer-events-none"
+        style={{
+          backgroundImage: `repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 20px,
+            rgba(0,0,0,0.1) 20px,
+            rgba(0,0,0,0.1) 21px
+          )`
+        }}
+      />
+      
+      <div className="max-w-7xl mx-auto px-4 relative">
+        <div className="flex items-center justify-between h-14">
+          {/* Logo Plaque */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-pixel-pink border-3 border-cocoa rounded-lg shadow-pixel-sm flex items-center justify-center group-hover:bg-pixel-pink-dark transition-colors">
-              <Monitor size={24} strokeWidth={2.5} className="text-cocoa" />
+            {/* Logo Emblem */}
+            <div className="relative">
+              <div className="w-10 h-10 bg-pixel-orange border-3 border-wood-shadow rounded-sm shadow-pixel-sm flex items-center justify-center group-hover:brightness-110 transition-all">
+                <Scroll size={22} strokeWidth={2.5} className="text-parchment" />
+              </div>
+              {/* Corner accents */}
+              <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-l-2 border-t-2 border-parchment/50" />
+              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 border-r-2 border-t-2 border-parchment/50" />
+              <div className="absolute -bottom-0.5 -left-0.5 w-2 h-2 border-l-2 border-b-2 border-parchment/50" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 border-r-2 border-b-2 border-parchment/50" />
             </div>
-            <span className="font-pixel text-2xl text-cocoa tracking-widest hidden sm:block">
+            <span className="font-pixel text-2xl text-parchment tracking-widest hidden sm:block drop-shadow-sm">
               PEERZEE
             </span>
           </Link>
 
-          {/* Navigation */}
-          <nav className="flex items-center gap-1 sm:gap-2">
+          {/* Navigation - Wood Beam Buttons */}
+          <nav className="flex items-center gap-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
@@ -63,11 +85,11 @@ export default function GlobalHeader({ title, subtitle, action }: GlobalHeaderPr
                   key={item.href}
                   href={item.href}
                   className={`
-                    flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-lg font-pixel text-sm uppercase tracking-wider
-                    border-3 transition-all duration-100
+                    flex items-center gap-1.5 px-2 sm:px-3 py-1.5 font-pixel text-sm uppercase tracking-wider
+                    border-2 transition-all duration-100
                     ${isActive 
-                      ? "bg-pixel-pink border-cocoa shadow-pixel-sm text-cocoa" 
-                      : "bg-retro-white border-transparent hover:border-cocoa hover:shadow-pixel-sm text-cocoa-light hover:text-cocoa"
+                      ? "bg-pixel-orange border-wood-shadow text-parchment shadow-pixel-sm" 
+                      : "bg-wood-medium border-wood-shadow text-parchment/80 hover:bg-wood-light hover:text-parchment"
                     }
                     active:translate-y-0.5 active:shadow-none
                   `}
@@ -82,23 +104,27 @@ export default function GlobalHeader({ title, subtitle, action }: GlobalHeaderPr
           {/* User Actions */}
           <div className="flex items-center gap-2">
             {/* Notification Bell */}
-            <button className="relative p-2 bg-pixel-blue border-3 border-cocoa rounded-lg shadow-pixel-sm hover:bg-pixel-pink transition-colors active:translate-y-0.5 active:shadow-none">
-              <Bell size={20} strokeWidth={2.5} className="text-cocoa" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-pixel-red border-2 border-cocoa rounded-full flex items-center justify-center">
+            <button className="relative p-2 bg-wood-medium border-2 border-wood-shadow shadow-pixel-sm hover:bg-wood-light transition-colors active:translate-y-0.5 active:shadow-none">
+              <Bell size={18} strokeWidth={2.5} className="text-parchment" />
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-pixel-red border-2 border-wood-shadow rounded-full flex items-center justify-center">
                 <span className="font-pixel text-xs text-white">3</span>
               </span>
             </button>
 
             {/* Logout */}
-            <button className="p-2 bg-retro-paper border-3 border-cocoa rounded-lg shadow-pixel-sm hover:bg-pixel-red hover:text-white transition-colors active:translate-y-0.5 active:shadow-none">
-              <LogOut size={20} strokeWidth={2.5} />
+            <button className="p-2 bg-wood-medium border-2 border-wood-shadow shadow-pixel-sm hover:bg-pixel-red transition-colors active:translate-y-0.5 active:shadow-none">
+              <LogOut size={18} strokeWidth={2.5} className="text-parchment" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Decorative Pixel Line */}
-      <div className="h-1 bg-gradient-to-r from-pixel-pink via-pixel-blue to-pixel-green" />
+      {/* Decorative Nail/Rivet Line */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 flex justify-around items-center px-8">
+        {[...Array(12)].map((_, i) => (
+          <div key={i} className="w-1.5 h-1.5 rounded-full bg-wood-shadow border border-wood-light/30" />
+        ))}
+      </div>
     </header>
   );
 }
