@@ -15,22 +15,6 @@ import {
 import type { Post, Comment, User } from '@/types/community';
 
 // ============================================
-// HIGH CONTRAST COLOR TOKENS (WCAG AA)
-// ============================================
-const COLORS = {
-  text: '#2C1A1D',           // Very Dark Cocoa - Primary text
-  textMuted: '#8D6E63',      // Lighter brown - Secondary text (still readable)
-  background: '#FFFFFF',      // Pure White - Card background
-  border: '#4A3228',          // Dark Coffee - Borders
-  interactive: '#D946EF',     // Magenta - Links/buttons
-  interactiveAlt: '#EC4899',  // Pink - Alternative interactive
-  placeholder: '#A1887F',     // Readable Brown - Placeholders
-  buttonBg: '#FF9EB5',        // Soft Pink - Button background
-  danger: '#DC2626',          // Red - Danger/delete
-  success: '#16A34A',         // Green - Success states
-} as const;
-
-// ============================================
 // UTILITY FUNCTIONS
 // ============================================
 function formatTimeAgo(dateString: string): string {
@@ -169,48 +153,33 @@ export default function PostCard({
   }, [onReport, post.id]);
 
   return (
-    <article 
-      className="bg-white border-[3px] border-[#4A3228] shadow-[4px_4px_0px_#4A3228] p-0 rounded-lg mb-6 overflow-hidden"
-      style={{ backgroundColor: COLORS.background }}
-    >
+    <article className="bg-retro-white border-3 border-cocoa shadow-pixel p-0 rounded-lg mb-6 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b-[2px] border-[#4A3228]/20">
+      <div className="flex items-center gap-3 p-4 border-b-[2px] border-cocoa/20">
         {/* Avatar with Level Badge */}
         <div className="relative">
           {post.author.avatarUrl ? (
             <img 
               src={post.author.avatarUrl} 
               alt={post.author.username}
-              className="w-11 h-11 rounded-lg border-[2px] border-[#4A3228] object-cover"
+              className="w-11 h-11 rounded-lg border-2 border-cocoa object-cover"
             />
           ) : (
-            <div 
-              className="w-11 h-11 rounded-lg border-[2px] border-[#4A3228] flex items-center justify-center font-pixel text-sm"
-              style={{ backgroundColor: COLORS.buttonBg, color: COLORS.border }}
-            >
+            <div className="w-11 h-11 rounded-lg border-2 border-cocoa flex items-center justify-center font-pixel text-sm bg-pixel-pink text-cocoa">
               {getInitials(post.author.username)}
             </div>
           )}
           {/* Level Badge */}
-          <div 
-            className="absolute -bottom-1 -right-1 w-5 h-5 rounded border-[2px] border-[#4A3228] flex items-center justify-center font-pixel text-[10px]"
-            style={{ backgroundColor: COLORS.buttonBg, color: COLORS.border }}
-          >
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded border-2 border-cocoa flex items-center justify-center font-pixel text-[10px] bg-pixel-pink text-cocoa">
             {post.author.level}
           </div>
         </div>
 
         <div className="flex-1 min-w-0">
-          <button 
-            className="font-pixel text-xl hover:underline cursor-pointer block truncate"
-            style={{ color: COLORS.text }}
-          >
+          <button className="font-pixel text-xl hover:underline cursor-pointer block truncate text-cocoa">
             {post.author.username}
           </button>
-          <span 
-            className="text-sm font-bold"
-            style={{ color: COLORS.textMuted }}
-          >
+          <span className="text-sm font-body font-bold text-cocoa-light">
             {formatTimeAgo(post.createdAt)}
           </span>
         </div>
@@ -219,22 +188,18 @@ export default function PostCard({
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="p-2 rounded-lg hover:bg-pink-50 transition-colors"
-            style={{ color: COLORS.textMuted }}
+            className="p-2 rounded-lg hover:bg-pixel-pink/20 transition-colors text-cocoa-light"
             aria-label="More options"
           >
             <MoreHorizontal className="w-5 h-5" />
           </button>
 
           {showMenu && (
-            <div 
-              className="absolute right-0 top-10 z-20 bg-white border-[3px] border-[#4A3228] shadow-[3px_3px_0px_#4A3228] rounded-lg py-1 min-w-[140px]"
-            >
+            <div className="absolute right-0 top-10 z-20 bg-retro-white border-3 border-cocoa shadow-pixel rounded-lg py-1 min-w-[140px]">
               {isAuthor ? (
                 <button
                   onClick={handleDelete}
-                  className="flex items-center gap-2 px-4 py-2 font-pixel text-xs uppercase hover:bg-red-50 w-full transition-colors"
-                  style={{ color: COLORS.danger }}
+                  className="flex items-center gap-2 px-4 py-2 font-pixel text-xs uppercase hover:bg-pixel-red/20 w-full transition-colors text-pixel-red"
                 >
                   <Trash2 className="w-4 h-4" />
                   DELETE
@@ -242,8 +207,7 @@ export default function PostCard({
               ) : (
                 <button
                   onClick={handleReport}
-                  className="flex items-center gap-2 px-4 py-2 font-pixel text-xs uppercase hover:bg-red-50 w-full transition-colors"
-                  style={{ color: COLORS.danger }}
+                  className="flex items-center gap-2 px-4 py-2 font-pixel text-xs uppercase hover:bg-pixel-red/20 w-full transition-colors text-pixel-red"
                 >
                   <Flag className="w-4 h-4" />
                   REPORT
@@ -256,10 +220,7 @@ export default function PostCard({
 
       {/* Body Content */}
       <div className="p-4">
-        <p 
-          className="font-body text-base leading-relaxed whitespace-pre-wrap break-words my-3"
-          style={{ color: COLORS.text }}
-        >
+        <p className="font-body font-bold text-base leading-relaxed whitespace-pre-wrap break-words my-3 text-cocoa">
           {post.content}
         </p>
 
@@ -269,11 +230,7 @@ export default function PostCard({
             {post.tags.map((tag, index) => (
               <button
                 key={index}
-                className="px-2 py-1 rounded border-[2px] border-[#4A3228] font-pixel text-xs uppercase hover:bg-pink-50 transition-colors"
-                style={{ 
-                  backgroundColor: COLORS.background, 
-                  color: COLORS.interactive 
-                }}
+                className="px-2 py-1 rounded border border-cocoa font-pixel text-xs uppercase hover:bg-pixel-pink/20 transition-colors bg-cocoa/10 text-cocoa"
               >
                 {tag.startsWith('#') ? tag : `#${tag}`}
               </button>
@@ -287,7 +244,7 @@ export default function PostCard({
             {post.imageUrls.slice(0, 4).map((url, index) => (
               <div 
                 key={index} 
-                className="relative rounded-lg border-[3px] border-[#4A3228] overflow-hidden aspect-video"
+                className="relative rounded-xl border-3 border-cocoa overflow-hidden aspect-video shadow-pixel-sm"
               >
                 <img 
                   src={url} 
@@ -296,9 +253,7 @@ export default function PostCard({
                   loading="lazy" 
                 />
                 {index === 3 && post.imageUrls && post.imageUrls.length > 4 && (
-                  <div 
-                    className="absolute inset-0 bg-[#4A3228]/80 flex items-center justify-center"
-                  >
+                  <div className="absolute inset-0 bg-cocoa/80 flex items-center justify-center">
                     <span className="font-pixel text-white text-xl">
                       +{post.imageUrls.length - 4}
                     </span>
@@ -311,14 +266,13 @@ export default function PostCard({
       </div>
 
       {/* Action Bar (Footer) */}
-      <div className="flex items-center gap-2 px-4 py-3 border-t-[2px] border-[#4A3228]/20">
+      <div className="flex items-center gap-2 px-4 py-3 border-t-[2px] border-cocoa/20">
         {/* Like Button */}
         <button
           onClick={handleLike}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg border-[2px] border-[#4A3228] font-pixel text-xs uppercase transition-all hover:bg-pink-50 ${
-            localIsLiked ? 'bg-pink-100' : 'bg-white'
-          }`}
-          style={{ color: localIsLiked ? COLORS.danger : COLORS.text }}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg border-3 border-cocoa font-pixel text-xs uppercase transition-all hover:bg-pixel-pink/20 shadow-pixel-sm ${
+            localIsLiked ? 'bg-pixel-pink/20' : 'bg-retro-white'
+          } ${localIsLiked ? 'text-pixel-red' : 'text-cocoa'}`}
         >
           <Heart className={`w-4 h-4 ${localIsLiked ? 'fill-current' : ''}`} />
           <span>{formatNumber(localLikes)}</span>
@@ -327,10 +281,9 @@ export default function PostCard({
         {/* Comment Button */}
         <button
           onClick={handleToggleComments}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg border-[2px] border-[#4A3228] font-pixel text-xs uppercase transition-all hover:bg-pink-50 ${
-            showComments ? 'bg-pink-100' : 'bg-white'
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg border-3 border-cocoa font-pixel text-xs uppercase transition-all hover:bg-pixel-pink/20 shadow-pixel-sm text-cocoa ${
+            showComments ? 'bg-pixel-pink/20' : 'bg-retro-white'
           }`}
-          style={{ color: COLORS.text }}
         >
           <MessageCircle className="w-4 h-4" />
           <span>{formatNumber(localCommentsCount)}</span>
@@ -339,8 +292,7 @@ export default function PostCard({
         {/* Share Button */}
         <button
           onClick={() => onShare?.(post.id)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg border-[2px] border-[#4A3228] font-pixel text-xs uppercase transition-all hover:bg-pink-50 bg-white"
-          style={{ color: COLORS.text }}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg border-3 border-cocoa font-pixel text-xs uppercase transition-all hover:bg-pixel-pink/20 bg-retro-white shadow-pixel-sm text-cocoa"
         >
           <Share2 className="w-4 h-4" />
           <span className="hidden sm:inline">SHARE</span>
@@ -349,10 +301,9 @@ export default function PostCard({
         {/* Save Button */}
         <button
           onClick={handleSave}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg border-[2px] border-[#4A3228] font-pixel text-xs uppercase transition-all hover:bg-pink-50 ml-auto ${
-            localIsSaved ? 'bg-yellow-100' : 'bg-white'
-          }`}
-          style={{ color: localIsSaved ? '#B45309' : COLORS.text }}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg border-3 border-cocoa font-pixel text-xs uppercase transition-all hover:bg-pixel-yellow ml-auto shadow-pixel-sm ${
+            localIsSaved ? 'bg-pixel-yellow' : 'bg-retro-white'
+          } text-cocoa`}
         >
           <Bookmark className={`w-4 h-4 ${localIsSaved ? 'fill-current' : ''}`} />
         </button>
@@ -360,7 +311,7 @@ export default function PostCard({
 
       {/* Comments Section */}
       {showComments && (
-        <div className="border-t-[2px] border-[#4A3228]/20 p-4 bg-[#FFF9F5]">
+        <div className="border-t-[2px] border-cocoa/20 p-4 bg-retro-cream">
           {/* Comment Input */}
           <form onSubmit={handleSubmitComment} className="flex items-center gap-2 mb-4">
             <input
@@ -369,22 +320,17 @@ export default function PostCard({
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 px-4 py-2 rounded-lg border-[2px] border-dashed border-[#4A3228] bg-white text-base outline-none focus:border-solid focus:border-[#D946EF] transition-all"
-              style={{ 
-                color: COLORS.text,
-                '::placeholder': { color: COLORS.placeholder }
-              } as React.CSSProperties}
+              className="flex-1 px-4 py-2 rounded-lg border-3 border-dashed border-cocoa bg-retro-white text-base outline-none focus:border-solid focus:border-pixel-pink transition-all font-body font-bold text-cocoa placeholder:text-cocoa-light shadow-pixel-sm"
               disabled={isSubmitting}
             />
             <button
               type="submit"
               disabled={!newComment.trim() || isSubmitting}
-              className={`p-2 rounded-lg border-[2px] border-[#4A3228] transition-all ${
+              className={`p-2 rounded-lg border-2 border-cocoa transition-all shadow-pixel-sm ${
                 newComment.trim() && !isSubmitting
-                  ? 'bg-[#FF9EB5] hover:bg-[#FF8DA6] cursor-pointer'
-                  : 'bg-gray-100 cursor-not-allowed opacity-50'
+                  ? 'bg-pixel-pink hover:bg-pixel-pink/80 cursor-pointer text-cocoa'
+                  : 'bg-cocoa/10 cursor-not-allowed opacity-50 text-cocoa'
               }`}
-              style={{ color: COLORS.border }}
             >
               {isSubmitting ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -398,13 +344,10 @@ export default function PostCard({
           <div className="space-y-3">
             {isLoadingComments ? (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin" style={{ color: COLORS.interactive }} />
+                <Loader2 className="w-5 h-5 animate-spin text-pixel-pink" />
               </div>
             ) : comments.length === 0 ? (
-              <p 
-                className="text-sm text-center py-4 font-body"
-                style={{ color: COLORS.textMuted }}
-              >
+              <p className="text-sm text-center py-4 font-body font-bold text-cocoa-light">
                 No comments yet. Be the first to share your thoughts!
               </p>
             ) : (
@@ -442,40 +385,26 @@ function CommentItem({ comment }: CommentItemProps) {
         <img 
           src={comment.author.avatarUrl} 
           alt={comment.author.username}
-          className="w-8 h-8 rounded-lg border-[2px] border-[#4A3228] object-cover flex-shrink-0"
+          className="w-8 h-8 rounded-lg border-2 border-cocoa object-cover flex-shrink-0"
         />
       ) : (
-        <div 
-          className="w-8 h-8 rounded-lg border-[2px] border-[#4A3228] flex items-center justify-center font-pixel text-xs flex-shrink-0"
-          style={{ backgroundColor: '#E8F5E9', color: COLORS.border }}
-        >
+        <div className="w-8 h-8 rounded-lg border-2 border-cocoa flex items-center justify-center font-pixel text-xs flex-shrink-0 bg-pixel-mint text-cocoa">
           {getInitials(comment.author.username)}
         </div>
       )}
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <div 
-          className="bg-white rounded-lg border-[2px] border-[#4A3228] p-3 shadow-[2px_2px_0px_#4A3228]"
-        >
+        <div className="bg-retro-white rounded-lg border-3 border-cocoa p-3 shadow-pixel-sm">
           <div className="flex items-center gap-2 mb-1">
-            <span 
-              className="font-pixel text-sm"
-              style={{ color: COLORS.text }}
-            >
+            <span className="font-pixel text-sm text-cocoa">
               {comment.author.username}
             </span>
-            <span 
-              className="text-xs font-bold"
-              style={{ color: COLORS.textMuted }}
-            >
+            <span className="text-xs font-body font-bold text-cocoa-light">
               · {formatTimeAgo(comment.createdAt)}
             </span>
           </div>
-          <p 
-            className="font-body text-sm leading-relaxed"
-            style={{ color: COLORS.text }}
-          >
+          <p className="font-body font-bold text-sm leading-relaxed text-cocoa">
             {comment.content}
           </p>
         </div>
@@ -485,17 +414,13 @@ function CommentItem({ comment }: CommentItemProps) {
           <button
             onClick={handleLike}
             className={`flex items-center gap-1 text-xs font-bold transition-colors ${
-              isLiked ? 'text-red-500' : ''
+              isLiked ? 'text-pixel-red' : 'text-cocoa-light'
             }`}
-            style={{ color: isLiked ? COLORS.danger : COLORS.textMuted }}
           >
             <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
             {likes > 0 && <span>{likes}</span>}
           </button>
-          <button 
-            className="text-xs font-bold hover:underline"
-            style={{ color: COLORS.textMuted }}
-          >
+          <button className="text-xs font-bold hover:underline text-cocoa-light">
             Reply
           </button>
         </div>
@@ -509,39 +434,39 @@ function CommentItem({ comment }: CommentItemProps) {
 // ============================================
 export function PostCardSkeleton() {
   return (
-    <div className="bg-white border-[3px] border-[#4A3228] shadow-[4px_4px_0px_#4A3228] rounded-lg mb-6 overflow-hidden animate-pulse">
+    <div className="bg-retro-white border-3 border-cocoa shadow-pixel rounded-lg mb-6 overflow-hidden animate-pulse">
       {/* Header Skeleton */}
-      <div className="flex items-center gap-3 p-4 border-b-[2px] border-[#4A3228]/20">
-        <div className="w-11 h-11 rounded-lg bg-[#E8D5C4] border-[2px] border-[#4A3228]" />
+      <div className="flex items-center gap-3 p-4 border-b-[2px] border-cocoa/20">
+        <div className="w-11 h-11 rounded-lg bg-cocoa/20 border-2 border-cocoa" />
         <div className="flex-1">
-          <div className="h-5 w-32 bg-[#E8D5C4] rounded mb-2" />
-          <div className="h-3 w-20 bg-[#E8D5C4] rounded" />
+          <div className="h-5 w-32 bg-cocoa/20 rounded mb-2" />
+          <div className="h-3 w-20 bg-cocoa/20 rounded" />
         </div>
       </div>
 
       {/* Body Skeleton */}
       <div className="p-4">
         <div className="space-y-2 mb-4">
-          <div className="h-4 bg-[#E8D5C4] rounded w-full" />
-          <div className="h-4 bg-[#E8D5C4] rounded w-4/5" />
-          <div className="h-4 bg-[#E8D5C4] rounded w-3/5" />
+          <div className="h-4 bg-cocoa/20 rounded w-full" />
+          <div className="h-4 bg-cocoa/20 rounded w-4/5" />
+          <div className="h-4 bg-cocoa/20 rounded w-3/5" />
         </div>
         
         {/* Tags Skeleton */}
         <div className="flex gap-2 mb-4">
-          <div className="h-6 w-16 bg-[#E8D5C4] rounded border-[2px] border-[#4A3228]" />
-          <div className="h-6 w-20 bg-[#E8D5C4] rounded border-[2px] border-[#4A3228]" />
+          <div className="h-6 w-16 bg-cocoa/20 rounded border-3 border-cocoa" />
+          <div className="h-6 w-20 bg-cocoa/20 rounded border-3 border-cocoa" />
         </div>
 
         {/* Image Skeleton */}
-        <div className="h-48 bg-[#E8D5C4] rounded-lg border-[3px] border-[#4A3228]" />
+        <div className="h-48 bg-cocoa/20 rounded-xl border-3 border-cocoa shadow-pixel-sm" />
       </div>
 
       {/* Actions Skeleton */}
-      <div className="flex items-center gap-2 px-4 py-3 border-t-[2px] border-[#4A3228]/20">
-        <div className="h-9 w-20 bg-[#E8D5C4] rounded-lg border-[2px] border-[#4A3228]" />
-        <div className="h-9 w-20 bg-[#E8D5C4] rounded-lg border-[2px] border-[#4A3228]" />
-        <div className="h-9 w-20 bg-[#E8D5C4] rounded-lg border-[2px] border-[#4A3228]" />
+      <div className="flex items-center gap-2 px-4 py-3 border-t-[2px] border-cocoa/20">
+        <div className="h-9 w-20 bg-cocoa/20 rounded-lg border-3 border-cocoa" />
+        <div className="h-9 w-20 bg-cocoa/20 rounded-lg border-3 border-cocoa" />
+        <div className="h-9 w-20 bg-cocoa/20 rounded-lg border-3 border-cocoa" />
       </div>
     </div>
   );

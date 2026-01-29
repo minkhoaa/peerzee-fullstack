@@ -3,20 +3,6 @@
 import React, { useState } from 'react';
 import { Image, Smile, Send, Loader2, User, PenLine } from 'lucide-react';
 
-// ============================================
-// VILLAGE THEME COLORS
-// ============================================
-const COLORS = {
-  parchment: '#FDF5E6',
-  parchmentDark: '#F5E6D3',
-  wood: '#8B5A2B',
-  woodDark: '#4A3B32',
-  text: '#3E2723',
-  textMuted: '#795548',
-  orange: '#E65100',
-  green: '#2E7D32',
-} as const;
-
 interface WriteNoteProps {
   onSubmit: (payload: { content: string; imageUrls?: string[]; tags?: string[] }) => void;
   isSubmitting?: boolean;
@@ -25,7 +11,7 @@ interface WriteNoteProps {
 
 /**
  * WriteNote - Input area for creating new posts
- * "Write a Note" style matching the Village theme
+ * Retro Pixel OS design system
  */
 export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps) {
   const [content, setContent] = useState('');
@@ -48,33 +34,22 @@ export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps
   };
 
   return (
-    <div
-      className="border-4 p-4"
-      style={{
-        backgroundColor: COLORS.parchment,
-        borderColor: COLORS.woodDark,
-        boxShadow: '4px 4px 8px rgba(0,0,0,0.15)',
-      }}
-    >
+    <div className="border-3 border-cocoa p-4 bg-retro-cream shadow-pixel">
       {/* Header */}
-      <h3
-        className="font-pixel text-lg mb-3 flex items-center gap-2"
-        style={{ color: COLORS.text }}
-      >
+      <h3 className="font-pixel text-lg mb-3 flex items-center gap-2 text-cocoa">
         <PenLine className="w-5 h-5" strokeWidth={2.5} /> Write a Note
       </h3>
 
       {/* Input Area */}
       <div className="flex gap-3">
         {/* Avatar */}
-        <div
-          className="w-10 h-10 border-2 flex-shrink-0 overflow-hidden"
-          style={{ borderColor: COLORS.woodDark, backgroundColor: COLORS.parchmentDark }}
-        >
+        <div className="w-10 h-10 border-2 border-cocoa flex-shrink-0 overflow-hidden bg-cocoa/10">
           {userAvatar ? (
             <img src={userAvatar} alt="You" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center"><User className="w-5 h-5" strokeWidth={2.5} style={{ color: COLORS.text }} /></div>
+            <div className="w-full h-full flex items-center justify-center">
+              <User className="w-5 h-5 text-cocoa" strokeWidth={2.5} />
+            </div>
           )}
         </div>
 
@@ -86,30 +61,24 @@ export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps
             onKeyDown={handleKeyDown}
             placeholder="What's happening in the village?"
             rows={2}
-            className="w-full resize-none outline-none text-sm font-body"
-            style={{
-              backgroundColor: 'transparent',
-              color: COLORS.text,
-            }}
+            className="w-full resize-none outline-none text-sm font-body font-bold bg-transparent text-cocoa placeholder:text-cocoa-light"
             disabled={isSubmitting}
           />
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-dashed" style={{ borderColor: COLORS.wood }}>
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-dashed border-cocoa">
         {/* Media Buttons */}
         <div className="flex items-center gap-2">
           <button
-            className="p-2 rounded hover:bg-black/5 transition-colors"
-            style={{ color: COLORS.textMuted }}
+            className="p-2 rounded hover:bg-cocoa/10 transition-colors text-cocoa-light"
             title="Add image"
           >
             <Image className="w-5 h-5" />
           </button>
           <button
-            className="p-2 rounded hover:bg-black/5 transition-colors"
-            style={{ color: COLORS.textMuted }}
+            className="p-2 rounded hover:bg-cocoa/10 transition-colors text-cocoa-light"
             title="Add emoji"
           >
             <Smile className="w-5 h-5" />
@@ -120,13 +89,11 @@ export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps
         <button
           onClick={handleSubmit}
           disabled={!content.trim() || isSubmitting}
-          className="px-5 py-2 font-pixel text-sm uppercase border-3 transition-all hover:translate-y-[-2px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-          style={{
-            backgroundColor: content.trim() ? COLORS.orange : COLORS.parchmentDark,
-            borderColor: COLORS.woodDark,
-            color: content.trim() ? '#FFF' : COLORS.textMuted,
-            boxShadow: content.trim() ? `3px 3px 0px ${COLORS.woodDark}` : 'none',
-          }}
+          className={`px-5 py-2 font-pixel text-sm uppercase border-2 border-cocoa transition-all hover:translate-y-[-2px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${
+            content.trim() 
+              ? 'bg-pixel-pink text-cocoa shadow-pixel-sm' 
+              : 'bg-cocoa/10 text-cocoa-light'
+          }`}
         >
           {isSubmitting ? (
             <Loader2 className="w-4 h-4 animate-spin" />

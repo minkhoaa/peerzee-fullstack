@@ -64,21 +64,21 @@ export default function RPGInput({
     };
 
     return (
-        <div className="bg-white border-t-4 border-rpg-brown p-4">
+        <div className="bg-retro-white border-t-3 border-cocoa p-4">
             {/* Reply preview */}
             {replyingTo && (
-                <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-rpg-blue/50 border-2 border-rpg-brown">
-                    <div className="flex-1 border-l-2 border-primary pl-3">
-                        <p className="text-xs font-display font-semibold text-rpg-brown">
+                <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-pixel-yellow/30 border-2 border-cocoa">
+                    <div className="flex-1 border-l-2 border-pixel-pink pl-3">
+                        <p className="text-xs font-pixel font-semibold text-cocoa">
                             Replying to {replyingTo.senderName}
                         </p>
-                        <p className="text-xs text-rpg-brown/70 truncate">
+                        <p className="text-xs text-cocoa-light truncate">
                             {replyingTo.body}
                         </p>
                     </div>
                     <button
                         onClick={onCancelReply}
-                        className="p-1 text-rpg-brown hover:bg-rpg-brown/10 transition-colors"
+                        className="p-1 text-cocoa hover:bg-cocoa/10 transition-colors"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -93,11 +93,11 @@ export default function RPGInput({
                     <img
                         src={attachmentPreview}
                         alt="Attachment"
-                        className="max-h-32 border-2 border-rpg-brown"
+                        className="max-h-32 border-2 border-cocoa"
                     />
                     <button
                         onClick={onClearAttachment}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white border-2 border-rpg-brown flex items-center justify-center"
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-pixel-red text-retro-white border-2 border-cocoa flex items-center justify-center"
                     >
                         ×
                     </button>
@@ -106,9 +106,9 @@ export default function RPGInput({
 
             {/* Recording indicator */}
             {isRecording && (
-                <div className="flex items-center gap-3 mb-3 px-3 py-2 bg-red-50 border-2 border-red-400">
-                    <div className="w-3 h-3 bg-red-500 animate-pulse" />
-                    <span className="font-display text-sm text-red-600 font-medium">
+                <div className="flex items-center gap-3 mb-3 px-3 py-2 bg-pixel-red/20 border-2 border-pixel-red">
+                    <div className="w-3 h-3 bg-pixel-red animate-pulse" />
+                    <span className="font-pixel text-sm text-pixel-red font-medium">
                         Recording... {formatTime(recordingTime)}
                     </span>
                 </div>
@@ -122,7 +122,7 @@ export default function RPGInput({
                         <button
                             onClick={onAttachment}
                             disabled={disabled}
-                            className="p-2 text-rpg-brown hover:bg-rpg-blue border-2 border-transparent hover:border-rpg-brown transition-all disabled:opacity-50"
+                            className="p-2 text-cocoa hover:bg-pixel-yellow border-2 border-transparent hover:border-cocoa transition-all disabled:opacity-50"
                             title="Attach file"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@ export default function RPGInput({
                         <button
                             onClick={onAI}
                             disabled={disabled}
-                            className="p-2 text-primary hover:bg-primary-light border-2 border-transparent hover:border-primary transition-all disabled:opacity-50"
+                            className="p-2 text-pixel-pink hover:bg-pixel-pink/20 border-2 border-transparent hover:border-pixel-pink transition-all disabled:opacity-50"
                             title="AI Suggestions"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,13 +156,13 @@ export default function RPGInput({
                         disabled={disabled || isRecording}
                         rows={1}
                         className={clsx(
-                            'w-full px-4 py-3 font-display text-sm',
-                            'border-2 border-rpg-brown',
-                            'bg-white text-rpg-brown placeholder-rpg-brown/40',
+                            'w-full px-4 py-3 font-pixel text-sm',
+                            'border-3 border-cocoa',
+                            'bg-retro-white text-cocoa placeholder-cocoa/40',
                             'resize-none focus:outline-none',
                             'shadow-[inset_2px_2px_0_0_rgba(74,59,50,0.1)]',
                             'focus:shadow-[inset_2px_2px_0_0_rgba(74,59,50,0.1),0_0_0_2px_#f04285]',
-                            'disabled:opacity-50 disabled:bg-rpg-blue/20'
+                            'disabled:opacity-50 disabled:bg-pixel-yellow/20'
                         )}
                     />
                 </div>
@@ -176,8 +176,8 @@ export default function RPGInput({
                             className={clsx(
                                 'p-2 border-2 transition-all disabled:opacity-50',
                                 isRecording
-                                    ? 'bg-red-500 text-white border-rpg-brown'
-                                    : 'text-rpg-brown hover:bg-rpg-blue border-transparent hover:border-rpg-brown'
+                                    ? 'bg-pixel-red text-retro-white border-cocoa'
+                                    : 'text-cocoa hover:bg-pixel-yellow border-transparent hover:border-cocoa'
                             )}
                             title={isRecording ? 'Stop recording' : 'Voice message'}
                         >
@@ -192,9 +192,9 @@ export default function RPGInput({
                         onClick={onSend}
                         disabled={disabled || (!value.trim() && !attachmentPreview)}
                         className={clsx(
-                            'p-2 border-2 border-rpg-brown transition-all',
-                            'bg-primary text-white',
-                            'shadow-[2px_2px_0_0_#4a3b32]',
+                            'p-2 border-2 border-cocoa transition-all',
+                            'bg-pixel-pink text-cocoa',
+                            'shadow-pixel-sm',
                             'active:translate-y-[2px] active:shadow-none',
                             'disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0'
                         )}

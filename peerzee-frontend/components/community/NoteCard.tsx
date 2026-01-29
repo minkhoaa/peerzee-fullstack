@@ -5,21 +5,6 @@ import { Heart, MessageSquare, MoreHorizontal, Trash2, User } from 'lucide-react
 import type { Post } from '@/types/community';
 import { PushPin } from '@/components/village';
 
-// ============================================
-// VILLAGE THEME COLORS
-// ============================================
-const COLORS = {
-  parchment: '#FDF5E6',       // Note background
-  parchmentDark: '#F5E6D3',   // Slightly darker parchment
-  wood: '#8B5A2B',            // Wood brown
-  woodDark: '#4A3B32',        // Dark wood border
-  text: '#3E2723',            // Dark brown text
-  textMuted: '#795548',       // Medium brown
-  orange: '#E65100',          // Accent orange
-  red: '#C62828',             // Like red
-  green: '#2E7D32',           // Online green
-} as const;
-
 // Pin colors for variety
 const PIN_COLORS: Array<'pink' | 'red' | 'blue' | 'yellow' | 'green'> = ['red', 'blue', 'yellow', 'green', 'pink'];
 
@@ -33,7 +18,7 @@ interface NoteCardProps {
 
 /**
  * NoteCard - A pinned note on the bulletin board
- * Village/Cork board aesthetic
+ * Retro Pixel OS aesthetic
  */
 export function NoteCard({ 
   post, 
@@ -72,21 +57,11 @@ export function NoteCard({
       </div>
 
       {/* Note Card */}
-      <div
-        className="p-5 pt-6 border-4 relative"
-        style={{
-          backgroundColor: COLORS.parchment,
-          borderColor: COLORS.woodDark,
-          boxShadow: `4px 4px 8px rgba(0,0,0,0.2)`,
-        }}
-      >
+      <div className="p-5 pt-6 border-3 border-cocoa relative bg-retro-cream shadow-pixel">
         {/* Author Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div
-              className="w-10 h-10 border-2 overflow-hidden flex-shrink-0"
-              style={{ borderColor: COLORS.woodDark }}
-            >
+            <div className="w-10 h-10 border-2 border-cocoa overflow-hidden flex-shrink-0">
               {post.author.avatarUrl ? (
                 <img
                   src={post.author.avatarUrl}
@@ -94,25 +69,16 @@ export function NoteCard({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div
-                  className="w-full h-full flex items-center justify-center"
-                  style={{ backgroundColor: COLORS.parchmentDark, color: COLORS.text }}
-                >
+                <div className="w-full h-full flex items-center justify-center bg-cocoa/10 text-cocoa">
                   <User className="w-5 h-5" strokeWidth={2.5} />
                 </div>
               )}
             </div>
             <div>
-              <p
-                className="font-pixel text-sm"
-                style={{ color: COLORS.text }}
-              >
+              <p className="font-pixel text-sm text-cocoa">
                 {post.author.username}
               </p>
-              <p
-                className="text-xs"
-                style={{ color: COLORS.textMuted }}
-              >
+              <p className="text-xs font-body font-bold text-cocoa-light">
                 {formatTimeAgo(post.createdAt)}
               </p>
             </div>
@@ -123,26 +89,18 @@ export function NoteCard({
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1 hover:bg-black/5 rounded transition-colors"
-                style={{ color: COLORS.textMuted }}
+                className="p-1 hover:bg-cocoa/10 rounded transition-colors text-cocoa-light"
               >
                 <MoreHorizontal className="w-5 h-5" />
               </button>
               {showMenu && (
-                <div
-                  className="absolute right-0 top-full mt-1 py-1 border-2 z-20 min-w-[120px]"
-                  style={{
-                    backgroundColor: COLORS.parchment,
-                    borderColor: COLORS.woodDark,
-                    boxShadow: '2px 2px 4px rgba(0,0,0,0.2)',
-                  }}
-                >
+                <div className="absolute right-0 top-full mt-1 py-1 border-3 border-cocoa z-20 min-w-[120px] bg-retro-cream shadow-pixel">
                   <button
                     onClick={() => {
                       onDelete?.(post.id);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-50 text-red-600 text-sm"
+                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-pixel-red/20 text-pixel-red text-sm font-body font-bold"
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete
@@ -154,20 +112,14 @@ export function NoteCard({
         </div>
 
         {/* Content */}
-        <p
-          className="text-sm leading-relaxed mb-3 font-body"
-          style={{ color: COLORS.text }}
-        >
+        <p className="text-sm leading-relaxed mb-3 font-body font-bold text-cocoa">
           {post.content}
         </p>
 
         {/* Image */}
         {post.imageUrls && post.imageUrls.length > 0 && (
           <div className="mb-3 -mx-2">
-            <div
-              className="border-2 overflow-hidden"
-              style={{ borderColor: COLORS.woodDark }}
-            >
+            <div className="rounded-xl border-3 border-cocoa overflow-hidden shadow-pixel-sm">
               <img
                 src={post.imageUrls[0]}
                 alt="Post image"
@@ -183,12 +135,7 @@ export function NoteCard({
             {post.tags.map((tag, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 text-xs font-medium border"
-                style={{
-                  backgroundColor: '#FFF8E1',
-                  borderColor: COLORS.wood,
-                  color: COLORS.wood,
-                }}
+                className="px-2 py-0.5 text-xs font-pixel border border-cocoa bg-cocoa/10 text-cocoa"
               >
                 #{tag}
               </span>
@@ -197,33 +144,25 @@ export function NoteCard({
         )}
 
         {/* Actions Footer */}
-        <div
-          className="flex items-center gap-4 pt-3 border-t border-dashed"
-          style={{ borderColor: COLORS.wood }}
-        >
+        <div className="flex items-center gap-4 pt-3 border-t border-dashed border-cocoa">
           <button
             onClick={() => onLike?.(post.id)}
-            className="flex items-center gap-1 transition-colors hover:scale-105"
-            style={{ color: post.isLiked ? COLORS.red : COLORS.textMuted }}
+            className={`flex items-center gap-1 transition-colors hover:scale-105 ${
+              post.isLiked ? 'text-pixel-red' : 'text-cocoa-light'
+            }`}
           >
             <Heart
               className="w-4 h-4"
-              fill={post.isLiked ? COLORS.red : 'none'}
+              fill={post.isLiked ? 'currentColor' : 'none'}
             />
-            <span className="text-sm font-medium">{post.stats.likes}</span>
+            <span className="text-sm font-body font-bold">{post.stats.likes}</span>
           </button>
-          <button
-            className="flex items-center gap-1 transition-colors hover:scale-105"
-            style={{ color: COLORS.textMuted }}
-          >
+          <button className="flex items-center gap-1 transition-colors hover:scale-105 text-cocoa-light">
             <MessageSquare className="w-4 h-4" />
-            <span className="text-sm font-medium">{post.stats.comments}</span>
+            <span className="text-sm font-body font-bold">{post.stats.comments}</span>
           </button>
           {post.stats.likes > 50 && (
-            <span
-              className="ml-auto text-xs font-pixel"
-              style={{ color: COLORS.orange }}
-            >
+            <span className="ml-auto text-xs font-pixel text-pixel-pink">
               Read More
             </span>
           )}

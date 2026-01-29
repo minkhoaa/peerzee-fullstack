@@ -21,9 +21,9 @@ export default function RPGCard({
     ...props
 }: RPGCardProps) {
     const variantStyles = {
-        default: 'bg-white border-4 border-rpg-brown shadow-pixel',
-        window: 'bg-white border-4 border-rpg-brown shadow-2xl',
-        flat: 'bg-white border-2 border-rpg-brown',
+        default: 'bg-retro-white border-3 border-cocoa shadow-pixel',
+        window: 'bg-retro-white border-3 border-cocoa shadow-pixel',
+        flat: 'bg-retro-white border-2 border-cocoa',
     };
 
     const paddingStyles = {
@@ -66,13 +66,13 @@ export function RPGWindow({
 }: RPGWindowProps) {
     return (
         <div className={clsx(
-            'bg-white border-4 border-rpg-brown shadow-2xl',
+            'bg-retro-white border-3 border-cocoa shadow-pixel',
             className
         )}>
             {/* Window title bar */}
             {title && (
-                <div className="bg-rpg-brown px-4 py-2 flex items-center justify-between">
-                    <span className="font-display font-bold text-white text-sm">
+                <div className="bg-cocoa px-4 py-2 flex items-center justify-between">
+                    <span className="font-pixel font-bold text-retro-white text-sm">
                         {title}
                     </span>
                     {headerActions}

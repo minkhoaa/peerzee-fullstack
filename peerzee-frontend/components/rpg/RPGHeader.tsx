@@ -46,8 +46,8 @@ export default function RPGHeader({
                     className={clsx(
                         'text-lg transition-all',
                         i < hearts
-                            ? 'text-primary animate-pop'
-                            : 'text-rpg-brown/20'
+                            ? 'text-pixel-pink animate-pop'
+                            : 'text-cocoa-light'
                     )}
                     style={{ animationDelay: `${i * 0.1}s` }}
                 >
@@ -59,7 +59,7 @@ export default function RPGHeader({
     };
 
     return (
-        <div className="bg-white border-b-4 border-rpg-brown px-4 py-3 flex items-center justify-between">
+        <div className="bg-retro-white border-b-3 border-cocoa px-4 py-3 flex items-center justify-between">
             {/* Left: Avatar & User Info */}
             <div className="flex items-center gap-3">
                 {/* Avatar with pixel border */}
@@ -68,10 +68,10 @@ export default function RPGHeader({
                         <img
                             src={avatarUrl}
                             alt={username}
-                            className="w-12 h-12 border-2 border-rpg-brown object-cover"
+                            className="w-12 h-12 border-2 border-cocoa object-cover"
                         />
                     ) : (
-                        <div className="w-12 h-12 bg-rpg-blue border-2 border-rpg-brown flex items-center justify-center font-display font-bold text-rpg-brown text-lg">
+                        <div className="w-12 h-12 bg-pixel-yellow border-2 border-cocoa flex items-center justify-center font-pixel font-bold text-cocoa text-lg">
                             {avatarFallback || username.charAt(0).toUpperCase()}
                         </div>
                     )}
@@ -79,8 +79,8 @@ export default function RPGHeader({
                     {/* Online indicator */}
                     {isOnline !== undefined && (
                         <div className={clsx(
-                            'absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white',
-                            isOnline ? 'bg-green-500' : 'bg-rpg-brown/40'
+                            'absolute -bottom-1 -right-1 w-4 h-4 border-2 border-retro-white',
+                            isOnline ? 'bg-green-500' : 'bg-cocoa/40'
                         )} />
                     )}
                 </div>
@@ -89,12 +89,12 @@ export default function RPGHeader({
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         {/* Username */}
-                        <span className="font-display font-bold text-rpg-brown text-base">
+                        <span className="font-pixel font-bold text-cocoa text-base">
                             {username}
                         </span>
                         
                         {/* Level Badge */}
-                        <span className="bg-rpg-brown text-white px-2 py-0.5 text-xs font-display font-bold">
+                        <span className="bg-cocoa text-retro-white px-2 py-0.5 text-xs font-pixel font-bold">
                             LVL {level}
                         </span>
                     </div>
@@ -102,8 +102,8 @@ export default function RPGHeader({
                     {/* Hearts (Affinity/HP) or subtitle */}
                     {subtitle ? (
                         <span className={clsx(
-                            'text-xs font-display',
-                            isOnline ? 'text-green-600' : 'text-rpg-brown/60'
+                            'text-xs font-pixel',
+                            isOnline ? 'text-green-600' : 'text-cocoa-light'
                         )}>
                             {subtitle}
                         </span>
@@ -120,7 +120,7 @@ export default function RPGHeader({
                 {onAudioCall && (
                     <button
                         onClick={onAudioCall}
-                        className="p-2 text-rpg-brown hover:bg-rpg-blue border-2 border-transparent hover:border-rpg-brown transition-all"
+                        className="p-2 text-cocoa hover:bg-pixel-yellow border-2 border-transparent hover:border-cocoa transition-all"
                         title="Audio Call"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +132,7 @@ export default function RPGHeader({
                 {onVideoCall && (
                     <button
                         onClick={onVideoCall}
-                        className="p-2 text-rpg-brown hover:bg-rpg-blue border-2 border-transparent hover:border-rpg-brown transition-all"
+                        className="p-2 text-cocoa hover:bg-pixel-yellow border-2 border-transparent hover:border-cocoa transition-all"
                         title="Video Call"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +144,7 @@ export default function RPGHeader({
                 {onMore && (
                     <button
                         onClick={onMore}
-                        className="p-2 text-rpg-brown hover:bg-rpg-blue border-2 border-transparent hover:border-rpg-brown transition-all"
+                        className="p-2 text-cocoa hover:bg-pixel-yellow border-2 border-transparent hover:border-cocoa transition-all"
                         title="More options"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -11,11 +11,11 @@ export interface PushPinProps extends HTMLAttributes<HTMLDivElement> {
 const PushPin = forwardRef<HTMLDivElement, PushPinProps>(
   ({ className, color = "red", size = "md", ...props }, ref) => {
     const colorStyles = {
-      pink: "from-[#EC407A] to-[#C2185B]",
-      red: "from-[#C62828] to-[#8B0000]",
-      blue: "from-[#42A5F5] to-[#1565C0]",
-      yellow: "from-[#FFD54F] to-[#F9A825]",
-      green: "from-[#7CB342] to-[#558B2F]",
+      pink: "bg-pixel-pink",
+      red: "bg-pixel-red",
+      blue: "bg-pixel-blue",
+      yellow: "bg-pixel-yellow",
+      green: "bg-pixel-green",
     };
 
     const sizeStyles = {
@@ -34,19 +34,19 @@ const PushPin = forwardRef<HTMLDivElement, PushPinProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-full border-4 border-wood-dark relative z-20 shadow-md",
-          `bg-gradient-to-br ${colorStyles[color]}`,
+          "rounded-full border-3 border-cocoa relative z-20 shadow-pixel-sm",
+          colorStyles[color],
           sizeStyles[size],
           className
         )}
         {...props}
       >
         {/* Highlight */}
-        <div className="absolute top-1 left-2 w-2 h-2 bg-white/40 rounded-full"></div>
+        <div className="absolute top-1 left-2 w-2 h-2 bg-retro-white/40 rounded-full"></div>
         {/* Needle */}
         <div
           className={cn(
-            "absolute -bottom-2 left-1/2 -translate-x-1/2 w-0.5 bg-gray-400",
+            "absolute -bottom-2 left-1/2 -translate-x-1/2 w-0.5 bg-cocoa",
             needleSize[size]
           )}
         ></div>

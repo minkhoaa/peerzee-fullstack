@@ -45,7 +45,7 @@ export default function RPGChatBubble({
     if (isDeleted) {
         return (
             <div className="flex items-center justify-center py-2">
-                <span className="text-sm text-rpg-brown/60 italic font-display flex items-center gap-1">
+                <span className="text-sm text-cocoa-light italic font-pixel flex items-center gap-1">
                     <Swords className="w-4 h-4" strokeWidth={2.5} /> Message deleted
                 </span>
             </div>
@@ -64,10 +64,10 @@ export default function RPGChatBubble({
                         <img
                             src={senderAvatar}
                             alt={senderName || 'User'}
-                            className="w-10 h-10 border-2 border-rpg-brown object-cover"
+                            className="w-10 h-10 border-2 border-cocoa object-cover"
                         />
                     ) : (
-                        <div className="w-10 h-10 bg-rpg-blue border-2 border-rpg-brown flex items-center justify-center font-display font-bold text-rpg-brown">
+                        <div className="w-10 h-10 bg-pixel-yellow border-2 border-cocoa flex items-center justify-center font-pixel font-bold text-cocoa">
                             {senderName?.charAt(0).toUpperCase() || '?'}
                         </div>
                     )}
@@ -80,27 +80,27 @@ export default function RPGChatBubble({
             )}>
                 {/* Sender name */}
                 {showName && senderName && !isOwn && (
-                    <span className="text-xs text-rpg-brown/70 font-display font-medium mb-1 ml-2">
+                    <span className="text-xs text-cocoa-light font-pixel font-medium mb-1 ml-2">
                         {senderName}
                     </span>
                 )}
 
                 {/* Message bubble */}
                 <div className={clsx(
-                    'relative px-4 py-3 font-display text-sm',
-                    'border-2 border-rpg-brown',
+                    'relative px-4 py-3 font-pixel text-sm',
+                    'border-2 border-cocoa',
                     isOwn
-                        ? 'bg-primary-light text-rpg-brown pixel-speech-right'
-                        : 'bg-white text-rpg-brown pixel-speech-left',
-                    'shadow-[2px_2px_0_0_rgba(74,59,50,0.2)]'
+                        ? 'bg-pixel-pink text-cocoa pixel-speech-right'
+                        : 'bg-retro-white text-cocoa pixel-speech-left',
+                    'shadow-pixel-sm'
                 )}>
                     {/* Reply quote */}
                     {replyTo && (
                         <div className={clsx(
                             'mb-2 px-3 py-2 text-xs border-l-2',
                             isOwn
-                                ? 'bg-primary/10 border-primary'
-                                : 'bg-rpg-blue/50 border-rpg-brown'
+                                ? 'bg-pixel-pink/20 border-pixel-pink'
+                                : 'bg-pixel-yellow/50 border-cocoa'
                         )}>
                             <p className="font-semibold opacity-80">{replyTo.senderName}</p>
                             <p className="truncate opacity-70">{replyTo.body}</p>
@@ -112,7 +112,7 @@ export default function RPGChatBubble({
                         <img
                             src={imageUrl}
                             alt="Attachment"
-                            className="w-full max-h-64 object-cover border-2 border-rpg-brown mb-2"
+                            className="w-full max-h-64 object-cover border-2 border-cocoa mb-2"
                         />
                     )}
 
@@ -124,7 +124,7 @@ export default function RPGChatBubble({
 
                     {/* Edited indicator */}
                     {isEdited && (
-                        <span className="text-[10px] text-rpg-brown/50 ml-2">(edited)</span>
+                        <span className="text-[10px] text-cocoa/50 ml-2">(edited)</span>
                     )}
                 </div>
 
@@ -134,14 +134,14 @@ export default function RPGChatBubble({
                     isOwn ? 'flex-row-reverse' : 'flex-row'
                 )}>
                     {timestamp && (
-                        <span className="text-[10px] text-rpg-brown/50 font-display">
+                        <span className="text-[10px] text-cocoa/50 font-pixel">
                             {timestamp}
                         </span>
                     )}
                     {isOwn && (
                         <span className={clsx(
-                            'text-[10px] font-display',
-                            isRead ? 'text-primary' : 'text-rpg-brown/40'
+                            'text-[10px] font-pixel',
+                            isRead ? 'text-pixel-pink' : 'text-cocoa/40'
                         )}>
                             {isRead ? '✓✓' : '✓'}
                         </span>
@@ -157,7 +157,7 @@ export default function RPGChatBubble({
                         {reactions.map((reaction, i) => (
                             <span
                                 key={i}
-                                className="text-xs bg-white border border-rpg-brown px-1.5 py-0.5 shadow-[1px_1px_0_0_rgba(74,59,50,0.2)]"
+                                className="text-xs bg-retro-white border border-cocoa px-1.5 py-0.5 shadow-pixel-sm"
                             >
                                 {reaction.emoji} {reaction.count > 1 && reaction.count}
                             </span>

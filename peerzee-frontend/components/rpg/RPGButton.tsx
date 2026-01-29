@@ -26,18 +26,18 @@ export default function RPGButton({
     ...props
 }: RPGButtonProps) {
     const baseStyles = `
-        font-display font-semibold
-        border-2 border-rpg-brown
+        font-pixel font-semibold
+        border-2 border-cocoa
         transition-all duration-100
         active:translate-y-[2px] active:shadow-none
         disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0
     `;
 
     const variantStyles = {
-        primary: 'bg-primary text-white shadow-[2px_2px_0_0_#4a3b32] hover:bg-primary/90',
-        secondary: 'bg-white text-rpg-brown shadow-[2px_2px_0_0_#4a3b32] hover:bg-rpg-blue',
-        danger: 'bg-red-500 text-white shadow-[2px_2px_0_0_#4a3b32] hover:bg-red-600',
-        ghost: 'bg-transparent text-rpg-brown border-transparent shadow-none hover:bg-rpg-blue/50',
+        primary: 'bg-pixel-pink text-cocoa shadow-pixel-sm hover:bg-pixel-pink/90',
+        secondary: 'bg-retro-white text-cocoa shadow-pixel-sm hover:bg-pixel-yellow',
+        danger: 'bg-pixel-red text-retro-white shadow-pixel-sm hover:bg-pixel-red/90',
+        ghost: 'bg-transparent text-cocoa border-transparent shadow-none hover:bg-cocoa/10',
     };
 
     const sizeStyles = {

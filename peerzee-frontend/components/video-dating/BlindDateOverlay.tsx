@@ -32,12 +32,12 @@ export function BlindDateOverlay({
                         transition={{ duration: 0.5 }}
                         className="absolute top-4 left-4 right-4 z-20"
                     >
-                        <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl p-4 border border-purple-500/30">
+                        <div className="bg-retro-white border-3 border-cocoa rounded-xl p-4 shadow-pixel">
                             <div className="flex items-center gap-2 mb-2">
-                            <Award className="w-5 h-5 text-purple-400" strokeWidth={2.5} />
-                                <span className="text-sm font-medium text-purple-300">AI Host</span>
+                            <Award className="w-5 h-5 text-pixel-pink" strokeWidth={2.5} />
+                                <span className="text-sm font-pixel font-medium text-cocoa">AI Host</span>
                             </div>
-                            <p className="text-sm text-white/90">{introMessage}</p>
+                            <p className="text-sm text-cocoa">{introMessage}</p>
                         </div>
                     </motion.div>
                 )}
@@ -52,51 +52,46 @@ export function BlindDateOverlay({
                 className="absolute bottom-24 left-4 right-4 z-20"
             >
                 <div
-                    className={`bg-gradient-to-br ${isRescue
-                        ? 'from-orange-500/30 to-red-500/30 border-orange-500/50'
-                        : 'from-blue-500/20 to-purple-500/20 border-blue-500/30'
-                        } backdrop-blur-md rounded-2xl p-4 border`}
-                    style={{
-                        boxShadow: isRescue
-                            ? '0 0 30px rgba(249, 115, 22, 0.3)'
-                            : '0 0 30px rgba(139, 92, 246, 0.2)',
-                    }}
+                    className={`${isRescue
+                        ? 'bg-pixel-yellow'
+                        : 'bg-retro-white'
+                        } border-3 border-cocoa rounded-xl p-4 shadow-pixel`}
                 >
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <MessageSquareText className={`w-4 h-4 ${isRescue ? 'text-orange-400' : 'text-blue-400'}`} strokeWidth={2.5} />
-                            <span className="text-xs font-medium text-white/70">
+                            <MessageSquareText className={`w-4 h-4 ${isRescue ? 'text-pixel-yellow' : 'text-pixel-blue'}`} strokeWidth={2.5} />
+                            <span className="text-xs font-pixel font-medium text-cocoa-light">
                                 Chủ đề #{topicNumber} {isRescue && 'Phao cứu sinh!'}
                             </span>
                         </div>
                         <button
                             onClick={onRequestTopic}
-                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cocoa/10 hover:bg-cocoa/20 transition-colors border border-cocoa"
                         >
-                            <RefreshCw className="w-3.5 h-3.5 text-white/70" />
-                            <span className="text-xs text-white/70">Đổi</span>
+                            <RefreshCw className="w-3.5 h-3.5 text-cocoa-light" />
+                            <span className="text-xs text-cocoa-light">Đổi</span>
                         </button>
                     </div>
-                    <p className="text-base font-medium text-white leading-relaxed">{currentTopic}</p>
+                    <p className="text-base font-medium text-cocoa leading-relaxed">{currentTopic}</p>
                 </div>
             </motion.div>
 
             {/* Blur Level Indicator */}
             <div className="absolute top-4 right-4 z-20">
-                <div className="bg-black/40 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2">
-                    <Eye className="w-4 h-4 text-white/60" />
+                <div className="bg-retro-white border-3 border-cocoa rounded-xl px-3 py-2 flex items-center gap-2 shadow-pixel-sm">
+                    <Eye className="w-4 h-4 text-cocoa-light" />
                     <div className="flex flex-col">
-                        <span className="text-[10px] text-white/50 uppercase tracking-wider">Blur</span>
+                        <span className="text-[10px] font-pixel text-cocoa-light uppercase tracking-wider">Blur</span>
                         <div className="flex items-center gap-1">
-                            <div className="w-16 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                            <div className="w-16 h-2 bg-cocoa/20 rounded-full overflow-hidden border border-cocoa">
                                 <motion.div
-                                    className="h-full bg-gradient-to-r from-pink-500 to-purple-500"
+                                    className="h-full bg-pixel-pink"
                                     initial={false}
                                     animate={{ width: `${Math.max(0, 100 - (blurLevel / 20) * 100)}%` }}
                                     transition={{ duration: 0.5 }}
                                 />
                             </div>
-                            <span className="text-xs font-mono text-white/80">{blurLevel}px</span>
+                            <span className="text-xs font-mono text-cocoa">{blurLevel}px</span>
                         </div>
                     </div>
                 </div>
@@ -107,10 +102,10 @@ export function BlindDateOverlay({
                 <div className="absolute top-16 right-4 z-20">
                     <button
                         onClick={onRequestReveal}
-                        className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-sm border border-pink-500/30 rounded-xl px-3 py-2 flex items-center gap-2 hover:from-pink-500/30 hover:to-purple-500/30 transition-all"
+                        className="bg-pixel-pink/20 border-3 border-cocoa rounded-xl px-3 py-2 flex items-center gap-2 hover:bg-pixel-pink/40 transition-all shadow-pixel-sm"
                     >
-                        <Star className="w-4 h-4 text-pink-400" strokeWidth={2.5} />
-                        <span className="text-xs text-white/80">Reveal sớm</span>
+                        <Star className="w-4 h-4 text-pixel-pink" strokeWidth={2.5} />
+                        <span className="text-xs font-pixel text-cocoa">Reveal sớm</span>
                     </button>
                 </div>
             )}
@@ -122,26 +117,26 @@ export function BlindDateOverlay({
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 z-50 flex items-center justify-center bg-cocoa/60"
                     >
-                        <div className="bg-gradient-to-br from-purple-900/90 to-pink-900/90 rounded-2xl p-6 max-w-xs text-center border border-purple-500/30">
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center mx-auto mb-4">
-                                <Star className="w-8 h-8 text-white" strokeWidth={2.5} />
+                        <div className="bg-retro-white border-3 border-cocoa rounded-xl p-6 max-w-xs text-center shadow-pixel">
+                            <div className="w-16 h-16 rounded-full bg-pixel-pink border-3 border-cocoa flex items-center justify-center mx-auto mb-4">
+                                <Star className="w-8 h-8 text-cocoa" strokeWidth={2.5} />
                             </div>
-                            <h3 className="text-lg font-semibold text-white mb-2">Đối phương muốn reveal!</h3>
-                            <p className="text-sm text-white/70 mb-4">
+                            <h3 className="text-lg font-pixel font-semibold text-cocoa mb-2">Đối phương muốn reveal!</h3>
+                            <p className="text-sm text-cocoa-light mb-4">
                                 Họ muốn thấy mặt bạn sớm hơn. Bạn có đồng ý không?
                             </p>
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => {/* Just close, don't accept */}}
-                                    className="flex-1 py-2.5 rounded-xl bg-white/10 text-white/70 text-sm hover:bg-white/20 transition-colors"
+                                    className="flex-1 py-2.5 rounded-xl bg-cocoa/10 border-3 border-cocoa text-cocoa-light text-sm hover:bg-cocoa/20 transition-colors"
                                 >
                                     Từ từ đã
                                 </button>
                                 <button
                                     onClick={onAcceptReveal}
-                                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                                    className="flex-1 py-2.5 rounded-xl bg-pixel-pink border-3 border-cocoa text-cocoa text-sm font-pixel font-medium hover:opacity-90 transition-opacity shadow-pixel-sm"
                                 >
                                     Đồng ý!
                                 </button>
@@ -167,10 +162,10 @@ export function BlindDateOverlay({
                             transition={{ duration: 0.5, times: [0, 0.7, 1] }}
                             className="text-center"
                         >
-                            <div className="w-16 h-16 mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center">
-                                <PartyPopper className="w-10 h-10 text-white" strokeWidth={2.5} />
+                            <div className="w-16 h-16 mx-auto mb-2 bg-pixel-yellow border-3 border-cocoa rounded-full flex items-center justify-center shadow-pixel">
+                                <PartyPopper className="w-10 h-10 text-cocoa" strokeWidth={2.5} />
                             </div>
-                            <p className="text-white font-bold text-lg mt-2 drop-shadow-lg">Đã reveal!</p>
+                            <p className="text-cocoa font-pixel font-bold text-lg mt-2 drop-shadow-lg">Đã reveal!</p>
                         </motion.div>
                     </motion.div>
                 )}

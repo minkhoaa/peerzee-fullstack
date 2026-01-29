@@ -6,19 +6,6 @@ import { ImageIcon, X, Loader2, Film, Send, Hash, FileText } from 'lucide-react'
 import type { CreatePostPayload } from '@/types/community';
 
 // ============================================
-// HIGH CONTRAST COLOR TOKENS (WCAG AA)
-// ============================================
-const COLORS = {
-  text: '#2C1A1D',           // Very Dark Cocoa - Primary text
-  textMuted: '#8D6E63',      // Lighter brown - Secondary text
-  background: '#FFFFFF',      // Pure White - Card background
-  border: '#4A3228',          // Dark Coffee - Borders
-  interactive: '#D946EF',     // Magenta - Links/buttons
-  placeholder: '#A1887F',     // Readable Brown - Placeholders
-  buttonBg: '#FF9EB5',        // Soft Pink - Button background
-} as const;
-
-// ============================================
 // FILE PREVIEW TYPE
 // ============================================
 interface FilePreview extends File {
@@ -136,19 +123,13 @@ export default function CreatePost({
   return (
     <div 
       {...getRootProps()} 
-      className={`bg-white border-[3px] border-[#4A3228] shadow-[4px_4px_0px_#4A3228] rounded-lg mb-6 overflow-hidden transition-all ${
-        isDragActive ? 'border-[#D946EF] shadow-[4px_4px_0px_#D946EF]' : ''
+      className={`bg-retro-white border-3 border-cocoa shadow-pixel rounded-lg mb-6 overflow-hidden transition-all ${
+        isDragActive ? 'border-pixel-pink shadow-[4px_4px_0px_theme(colors.pixel-pink)]' : ''
       }`}
     >
       {/* Header */}
-      <div 
-        className="px-4 py-3 border-b-[2px] border-[#4A3228]/20"
-        style={{ backgroundColor: '#FFF9F5' }}
-      >
-        <h3 
-          className="font-pixel text-lg uppercase tracking-wide flex items-center gap-2"
-          style={{ color: COLORS.text }}
-        >
+      <div className="px-4 py-3 border-b-[2px] border-cocoa/20 bg-retro-cream">
+        <h3 className="font-pixel text-lg uppercase tracking-wide flex items-center gap-2 text-cocoa">
           <FileText className="w-5 h-5" strokeWidth={2.5} /> POST QUEST
         </h3>
       </div>
@@ -164,8 +145,7 @@ export default function CreatePost({
           placeholder={placeholder}
           rows={isFocused || content ? 4 : 2}
           disabled={isLoading}
-          className="w-full px-4 py-3 border-2 border-dashed border-[#4A3228] rounded-lg bg-white text-base leading-relaxed resize-none outline-none focus:border-solid focus:border-[#D946EF] transition-all placeholder:text-[#A1887F]"
-          style={{ color: COLORS.text }}
+          className="w-full px-4 py-3 border-3 border-dashed border-cocoa rounded-lg bg-retro-white text-base leading-relaxed resize-none outline-none focus:border-solid focus:border-pixel-pink transition-all placeholder:text-cocoa-light font-body font-bold text-cocoa shadow-pixel-sm"
         />
 
         {/* File Previews */}
@@ -174,11 +154,11 @@ export default function CreatePost({
             {files.map((file, index) => (
               <div
                 key={index}
-                className="relative group aspect-square rounded-lg border-[3px] border-[#4A3228] overflow-hidden"
+                className="relative group aspect-square rounded-xl border-3 border-cocoa overflow-hidden shadow-pixel-sm"
               >
                 {file.type.startsWith('video/') ? (
-                  <div className="w-full h-full bg-[#4A3228]/10 flex items-center justify-center">
-                    <Film className="w-8 h-8" style={{ color: COLORS.border }} />
+                  <div className="w-full h-full bg-cocoa/10 flex items-center justify-center">
+                    <Film className="w-8 h-8 text-cocoa" />
                   </div>
                 ) : (
                   <img 
@@ -189,7 +169,7 @@ export default function CreatePost({
                 )}
                 <button
                   onClick={() => removeFile(index)}
-                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 border-2 border-[#4A3228] rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 w-6 h-6 bg-pixel-red border-2 border-cocoa rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="w-3 h-3 text-white" />
                 </button>
@@ -205,16 +185,12 @@ export default function CreatePost({
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded border-[2px] border-[#4A3228] font-pixel text-xs uppercase"
-                  style={{ 
-                    backgroundColor: COLORS.background, 
-                    color: COLORS.interactive 
-                  }}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded border border-cocoa font-pixel text-xs uppercase bg-cocoa/10 text-cocoa"
                 >
                   #{tag}
                   <button
                     onClick={() => removeTag(tag)}
-                    className="ml-1 hover:text-red-500"
+                    className="ml-1 hover:text-pixel-red"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -222,7 +198,7 @@ export default function CreatePost({
               ))}
               {tags.length < 5 && (
                 <div className="flex items-center gap-1">
-                  <Hash className="w-4 h-4" style={{ color: COLORS.placeholder }} />
+                  <Hash className="w-4 h-4 text-cocoa-light" />
                   <input
                     type="text"
                     value={tagInput}
@@ -230,8 +206,7 @@ export default function CreatePost({
                     onKeyDown={handleTagKeyDown}
                     onBlur={handleAddTag}
                     placeholder="Add tag"
-                    className="w-20 px-1 py-0.5 text-sm border-b-2 border-dashed border-[#4A3228]/50 bg-transparent outline-none focus:border-[#D946EF] placeholder:text-[#A1887F]"
-                    style={{ color: COLORS.text }}
+                    className="w-20 px-1 py-0.5 text-sm border-b-2 border-dashed border-cocoa/50 bg-transparent outline-none focus:border-pixel-pink placeholder:text-cocoa-light text-cocoa font-body font-bold"
                   />
                 </div>
               )}
@@ -241,14 +216,13 @@ export default function CreatePost({
 
         {/* Actions */}
         {(isFocused || content || files.length > 0) && (
-          <div className="flex items-center justify-between mt-4 pt-4 border-t-2 border-dashed border-[#4A3228]/30">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t-2 border-dashed border-cocoa/30">
             <div className="flex items-center gap-2">
               {/* Add Media Button */}
               <button
                 onClick={open}
                 disabled={isLoading}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg border-[2px] border-[#4A3228] bg-white hover:bg-pink-50 transition-colors font-pixel text-xs uppercase"
-                style={{ color: COLORS.text }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border-3 border-cocoa bg-retro-white hover:bg-pixel-pink/20 transition-colors font-pixel text-xs uppercase text-cocoa shadow-pixel-sm"
               >
                 <ImageIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">ADD MEDIA</span>
@@ -266,8 +240,7 @@ export default function CreatePost({
                     setIsFocused(false);
                   }}
                   disabled={isLoading}
-                  className="px-3 py-2 font-pixel text-xs uppercase hover:bg-gray-100 rounded-lg transition-colors"
-                  style={{ color: COLORS.textMuted }}
+                  className="px-3 py-2 font-pixel text-xs uppercase hover:bg-cocoa/10 rounded-lg transition-colors text-cocoa-light"
                 >
                   CANCEL
                 </button>
@@ -277,12 +250,11 @@ export default function CreatePost({
               <button
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border-[2px] border-[#4A3228] font-pixel font-bold text-sm uppercase transition-all shadow-[2px_2px_0px_#4A3228] hover:shadow-[1px_1px_0px_#4A3228] hover:translate-x-[1px] hover:translate-y-[1px] ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-cocoa font-pixel font-bold text-sm uppercase transition-all shadow-pixel-sm hover:shadow-[1px_1px_0px_theme(colors.cocoa)] hover:translate-x-[1px] hover:translate-y-[1px] ${
                   canSubmit 
-                    ? 'bg-[#FF9EB5] cursor-pointer' 
-                    : 'bg-gray-200 cursor-not-allowed opacity-50'
+                    ? 'bg-pixel-pink cursor-pointer text-cocoa' 
+                    : 'bg-cocoa/20 cursor-not-allowed opacity-50 text-cocoa'
                 }`}
-                style={{ color: COLORS.border }}
               >
                 {isLoading ? (
                   <>
@@ -303,10 +275,10 @@ export default function CreatePost({
 
       {/* Drag Overlay */}
       {isDragActive && (
-        <div className="absolute inset-0 bg-[#D946EF]/20 border-[3px] border-dashed border-[#D946EF] rounded-lg flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-pixel-pink/20 border-3 border-dashed border-pixel-pink rounded-lg flex items-center justify-center z-10">
           <div className="text-center">
-            <ImageIcon className="w-12 h-12 mx-auto mb-2" style={{ color: COLORS.interactive }} />
-            <p className="font-pixel text-lg" style={{ color: COLORS.interactive }}>
+            <ImageIcon className="w-12 h-12 mx-auto mb-2 text-pixel-pink" />
+            <p className="font-pixel text-lg text-pixel-pink">
               DROP FILES HERE
             </p>
           </div>
