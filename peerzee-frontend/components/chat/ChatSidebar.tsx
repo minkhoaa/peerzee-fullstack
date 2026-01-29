@@ -283,12 +283,12 @@ export default function ChatSidebar({
                         Community
                     </Link>
                     <Link
-                        href="/video-dating"
+                        href="/match"
                         className="flex-1 py-2.5 text-xs font-pixel uppercase tracking-wider text-cocoa bg-pixel-green border-2 border-cocoa rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-pixel-sm hover:bg-green-400 active:translate-y-0.5 active:shadow-none"
-                        title="Video Dating"
+                        title="Arcade Match"
                     >
                         <Video className="w-4 h-4" strokeWidth={2.5} />
-                        Video
+                        Match
                     </Link>
                 </div>
             </div>

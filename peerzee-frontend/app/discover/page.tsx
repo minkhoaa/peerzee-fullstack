@@ -189,9 +189,9 @@ export default function DiscoverPage() {
                             )}
                         </button>
                         <button
-                            onClick={() => router.push('/video-dating')}
+                            onClick={() => router.push('/match')}
                             className="p-2 text-cocoa hover:text-pixel-pink-dark border-3 border-transparent hover:border-cocoa rounded-lg hover:bg-pixel-blue hover:shadow-pixel-sm transition-all active:translate-y-0.5 active:shadow-none"
-                            title="Video Chat"
+                            title="Arcade Match (Text/Video)"
                         >
                             <Video className="w-5 h-5" />
                         </button>

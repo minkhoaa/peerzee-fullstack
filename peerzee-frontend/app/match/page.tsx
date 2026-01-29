@@ -5,16 +5,9 @@ import { VideoStage } from "@/components/match/VideoStage";
 import { ChatPanel } from "@/components/match/ChatPanel";
 import { ModeSelector } from "@/components/match/ModeSelector";
 import { useVideoDating } from "@/hooks/useVideoDating";
-import { Metadata } from "next";
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 type GenderPref = 'male' | 'female' | 'all';
-
-const metadata : Metadata = {
-  title: "Peerzee - Match",
-  description: "Connect with peers",
-}
-
 
 export default function MatchPage() {
   const [mode, setMode] = useState<"text" | "video" | null>(null);
@@ -22,6 +15,8 @@ export default function MatchPage() {
   const [messages, setMessages] = useState<Array<{ sender: "me" | "stranger" | "system"; content: string; timestamp: Date }>>([]);
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
 
   const {
     state,
@@ -39,6 +34,12 @@ export default function MatchPage() {
     leaveQueue,
     nextPartner,
     endCall,
+    reportPartner,
+    // Blind Date features
+    blindDate,
+    requestNewTopic,
+    requestReveal,
+    acceptReveal,
   } = useVideoDating();
 
   // Connect on mount
@@ -120,6 +121,14 @@ export default function MatchPage() {
     }
   };
 
+  const handleReport = () => {
+    if (reportReason.trim()) {
+      reportPartner(reportReason);
+      setShowReportModal(false);
+      setReportReason('');
+    }
+  };
+
   const handleSendMessage = (message: string) => {
     setMessages([...messages, { sender: "me", content: message, timestamp: new Date() }]);
     
@@ -152,32 +161,72 @@ export default function MatchPage() {
   }
 
   return (
-    <div className="h-[100dvh] w-full bg-retro-bg p-4 flex gap-4 overflow-hidden flex-col lg:flex-row">
-      {/* Left Panel: Video/Stage */}
-      <VideoStage
-        mode={mode}
-        state={state}
-        interests={interests}
-        localStream={localStream}
-        remoteStream={remoteStream}
-        remoteHasVideo={remoteHasVideo}
-        withVideo={withVideo}
-        isCameraOff={isCameraOff}
-        isMuted={isMuted}
-        onStop={handleStop}
-        onNext={handleNext}
-        onToggleMute={handleToggleMute}
-        onToggleCamera={handleToggleCamera}
-      />
+    <>
+      <div className="h-[100dvh] w-full bg-retro-bg p-4 flex gap-4 overflow-hidden flex-col lg:flex-row">
+        {/* Left Panel: Video/Stage */}
+        <VideoStage
+          mode={mode}
+          state={state}
+          interests={interests}
+          localStream={localStream}
+          remoteStream={remoteStream}
+          remoteHasVideo={remoteHasVideo}
+          withVideo={withVideo}
+          isCameraOff={isCameraOff}
+          isMuted={isMuted}
+          onStop={handleStop}
+          onNext={handleNext}
+          onToggleMute={handleToggleMute}
+          onToggleCamera={handleToggleCamera}
+          onReport={() => setShowReportModal(true)}
+          // Blind Date features
+          blindDate={blindDate}
+          onRequestTopic={requestNewTopic}
+          onRequestReveal={requestReveal}
+          onAcceptReveal={acceptReveal}
+        />
 
-      {/* Right Panel: Chat */}
-      <ChatPanel
-        state={state}
-        matchInfo={matchInfo}
-        interests={interests}
-        messages={messages}
-        onSendMessage={handleSendMessage}
-      />
-    </div>
+        {/* Right Panel: Chat */}
+        <ChatPanel
+          state={state}
+          matchInfo={matchInfo}
+          interests={interests}
+          messages={messages}
+          onSendMessage={handleSendMessage}
+        />
+      </div>
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-cocoa/60 backdrop-blur-sm" onClick={() => setShowReportModal(false)} />
+          <div className="relative bg-retro-white border-3 border-cocoa rounded-xl p-6 max-w-sm w-full mx-4 shadow-pixel">
+            <h3 className="text-lg font-pixel uppercase tracking-wider text-cocoa mb-4">Report User</h3>
+            <textarea
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              placeholder="Please describe the issue..."
+              className="w-full px-4 py-3 bg-retro-bg border-2 border-cocoa rounded-xl text-cocoa placeholder-cocoa-light font-body font-bold resize-none focus:outline-none focus:border-pixel-pink shadow-pixel-sm"
+              rows={4}
+            />
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="flex-1 py-2.5 text-cocoa-light hover:text-cocoa hover:bg-cocoa/20 border-2 border-cocoa rounded-xl font-body font-bold transition-colors shadow-pixel-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReport}
+                disabled={!reportReason.trim()}
+                className="flex-1 py-2.5 bg-pixel-red text-retro-bg border-2 border-cocoa rounded-xl font-pixel uppercase tracking-wider hover:bg-pixel-red/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-pixel-sm"
+              >
+                Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

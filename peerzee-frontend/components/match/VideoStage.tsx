@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { Video, VideoOff, Mic, MicOff, Loader2, User, MessageSquareText } from "lucide-react";
-import { VideoDatingState } from "@/hooks/useVideoDating";
+import { Video, VideoOff, Mic, MicOff, Loader2, User, MessageSquareText, Flag } from "lucide-react";
+import { VideoDatingState, BlindDateState } from "@/hooks/useVideoDating";
+import { BlindDateOverlay } from "@/components/match/BlindDateOverlay";
 
 interface VideoStageProps {
   mode: "text" | "video";
@@ -18,6 +19,12 @@ interface VideoStageProps {
   onNext: () => void;
   onToggleMute: () => void;
   onToggleCamera: () => void;
+  onReport?: () => void;
+  // Blind Date features
+  blindDate?: BlindDateState | null;
+  onRequestTopic?: () => void;
+  onRequestReveal?: () => void;
+  onAcceptReveal?: () => void;
 }
 
 export function VideoStage({
@@ -34,6 +41,12 @@ export function VideoStage({
   onNext,
   onToggleMute,
   onToggleCamera,
+  onReport,
+  // Blind Date features
+  blindDate,
+  onRequestTopic,
+  onRequestReveal,
+  onAcceptReveal,
 }: VideoStageProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -55,6 +68,16 @@ export function VideoStage({
 
   return (
     <div className="flex-[2] h-full bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel relative overflow-hidden flex flex-col">
+      {/* Blind Date Overlay - AI Dating Host */}
+      {blindDate && onRequestTopic && onRequestReveal && onAcceptReveal && (
+        <BlindDateOverlay
+          blindDate={blindDate}
+          onRequestTopic={onRequestTopic}
+          onRequestReveal={onRequestReveal}
+          onAcceptReveal={onAcceptReveal}
+        />
+      )}
+
       {/* Main Video Area */}
       <div className="flex-1 relative m-3 rounded-lg overflow-hidden bg-retro-bg border-2 border-cocoa">
         {mode === "video" && isConnected ? (
@@ -68,6 +91,11 @@ export function VideoStage({
                     autoPlay
                     playsInline
                     className={`w-full h-full object-cover ${!remoteHasVideo ? 'opacity-0' : ''}`}
+                    style={{
+                      // Blind Date: Dynamic blur effect
+                      filter: blindDate ? `blur(${blindDate.blurLevel}px)` : 'none',
+                      transition: 'filter 1s ease-out',
+                    }}
                   />
                   {!remoteHasVideo && (
                     <div className="absolute inset-0 bg-retro-bg flex flex-col items-center justify-center">
@@ -159,6 +187,17 @@ export function VideoStage({
                 title={isCameraOff ? "Turn on camera" : "Turn off camera"}
               >
                 {isCameraOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+              </button>
+            )}
+
+            {/* Report Button */}
+            {onReport && (
+              <button
+                onClick={onReport}
+                className="p-3 rounded-lg border-2 border-cocoa transition-all shadow-pixel-sm active:translate-y-0.5 active:shadow-none bg-retro-white text-pixel-yellow hover:bg-pixel-yellow/20"
+                title="Report User"
+              >
+                <Flag className="w-5 h-5" />
               </button>
             )}
           </>

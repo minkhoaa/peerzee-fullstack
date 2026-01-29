@@ -8,7 +8,6 @@ import {
   IdCard, 
   Globe, 
   Search,
-  Video,
   LogOut,
   Users,
   Bell,
@@ -28,11 +27,11 @@ interface GlobalHeaderProps {
 }
 
 // Formal Icon System: strokeWidth={2.5} for thick Retro look
+// Video mode is now integrated into Match (Arcade Lobby)
 const navItems: NavItem[] = [
   { href: "/discover", icon: <Globe size={20} strokeWidth={2.5} />, label: "Discover" },
   { href: "/match", icon: <Search size={20} strokeWidth={2.5} />, label: "Match" },
   { href: "/chat", icon: <MessageSquareText size={20} strokeWidth={2.5} />, label: "Chat" },
-  { href: "/video-dating", icon: <Video size={20} strokeWidth={2.5} />, label: "Video" },
   { href: "/community", icon: <Users size={20} strokeWidth={2.5} />, label: "Community" },
   { href: "/likers", icon: <Star size={20} strokeWidth={2.5} />, label: "Likers" },
   { href: "/profile", icon: <IdCard size={20} strokeWidth={2.5} />, label: "Profile" },
