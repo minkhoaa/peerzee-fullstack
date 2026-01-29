@@ -135,14 +135,14 @@ export default function CallModal({
             <audio ref={remoteAudioRef} autoPlay playsInline />
 
             {/* Modal Overlay */}
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100]">
-                <div className={`bg-linear-to-b from-neutral-900 to-neutral-950 rounded-3xl shadow-2xl border border-neutral-800 overflow-hidden ${isVideoCall && isConnected ? 'w-[640px] h-[480px]' : 'w-80 p-8'}`}>
+            <div className="fixed inset-0 bg-cocoa/80 flex items-center justify-center z-[100]">
+                <div className={`bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel-lg overflow-hidden ${isVideoCall && isConnected ? 'w-[640px] h-[480px]' : 'w-80 p-8'}`}>
 
                     {/* Video Call Layout - Split Screen */}
                     {isVideoCall && isConnected ? (
                         <div className="relative w-full h-full flex flex-row gap-1 p-1">
                             {/* Remote Video (left half) */}
-                            <div className="flex-1 relative bg-neutral-800 rounded-xl overflow-hidden">
+                            <div className="flex-1 relative bg-retro-paper border-2 border-cocoa rounded-xl overflow-hidden">
                                 <video
                                     ref={remoteVideoRef}
                                     autoPlay
@@ -152,33 +152,33 @@ export default function CallModal({
 
                                 {/* Remote camera off placeholder */}
                                 {!remoteHasVideo && (
-                                    <div className="absolute inset-0 bg-neutral-800 flex flex-col items-center justify-center">
-                                        <div className="w-16 h-16 rounded-full bg-neutral-700 flex items-center justify-center mb-2">
-                                            <span className="text-2xl text-neutral-400">{callerName.slice(0, 1).toUpperCase()}</span>
+                                    <div className="absolute inset-0 bg-retro-paper flex flex-col items-center justify-center">
+                                        <div className="w-16 h-16 rounded-xl bg-pixel-pink border-2 border-cocoa flex items-center justify-center mb-2">
+                                            <span className="text-2xl text-cocoa font-pixel">{callerName.slice(0, 1).toUpperCase()}</span>
                                         </div>
-                                        <span className="text-xs text-neutral-500">Camera off</span>
+                                        <span className="text-xs text-cocoa-light font-bold">Camera off</span>
                                     </div>
                                 )}
 
                                 {/* Caller Info Overlay */}
-                                <div className="absolute top-2 left-2 flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                                <div className="absolute top-2 left-2 flex items-center gap-2 bg-retro-white/90 border-2 border-cocoa rounded-lg px-3 py-1.5">
+                                    <div className="w-6 h-6 rounded-lg bg-pixel-blue border border-cocoa flex items-center justify-center text-cocoa text-xs font-pixel">
                                         {callerName.slice(0, 1).toUpperCase()}
                                     </div>
                                     <div>
-                                        <p className="text-white text-xs font-medium">{callerName}</p>
-                                        <p className="text-green-400 text-xs">{formatDuration(callDuration)}</p>
+                                        <p className="text-cocoa text-xs font-bold">{callerName}</p>
+                                        <p className="text-pixel-green text-xs font-pixel">{formatDuration(callDuration)}</p>
                                     </div>
                                 </div>
 
                                 {/* Partner label */}
-                                <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded text-xs text-white">
+                                <div className="absolute bottom-2 left-2 px-2 py-1 bg-pixel-purple/90 border border-cocoa rounded-lg text-xs text-cocoa font-bold">
                                     Partner
                                 </div>
                             </div>
 
                             {/* Local Video (right half) */}
-                            <div className="flex-1 relative bg-neutral-800 rounded-xl overflow-hidden">
+                            <div className="flex-1 relative bg-retro-paper border-2 border-cocoa rounded-xl overflow-hidden">
                                 <video
                                     ref={localVideoRef}
                                     autoPlay
@@ -189,26 +189,26 @@ export default function CallModal({
 
                                 {/* Local camera off placeholder */}
                                 {(!withVideo || isCameraOff) && (
-                                    <div className="absolute inset-0 bg-neutral-800 flex flex-col items-center justify-center">
-                                        <div className="w-16 h-16 rounded-full bg-neutral-700 flex items-center justify-center mb-2">
+                                    <div className="absolute inset-0 bg-retro-paper flex flex-col items-center justify-center">
+                                        <div className="w-16 h-16 rounded-xl bg-cocoa/20 border-2 border-cocoa flex items-center justify-center mb-2 text-cocoa">
                                             {Icons.cameraOff}
                                         </div>
-                                        <span className="text-xs text-neutral-500">Camera Off</span>
+                                        <span className="text-xs text-cocoa-light font-bold">Camera Off</span>
                                     </div>
                                 )}
 
                                 {/* You label */}
-                                <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded text-xs text-white">
+                                <div className="absolute bottom-2 left-2 px-2 py-1 bg-pixel-blue/90 border border-cocoa rounded-lg text-xs text-cocoa font-bold">
                                     You
                                 </div>
                             </div>
 
                             {/* Video Call Controls - Bottom Center */}
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur-sm rounded-full px-4 py-2">
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-retro-white/90 border-2 border-cocoa rounded-xl px-4 py-2 shadow-pixel">
                                 {/* Mute Button */}
                                 <button
                                     onClick={onToggleMute}
-                                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 ${isMuted ? 'bg-red-500 text-white' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
+                                    className={`w-10 h-10 rounded-lg border-2 border-cocoa flex items-center justify-center transition-all hover:translate-y-0.5 ${isMuted ? 'bg-pixel-red text-cocoa' : 'bg-pixel-green text-cocoa'}`}
                                     title={isMuted ? "Unmute" : "Mute"}
                                 >
                                     {isMuted ? Icons.micOff : Icons.micOn}
@@ -217,7 +217,7 @@ export default function CallModal({
                                 {/* Camera Toggle Button */}
                                 <button
                                     onClick={onToggleCamera}
-                                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 ${isCameraOff ? 'bg-red-500 text-white' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
+                                    className={`w-10 h-10 rounded-lg border-2 border-cocoa flex items-center justify-center transition-all hover:translate-y-0.5 ${isCameraOff ? 'bg-pixel-red text-cocoa' : 'bg-pixel-blue text-cocoa'}`}
                                     title={isCameraOff ? "Turn Camera On" : "Turn Camera Off"}
                                 >
                                     {isCameraOff ? Icons.cameraOff : Icons.cameraOn}
@@ -226,7 +226,7 @@ export default function CallModal({
                                 {/* End Call Button */}
                                 <button
                                     onClick={onEndCall}
-                                    className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white shadow-lg transition-all hover:scale-105"
+                                    className="w-12 h-12 rounded-lg bg-pixel-red border-2 border-cocoa flex items-center justify-center text-cocoa shadow-pixel-sm hover:translate-y-0.5 hover:shadow-none transition-all"
                                     title="End Call"
                                 >
                                     {Icons.phoneEnd}
@@ -239,28 +239,28 @@ export default function CallModal({
                             {/* Avatar */}
                             <div className="flex flex-col items-center mb-6">
                                 <div className="relative mb-4">
-                                    <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg ${callState === 'calling' || (isIncoming && !isConnected) ? 'animate-pulse' : ''}`}>
+                                    <div className={`w-24 h-24 rounded-xl bg-pixel-pink border-3 border-cocoa flex items-center justify-center text-cocoa text-3xl font-pixel shadow-pixel ${callState === 'calling' || (isIncoming && !isConnected) ? 'animate-pulse' : ''}`}>
                                         {callerName.slice(0, 1).toUpperCase()}
                                     </div>
                                     {/* Calling Animation Rings */}
                                     {(callState === 'calling' || (isIncoming && !isConnected)) && (
                                         <>
-                                            <div className="absolute inset-0 rounded-full border-2 border-blue-400 animate-ping opacity-75" />
-                                            <div className="absolute inset-0 rounded-full border-2 border-purple-400 animate-ping opacity-50" style={{ animationDelay: '0.3s' }} />
+                                            <div className="absolute inset-0 rounded-xl border-2 border-pixel-blue animate-ping opacity-75" />
+                                            <div className="absolute inset-0 rounded-xl border-2 border-pixel-purple animate-ping opacity-50" style={{ animationDelay: '0.3s' }} />
                                         </>
                                     )}
                                 </div>
 
                                 {/* Name */}
-                                <h2 className="text-xl font-semibold text-white mb-1">{callerName}</h2>
+                                <h2 className="text-xl font-pixel uppercase tracking-widest text-cocoa mb-1">{callerName}</h2>
 
                                 {/* Status */}
-                                <p className="text-sm text-neutral-400">
+                                <p className="text-sm text-cocoa-light font-bold">
                                     {isIncoming && !isConnected && `Incoming ${callType} call...`}
                                     {!isIncoming && callState === 'calling' && "Calling..."}
                                     {!isIncoming && callState === 'ringing' && "Ringing..."}
                                     {isConnected && (
-                                        <span className="text-green-400 font-medium">
+                                        <span className="text-pixel-green font-pixel">
                                             {formatDuration(callDuration)}
                                         </span>
                                     )}
@@ -274,14 +274,14 @@ export default function CallModal({
                                     <>
                                         <button
                                             onClick={onDecline}
-                                            className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                                            className="w-16 h-16 rounded-xl bg-pixel-red border-3 border-cocoa flex items-center justify-center text-cocoa shadow-pixel hover:translate-y-0.5 hover:shadow-pixel-sm transition-all"
                                             title="Decline"
                                         >
                                             {Icons.phoneEnd}
                                         </button>
                                         <button
                                             onClick={onAnswer}
-                                            className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center text-white shadow-lg transition-all hover:scale-105 active:scale-95 animate-bounce"
+                                            className="w-16 h-16 rounded-xl bg-pixel-green border-3 border-cocoa flex items-center justify-center text-cocoa shadow-pixel hover:translate-y-0.5 hover:shadow-pixel-sm transition-all animate-bounce"
                                             title="Answer"
                                         >
                                             {Icons.phone}
@@ -294,7 +294,7 @@ export default function CallModal({
                                     <>
                                         <button
                                             onClick={onToggleMute}
-                                            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95 ${isMuted ? 'bg-neutral-700 text-red-400 hover:bg-neutral-600' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
+                                            className={`w-14 h-14 rounded-xl border-2 border-cocoa flex items-center justify-center shadow-pixel-sm hover:translate-y-0.5 hover:shadow-none transition-all ${isMuted ? 'bg-pixel-red text-cocoa' : 'bg-pixel-blue text-cocoa'}`}
                                             title={isMuted ? "Unmute" : "Mute"}
                                         >
                                             {isMuted ? Icons.micOff : Icons.micOn}
@@ -304,7 +304,7 @@ export default function CallModal({
                                         {isVideoCall && (
                                             <button
                                                 onClick={onToggleCamera}
-                                                className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95 ${isCameraOff ? 'bg-neutral-700 text-red-400 hover:bg-neutral-600' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
+                                                className={`w-14 h-14 rounded-xl border-2 border-cocoa flex items-center justify-center shadow-pixel-sm hover:translate-y-0.5 hover:shadow-none transition-all ${isCameraOff ? 'bg-pixel-red text-cocoa' : 'bg-pixel-purple text-cocoa'}`}
                                                 title={isCameraOff ? "Turn Camera On" : "Turn Camera Off"}
                                             >
                                                 {isCameraOff ? Icons.cameraOff : Icons.cameraOn}
@@ -313,7 +313,7 @@ export default function CallModal({
 
                                         <button
                                             onClick={onEndCall}
-                                            className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                                            className="w-16 h-16 rounded-xl bg-pixel-red border-3 border-cocoa flex items-center justify-center text-cocoa shadow-pixel hover:translate-y-0.5 hover:shadow-pixel-sm transition-all"
                                             title="End Call"
                                         >
                                             {Icons.phoneEnd}
@@ -326,12 +326,12 @@ export default function CallModal({
                             {isConnected && (
                                 <div className="mt-6 flex items-center justify-center gap-2">
                                     <div className="flex gap-0.5">
-                                        <div className="w-1 h-2 bg-green-400 rounded-full" />
-                                        <div className="w-1 h-3 bg-green-400 rounded-full" />
-                                        <div className="w-1 h-4 bg-green-400 rounded-full" />
-                                        <div className="w-1 h-5 bg-green-400 rounded-full" />
+                                        <div className="w-1 h-2 bg-pixel-green rounded-sm" />
+                                        <div className="w-1 h-3 bg-pixel-green rounded-sm" />
+                                        <div className="w-1 h-4 bg-pixel-green rounded-sm" />
+                                        <div className="w-1 h-5 bg-pixel-green rounded-sm" />
                                     </div>
-                                    <span className="text-xs text-neutral-500">Good connection</span>
+                                    <span className="text-xs text-cocoa-light font-bold">Good connection</span>
                                 </div>
                             )}
                         </>

@@ -1,20 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Heart, BookOpen, Users } from 'lucide-react';
-
-// ============================================
-// HIGH CONTRAST COLOR TOKENS (WCAG AA)
-// ============================================
-const COLORS = {
-  text: '#2C1A1D',           // Very Dark Cocoa
-  textMuted: '#5D4037',      // Medium Brown
-  background: '#FFFFFF',      // Pure White
-  border: '#4A3228',          // Dark Coffee
-  pink: '#F4B0C8',            // Retro Pink
-  green: '#98D689',           // Pixel Green
-  blue: '#7EC8E3',            // Soft Blue
-} as const;
+import { Star, BookOpen, Users } from 'lucide-react';
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 
@@ -24,55 +11,42 @@ interface ModeSwitcherProps {
     isLoading?: boolean;
 }
 
-const modes: { id: IntentMode; label: string; icon: React.ElementType; color: string; emoji: string }[] = [
-    { id: 'DATE', label: 'DATE', icon: Heart, color: COLORS.pink, emoji: '💕' },
-    { id: 'STUDY', label: 'STUDY', icon: BookOpen, color: COLORS.blue, emoji: '📚' },
-    { id: 'FRIEND', label: 'FRIEND', icon: Users, color: COLORS.green, emoji: '🤝' },
+const modes: { id: IntentMode; label: string; icon: React.ElementType; activeColor: string; emoji: string }[] = [
+    { id: 'DATE', label: 'DATE', icon: Star, activeColor: 'bg-pixel-pink', emoji: '💕' },
+    { id: 'STUDY', label: 'STUDY', icon: BookOpen, activeColor: 'bg-pixel-blue', emoji: '📚' },
+    { id: 'FRIEND', label: 'FRIENDS', icon: Users, activeColor: 'bg-pixel-green', emoji: '🤝' },
 ];
 
 /**
- * ModeSwitcher - High Contrast Retro OS Style
- * Segmented control with pixel borders and hard shadows
+ * Retro Pixel Mode Switcher - Game Mode Selection Bar
+ * Updates user's mode via API and triggers stack refetch
  */
 export default function ModeSwitcher({ currentMode, onModeChange, isLoading }: ModeSwitcherProps) {
     return (
-        <div 
-            className="flex items-center justify-center"
-        >
-            <div 
-                className="inline-flex border-[3px] rounded-lg overflow-hidden shadow-[4px_4px_0px_#4A3228]"
-                style={{ borderColor: COLORS.border, backgroundColor: COLORS.background }}
-            >
-                {modes.map((mode, index) => {
-                    const isActive = currentMode === mode.id;
-                    const Icon = mode.icon;
+        <div className="flex items-center justify-center gap-1 p-2 bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel">
+            {modes.map((mode) => {
+                const isActive = currentMode === mode.id;
+                const Icon = mode.icon;
 
-                    return (
-                        <button
-                            key={mode.id}
-                            onClick={() => onModeChange(mode.id)}
-                            disabled={isLoading}
-                            className={`
-                                flex items-center gap-2 px-5 py-3 font-pixel text-sm uppercase transition-all
-                                ${index !== 0 ? 'border-l-[2px]' : ''}
-                                ${isActive 
-                                    ? 'text-white' 
-                                    : 'hover:bg-gray-50'
-                                }
-                                ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                            `}
-                            style={{ 
-                                backgroundColor: isActive ? mode.color : COLORS.background,
-                                color: isActive ? COLORS.border : COLORS.text,
-                                borderColor: COLORS.border,
-                            }}
-                        >
-                            <span className="text-base">{mode.emoji}</span>
-                            <span className="hidden sm:inline">{mode.label}</span>
-                        </button>
-                    );
-                })}
-            </div>
+                return (
+                    <button
+                        key={mode.id}
+                        onClick={() => onModeChange(mode.id)}
+                        disabled={isLoading}
+                        className={`
+                            flex items-center gap-2 px-4 py-2.5 border-2 border-cocoa rounded-lg transition-all font-pixel uppercase tracking-wider text-sm
+                            ${isActive
+                                ? `${mode.activeColor} text-cocoa shadow-pixel-sm`
+                                : 'bg-transparent text-cocoa-light hover:bg-retro-bg border-transparent'
+                            }
+                            ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:translate-y-0.5 active:shadow-none'}
+                        `}
+                    >
+                        <span className="text-base">{mode.emoji}</span>
+                        <span>{mode.label}</span>
+                    </button>
+                );
+            })}
         </div>
     );
 }

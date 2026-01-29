@@ -1,29 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Nunito } from "next/font/google";
+import { Nunito } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme";
 import QueryProvider from "@/components/QueryProvider";
 import { MatchProvider } from "@/components/MatchProvider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 const nunito = Nunito({
   variable: "--font-nunito",
   subsets: ["latin"],
-  weight: ["300", "400", "600", "700", "800"],
+  weight: ["500", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "Peerzee - Connect with Peers",
-  description: "Real-time messaging platform to connect with peers instantly",
+  title: "Peerzee",
+  description: "Connect with peers in 8-bit style",
 };
 
 export default function RootLayout({
@@ -33,7 +23,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${nunito.variable} antialiased`}>
+      <head>
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=VT323&display=swap" 
+          rel="stylesheet" 
+        />
+      </head>
+      <body className={`${nunito.variable} font-body antialiased bg-retro-bg text-cocoa min-h-screen`}>
         <QueryProvider>
           <ThemeProvider>
             <MatchProvider>

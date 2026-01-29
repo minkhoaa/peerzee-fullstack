@@ -1,97 +1,56 @@
-import { Home, Lock } from "lucide-react";
-import Link from "next/link";
-import { WoodenFrame, PushPin } from "@/components/village";
-
-interface AuthCardProps {
-  children: React.ReactNode;
-  showCharacterPreview?: boolean;
-  characterType?: "login" | "register";
-  onRegister?: () => void;
-  onLogin?: () => void;
-}
-
-export default function AuthCard({ 
-  children, 
-  showCharacterPreview = true,
-  characterType = "login"
-}: AuthCardProps) {
+export default function AuthCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen grass-dots flex items-center justify-center p-8">
-      {/* Header */}
-      <div className="fixed top-0 left-0 right-0 bg-[var(--wood-dark)] border-b-4 border-[var(--wood-shadow)] px-6 py-4 z-50">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
-            <div className="w-12 h-12 bg-[var(--primary-orange)] border-3 border-[var(--border-dark)] flex items-center justify-center">
-              <Home className="w-7 h-7 text-[var(--parchment)]" />
-            </div>
-            <div>
-              <h1 className="font-pixel text-2xl text-[var(--parchment)] tracking-wider">PEERZEE VILLAGE</h1>
-              <p className="text-xs text-[var(--parchment-dark)] font-mono uppercase tracking-widest">PASSPORT CONTROL</p>
-            </div>
-          </Link>
-          
-          <Link
-            href="/"
-            className="absolute right-6 top-1/2 -translate-y-1/2 font-pixel text-[var(--parchment)] hover:text-[var(--accent-yellow)] transition-colors"
-          >
-            ← BACK
-          </Link>
-        </div>
-      </div>
+    <div className="min-h-screen w-full bg-retro-bg flex items-center justify-center p-4">
+      {/* Decorative Pixel Corner Elements */}
+      <div className="fixed top-4 left-4 w-16 h-16 bg-pixel-pink border-3 border-cocoa rounded-lg shadow-pixel opacity-50" />
+      <div className="fixed top-4 right-4 w-12 h-12 bg-pixel-blue border-3 border-cocoa rounded-lg shadow-pixel-sm opacity-50" />
+      <div className="fixed bottom-4 left-4 w-12 h-12 bg-pixel-green border-3 border-cocoa rounded-lg shadow-pixel-sm opacity-50" />
+      <div className="fixed bottom-4 right-4 w-16 h-16 bg-pixel-yellow border-3 border-cocoa rounded-lg shadow-pixel opacity-50" />
       
-      <div className="max-w-4xl w-full grid md:grid-cols-2 gap-8 mt-20">
-        {/* Main Form Panel */}
-        <WoodenFrame>
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-            <PushPin color="red" />
-          </div>
+      <div className="w-full max-w-5xl min-h-[600px] bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel-lg overflow-hidden flex flex-col lg:flex-row">
+        {/* Left Panel - Game Start Screen */}
+        <div className="w-full lg:w-1/2 h-64 lg:h-auto bg-pixel-pink border-r-3 border-cocoa relative flex flex-col items-center justify-center p-10 text-center">
+          {/* Scanline Effect */}
+          <div className="absolute inset-0 scanlines" />
           
-          <div className="p-8">
-            {children}
+          {/* Decorative Pixel Art Elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-8 left-8 w-8 h-8 bg-retro-white border-3 border-cocoa rounded" />
+            <div className="absolute top-16 right-12 w-6 h-6 bg-pixel-yellow border-2 border-cocoa rounded" />
+            <div className="absolute bottom-12 left-16 w-10 h-10 bg-pixel-blue border-3 border-cocoa rounded" />
+            <div className="absolute bottom-24 right-8 w-5 h-5 bg-pixel-green border-2 border-cocoa rounded" />
+            <div className="absolute top-1/3 right-1/4 w-4 h-4 bg-retro-white border-2 border-cocoa rounded" />
           </div>
-        </WoodenFrame>
-        
-        {/* Character Preview / Info Panel */}
-        {showCharacterPreview && (
-          <div className="flex flex-col gap-6">
-            <WoodenFrame className="flex-1">
-              <div className="p-8 flex flex-col items-center justify-center h-full">
-                <div className="w-48 h-48 bg-gradient-to-b from-[var(--wood-dark)] to-[var(--wood-shadow)] border-4 border-[var(--border-dark)] mb-4 flex items-center justify-center relative overflow-hidden">
-                  <Lock className="w-20 h-20 text-[var(--parchment)]/30" />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <span className="font-pixel text-2xl text-[var(--parchment)]">
-                      {characterType === "login" ? "RETURNING" : "NEW"}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="w-full bg-[var(--wood-dark)] border-3 border-[var(--border-dark)] px-6 py-3">
-                  <p className="font-pixel text-xl text-center text-[var(--parchment)]">
-                    {characterType === "login" ? "RESIDENT" : "VILLAGER"}
-                  </p>
-                </div>
+
+          {/* Content */}
+          <div className="relative z-10">
+            {/* Pixel Heart Logo */}
+            <div className="mb-8 flex justify-center">
+              <div className="w-32 h-32 bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel flex items-center justify-center">
+                <span className="text-6xl">💕</span>
               </div>
-            </WoodenFrame>
+            </div>
+
+            <h1 className="font-pixel text-4xl text-cocoa uppercase tracking-widest mb-4">
+              PEERZEE
+            </h1>
+            <p className="font-body text-cocoa font-bold text-lg max-w-md mx-auto">
+              🎮 Press START to find your Player 2!
+            </p>
             
-            <Link
-              href={characterType === "login" ? "/register" : "/login"}
-              className="bg-[var(--parchment)] border-3 border-[var(--border-dark)] p-4 hover:bg-[var(--parchment-dark)] transition-colors text-center block"
-            >
-              <p className="font-mono text-sm text-[var(--text-pixel)]/70 mb-1 uppercase tracking-wide">
-                {characterType === "login" ? "New here?" : "Already a resident?"}
-              </p>
-              <p className="font-pixel text-xl text-[var(--primary-orange)] hover:text-[var(--primary-red)]">
-                {characterType === "login" ? "REGISTER →" : "LOGIN →"}
-              </p>
-            </Link>
-            
-            <div className="bg-[var(--parchment)] border-3 border-[var(--border-dark)] p-4 text-center">
-              <p className="text-xs text-[var(--text-pixel)]/60 italic">
-                "Return to Town Square" link available after login
-              </p>
+            {/* Pixel Decorative Line */}
+            <div className="mt-6 flex justify-center gap-2">
+              <div className="w-3 h-3 bg-cocoa rounded-sm" />
+              <div className="w-3 h-3 bg-cocoa rounded-sm" />
+              <div className="w-3 h-3 bg-cocoa rounded-sm" />
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Right Panel - Form */}
+        <div className="w-full lg:w-1/2 bg-retro-paper p-8 lg:p-12 flex flex-col justify-center">
+          {children}
+        </div>
       </div>
     </div>
   );

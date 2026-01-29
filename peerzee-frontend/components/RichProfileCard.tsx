@@ -1,7 +1,7 @@
 'use client';
 
 import React, { forwardRef } from 'react';
-import { MapPin, Briefcase, GraduationCap, Sparkles } from 'lucide-react';
+import { MapPin, Briefcase, GraduationCap } from 'lucide-react';
 
 // Types
 export interface UserProfile {
@@ -27,30 +27,32 @@ interface RichProfileCardProps {
     style?: React.CSSProperties;
 }
 
-// Generate gradient avatar based on name - ToyWorld colors
-function getAvatarGradient(name: string): string {
-    const gradients = [
-        'from-[#CD6E67] to-[#E88B85]',
-        'from-amber-400 to-orange-400',
-        'from-emerald-400 to-teal-400',
-        'from-blue-400 to-indigo-400',
-        'from-violet-400 to-purple-400',
-        'from-pink-400 to-rose-400',
+// Get pixel-style avatar background
+function getAvatarBg(name: string): string {
+    const colors = [
+        'bg-pixel-blue',
+        'bg-pixel-pink',
+        'bg-pixel-green',
+        'bg-pixel-yellow',
+        'bg-pixel-purple',
     ];
-    const index = name.charCodeAt(0) % gradients.length;
-    return gradients[index];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
 }
 
+/**
+ * RichProfileCard - Retro Pixel OS styled full profile card
+ */
 const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
     ({ user, style }, ref) => {
         const hasPhotos = user.photos && user.photos.length > 0;
-        const gradient = getAvatarGradient(user.display_name);
+        const avatarBg = getAvatarBg(user.display_name);
 
         return (
             <div
                 ref={ref as React.Ref<HTMLDivElement>}
                 style={style}
-                className="absolute inset-x-4 top-0 bg-white border-2 border-[#ECC8CD]/40 rounded-[40px] overflow-hidden shadow-xl shadow-[#CD6E67]/15"
+                className="absolute inset-x-4 top-0 bg-retro-white border-3 border-cocoa rounded-xl overflow-hidden shadow-pixel"
             >
                 {/* Scrollable Content Container */}
                 <div className="h-[75vh] overflow-y-auto scrollbar-hide">
@@ -63,34 +65,34 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                                 className="w-full h-full object-cover"
                             />
                         ) : (
-                            <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-                                <span className="text-8xl font-bold text-white/90">
+                            <div className={`w-full h-full ${avatarBg} flex items-center justify-center`}>
+                                <span className="text-8xl font-pixel text-cocoa">
                                     {user.display_name.charAt(0).toUpperCase()}
                                 </span>
                             </div>
                         )}
 
                         {/* Gradient overlay for name */}
-                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-retro-white to-transparent" />
 
-                        {/* Name & Age - ToyWorld styled */}
+                        {/* Name & Age */}
                         <div className="absolute bottom-4 left-4 right-4">
-                            <h2 className="text-3xl font-nunito font-bold text-[#3E3229]">
+                            <h2 className="text-3xl font-pixel uppercase tracking-widest text-cocoa">
                                 {user.display_name}
-                                {user.age && <span className="font-normal text-[#7A6862] ml-2">{user.age}</span>}
+                                {user.age && <span className="font-bold text-cocoa-light ml-2">{user.age}</span>}
                             </h2>
 
                             {/* Quick Info */}
                             <div className="flex flex-wrap gap-3 mt-2">
                                 {user.occupation && (
-                                    <div className="flex items-center gap-1.5 text-sm text-[#7A6862]">
-                                        <Briefcase className="w-3.5 h-3.5 text-[#CD6E67]" />
+                                    <div className="flex items-center gap-1.5 text-sm text-cocoa font-bold">
+                                        <Briefcase className="w-3.5 h-3.5 text-pixel-pink" />
                                         <span>{user.occupation}</span>
                                     </div>
                                 )}
                                 {user.education && (
-                                    <div className="flex items-center gap-1.5 text-sm text-[#7A6862]">
-                                        <GraduationCap className="w-3.5 h-3.5 text-[#CD6E67]" />
+                                    <div className="flex items-center gap-1.5 text-sm text-cocoa font-bold">
+                                        <GraduationCap className="w-3.5 h-3.5 text-pixel-purple" />
                                         <span>{user.education}</span>
                                     </div>
                                 )}
@@ -98,22 +100,19 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                         </div>
                     </div>
 
-                    {/* Content Sections - ToyWorld styled */}
-                    <div className="p-5 space-y-6 bg-white">
+                    {/* Content Sections */}
+                    <div className="p-5 space-y-6">
                         {/* My Vibe Section */}
                         {user.vibes && user.vibes.length > 0 && (
                             <section>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Sparkles className="w-4 h-4 text-[#CD6E67]" />
-                                    <h3 className="text-xs font-bold text-[#7A6862] uppercase tracking-wider">
-                                        My Vibe
-                                    </h3>
-                                </div>
+                                <h3 className="text-xs font-pixel uppercase tracking-widest text-cocoa mb-3">
+                                    My Vibe
+                                </h3>
                                 <div className="flex flex-wrap gap-2">
                                     {user.vibes.map((vibe, index) => (
                                         <span
                                             key={index}
-                                            className="px-4 py-2 bg-[#FDF0F1] text-[#CD6E67] text-sm rounded-full border-2 border-[#ECC8CD]/40 font-semibold"
+                                            className="px-3 py-1.5 bg-pixel-yellow text-cocoa text-sm font-bold rounded-lg border-2 border-cocoa shadow-pixel-sm"
                                         >
                                             {vibe}
                                         </span>
@@ -122,32 +121,32 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                             </section>
                         )}
 
-                        {/* About Me - ToyWorld styled */}
+                        {/* About Me */}
                         {user.bio && (
                             <section>
-                                <h3 className="text-xs font-bold text-[#7A6862] uppercase tracking-wider mb-3">
+                                <h3 className="text-xs font-pixel uppercase tracking-widest text-cocoa mb-3">
                                     About Me
                                 </h3>
-                                <p className="text-[#3E3229] text-sm leading-relaxed">
+                                <p className="text-cocoa text-sm font-medium leading-relaxed">
                                     {user.bio}
                                 </p>
                             </section>
                         )}
 
-                        {/* Prompts - ToyWorld Callout Style */}
+                        {/* Prompts - Pixel Style */}
                         {user.prompts && user.prompts.length > 0 && (
                             <section className="space-y-4">
                                 {user.prompts.map((prompt, index) => (
                                     <div
                                         key={index}
-                                        className="bg-[#FDF0F1] p-4 rounded-[20px] flex gap-3 border-2 border-[#ECC8CD]/40"
+                                        className="bg-retro-paper p-4 rounded-xl flex gap-3 border-2 border-cocoa shadow-pixel-sm"
                                     >
                                         <span className="text-2xl flex-shrink-0">{prompt.emoji}</span>
                                         <div>
-                                            <p className="text-sm font-bold text-[#3E3229] mb-1">
+                                            <p className="text-sm font-pixel uppercase tracking-widest text-cocoa-light mb-1">
                                                 {prompt.question}
                                             </p>
-                                            <p className="text-sm text-[#7A6862]">
+                                            <p className="text-sm text-cocoa font-bold">
                                                 {prompt.answer}
                                             </p>
                                         </div>
@@ -156,17 +155,17 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                             </section>
                         )}
 
-                        {/* Photo Grid - ToyWorld styled */}
+                        {/* Photo Grid */}
                         {hasPhotos && user.photos.length > 1 && (
                             <section>
-                                <h3 className="text-xs font-bold text-[#7A6862] uppercase tracking-wider mb-3">
+                                <h3 className="text-xs font-pixel uppercase tracking-widest text-cocoa mb-3">
                                     More Photos
                                 </h3>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-2">
                                     {user.photos.slice(1, 5).map((photo, index) => (
                                         <div
                                             key={index}
-                                            className="aspect-square rounded-[20px] overflow-hidden bg-[#FDF0F1] border-2 border-[#ECC8CD]/40"
+                                            className="aspect-square rounded-xl overflow-hidden bg-retro-paper border-2 border-cocoa shadow-pixel-sm"
                                         >
                                             <img
                                                 src={photo}
@@ -179,11 +178,11 @@ const RichProfileCard = forwardRef<HTMLDivNode, RichProfileCardProps>(
                             </section>
                         )}
 
-                        {/* Location - ToyWorld styled */}
+                        {/* Location */}
                         {(user.location || user.distance) && (
-                            <section className="flex items-center gap-2 text-[#7A6862] pb-24">
-                                <MapPin className="w-4 h-4 text-[#CD6E67]" />
-                                <span className="text-sm font-medium">
+                            <section className="flex items-center gap-2 text-cocoa pb-24">
+                                <MapPin className="w-4 h-4 text-pixel-pink" />
+                                <span className="text-sm font-bold">
                                     {user.distance || user.location}
                                 </span>
                             </section>

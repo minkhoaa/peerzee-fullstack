@@ -102,7 +102,7 @@ export default function ProfilePhotos({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
                             transition={{ duration: 0.3, delay: index * 0.05 }}
-                            className="aspect-square rounded-[30px] overflow-hidden relative group shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                            className="aspect-square rounded-xl overflow-hidden relative group border-3 border-cocoa shadow-pixel hover:shadow-pixel-lg hover:-translate-y-1 transition-all duration-300"
                         >
                             {/* Image */}
                             <img
@@ -122,7 +122,7 @@ export default function ProfilePhotos({
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => handleDelete(photo.id)}
                                     disabled={deletingId === photo.id}
-                                    className="absolute top-3 right-3 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                                    className="absolute top-3 right-3 w-10 h-10 bg-pixel-red text-retro-white rounded-lg flex items-center justify-center border-2 border-cocoa shadow-pixel-sm hover:bg-pixel-red/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10"
                                 >
                                     {deletingId === photo.id ? (
                                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -134,7 +134,7 @@ export default function ProfilePhotos({
 
                             {/* Overlay on Hover (for edit mode) */}
                             {isOwnProfile && isEditing && (
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                                <div className="absolute inset-0 bg-cocoa/0 group-hover:bg-cocoa/10 transition-colors duration-300" />
                             )}
                         </motion.div>
                     ))}
@@ -146,26 +146,26 @@ export default function ProfilePhotos({
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3, delay: displayPhotos.length * 0.05 }}
                             onClick={() => fileInputRef.current?.click()}
-                            className="aspect-square rounded-[30px] border-4 border-dashed border-[#CD6E67]/30 bg-[#FDF0F1] flex flex-col items-center justify-center cursor-pointer hover:bg-[#CD6E67]/5 hover:border-[#CD6E67]/50 transition-all duration-300 group shadow-md hover:shadow-xl"
+                            className="aspect-square rounded-xl border-3 border-dashed border-cocoa-light bg-retro-paper flex flex-col items-center justify-center cursor-pointer hover:bg-pixel-pink/10 hover:border-pixel-pink transition-all duration-300 group"
                         >
                             {uploadingIndex !== null ? (
                                 <div className="flex flex-col items-center gap-3">
-                                    <Loader2 className="w-12 h-12 text-[#CD6E67] animate-spin" />
-                                    <span className="text-sm font-bold text-[#7A6862]">Đang tải...</span>
+                                    <Loader2 className="w-12 h-12 text-pixel-pink animate-spin" />
+                                    <span className="text-sm font-bold text-cocoa">Đang tải...</span>
                                 </div>
                             ) : (
                                 <>
                                     <motion.div
                                         whileHover={{ scale: 1.1, rotate: 90 }}
                                         transition={{ duration: 0.3 }}
-                                        className="w-16 h-16 rounded-full bg-[#CD6E67] flex items-center justify-center mb-3 shadow-lg"
+                                        className="w-16 h-16 rounded-xl bg-pixel-pink flex items-center justify-center mb-3 border-2 border-cocoa shadow-pixel-sm"
                                     >
-                                        <Plus className="w-8 h-8 text-white" strokeWidth={3} />
+                                        <Plus className="w-8 h-8 text-cocoa" strokeWidth={3} />
                                     </motion.div>
-                                    <span className="text-sm font-bold text-[#7A6862] group-hover:text-[#CD6E67] transition-colors">
+                                    <span className="text-sm font-bold text-cocoa group-hover:text-pixel-pink-dark transition-colors">
                                         Thêm ảnh
                                     </span>
-                                    <span className="text-xs text-[#7A6862]/60 mt-1">
+                                    <span className="text-xs text-cocoa-light mt-1 font-medium">
                                         ({photos.length}/9)
                                     </span>
                                 </>
@@ -189,7 +189,7 @@ export default function ProfilePhotos({
                 <motion.p
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center text-sm text-[#7A6862] mt-6 font-medium"
+                    className="text-center text-sm text-cocoa-light mt-6 font-medium"
                 >
                     💡 Nhấn "Chỉnh sửa" để thêm ảnh của bạn!
                 </motion.p>

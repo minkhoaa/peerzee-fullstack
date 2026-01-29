@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { SquarePen, Search, Sun, Moon, LogOut, User } from 'lucide-react';
+import { PenLine, Search, Sun, Moon, LogOut, IdCard, Wifi, WifiOff } from 'lucide-react';
 
 interface Conversation {
     id: string;
@@ -33,8 +33,8 @@ interface ChatSidebarProps {
 type FilterTab = 'all' | 'unread';
 
 /**
- * ChatSidebar - Cozy Clay Theme (ToyWorld Style)
- * Features: Warm pink palette, rounded pill shapes, soft shadows
+ * ChatSidebar - Retro Pixel OS Style
+ * Features: Pixel borders, 8-bit aesthetic, shadow-pixel
  */
 export default function ChatSidebar({
     conversations,
@@ -104,33 +104,33 @@ export default function ChatSidebar({
     };
 
     return (
-        <div className="w-[320px] h-full shrink-0 bg-[#FDF0F1] rounded-[40px] shadow-xl shadow-[#CD6E67]/10 flex flex-col overflow-hidden">
+        <div className="w-[320px] h-full shrink-0 bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="p-5 border-b border-[#ECC8CD]/30">
+            <div className="p-4 border-b-3 border-cocoa">
                 {/* Title Row */}
-                <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-[#3E3229] font-extrabold text-3xl font-[family-name:var(--font-nunito)]">Messages</h1>
-                        <span className={`w-2.5 h-2.5 rounded-full transition-colors ${isConnected ? 'bg-green-500' : 'bg-[#7A6862]'}`} />
+                        <h1 className="font-pixel text-cocoa text-xl uppercase tracking-widest">💬 Messages</h1>
+                        <span className={`w-3 h-3 border-2 border-cocoa rounded transition-colors ${isConnected ? 'bg-pixel-green' : 'bg-cocoa-light'}`} />
                     </div>
                     <button
                         onClick={onNewChat}
-                        className="w-12 h-12 bg-[#CD6E67] text-white rounded-full shadow-md shadow-[#CD6E67]/30 transition-all flex items-center justify-center hover:scale-105 active:scale-95 hover:bg-[#B55B55]"
+                        className="w-10 h-10 bg-pixel-pink border-2 border-cocoa text-cocoa rounded-lg shadow-pixel-sm transition-all flex items-center justify-center hover:bg-pixel-pink-dark active:translate-y-0.5 active:shadow-none"
                         title="New message"
                     >
-                        <SquarePen className="w-5 h-5" />
+                        <PenLine className="w-5 h-5" strokeWidth={2.5} />
                     </button>
                 </div>
 
-                {/* Search Input - Pill shaped */}
+                {/* Search Input - Pixel styled */}
                 <div className="relative mb-4">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-cocoa-light" strokeWidth={2.5} />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search messages..."
-                        className="w-full bg-[#F3DDE0] border-none text-[#3E3229] placeholder-[#9CA3AF] rounded-full pl-11 pr-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#CD6E67] transition-all"
+                        placeholder="🔍 Search messages..."
+                        className="w-full bg-retro-white border-3 border-cocoa text-cocoa placeholder-cocoa-light rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pixel-pink shadow-pixel-inset font-bold"
                     />
                 </div>
 
@@ -139,43 +139,43 @@ export default function ChatSidebar({
                     <div className="flex gap-1">
                         <button
                             onClick={onToggleTheme}
-                            className="p-2 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
+                            className="p-2 text-cocoa-light hover:text-cocoa hover:bg-pixel-yellow border-2 border-transparent hover:border-cocoa rounded-lg transition-colors"
                             title="Toggle theme"
                         >
-                            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                            {theme === 'light' ? <Moon className="w-4 h-4" strokeWidth={2.5} /> : <Sun className="w-4 h-4" strokeWidth={2.5} />}
                         </button>
                         <Link
                             href="/profile"
-                            className="p-2 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
+                            className="p-2 text-cocoa-light hover:text-cocoa hover:bg-pixel-blue border-2 border-transparent hover:border-cocoa rounded-lg transition-colors"
                             title="Profile"
                         >
-                            <User className="w-4 h-4" />
+                            <IdCard className="w-4 h-4" strokeWidth={2.5} />
                         </Link>
                         <button
                             onClick={onLogout}
-                            className="p-2 text-[#7A6862] hover:text-[#CD6E67] hover:bg-[#F8E3E6] rounded-full transition-colors"
+                            className="p-2 text-cocoa-light hover:text-pixel-red hover:bg-pixel-red/20 border-2 border-transparent hover:border-pixel-red rounded-lg transition-colors"
                             title="Logout"
                         >
-                            <LogOut className="w-4 h-4" />
+                            <LogOut className="w-4 h-4" strokeWidth={2.5} />
                         </button>
                     </div>
                     
                     {/* Filter Tabs */}
-                    <div className="flex bg-white rounded-full p-1 shadow-sm">
+                    <div className="flex bg-retro-bg border-2 border-cocoa rounded-lg p-1">
                         <button
                             onClick={() => setActiveFilter('all')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all ${activeFilter === 'all'
-                                ? 'bg-[#CD6E67] text-white shadow-md shadow-[#CD6E67]/30'
-                                : 'text-[#7A6862] hover:text-[#3E3229]'
+                            className={`px-3 py-1.5 text-xs font-pixel uppercase tracking-wider rounded-md transition-all ${activeFilter === 'all'
+                                ? 'bg-pixel-blue border-2 border-cocoa shadow-pixel-sm text-cocoa'
+                                : 'text-cocoa-light hover:text-cocoa border-2 border-transparent'
                                 }`}
                         >
                             All
                         </button>
                         <button
                             onClick={() => setActiveFilter('unread')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all ${activeFilter === 'unread'
-                                ? 'bg-[#CD6E67] text-white shadow-md shadow-[#CD6E67]/30'
-                                : 'text-[#7A6862] hover:text-[#3E3229]'
+                            className={`px-3 py-1.5 text-xs font-pixel uppercase tracking-wider rounded-md transition-all ${activeFilter === 'unread'
+                                ? 'bg-pixel-pink border-2 border-cocoa shadow-pixel-sm text-cocoa'
+                                : 'text-cocoa-light hover:text-cocoa border-2 border-transparent'
                                 }`}
                         >
                             Unread
@@ -185,14 +185,14 @@ export default function ChatSidebar({
             </div>
 
             {/* Conversations List */}
-            <div className="flex-1 overflow-y-auto px-2">
+            <div className="flex-1 overflow-y-auto p-2">
                 {filteredConversations.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 px-4">
-                        <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
-                            <Search className="w-7 h-7 text-[#CD6E67]" />
+                        <div className="w-16 h-16 border-3 border-cocoa rounded-xl bg-pixel-blue flex items-center justify-center mb-4 shadow-pixel-sm">
+                            <Search className="w-7 h-7 text-cocoa" />
                         </div>
-                        <p className="text-[#7A6862] text-sm text-center font-medium">
-                            {searchQuery ? 'No conversations found' : 'No conversations yet'}
+                        <p className="text-cocoa-light text-sm text-center font-bold">
+                            {searchQuery ? '🔍 No conversations found' : '💬 No conversations yet'}
                         </p>
                     </div>
                 ) : (
@@ -207,29 +207,29 @@ export default function ChatSidebar({
                             <div
                                 key={conv.id}
                                 onClick={() => onSelectConversation(conv)}
-                                className={`p-4 mb-2 rounded-[20px] cursor-pointer transition-all flex gap-3 items-center ${isActive
-                                    ? 'bg-white shadow-sm'
-                                    : 'hover:bg-[#F8E3E6]'
+                                className={`p-3 mb-2 border-2 rounded-lg cursor-pointer transition-all flex gap-3 items-center ${isActive
+                                    ? 'bg-pixel-blue border-cocoa shadow-pixel-sm'
+                                    : 'bg-retro-white border-transparent hover:border-cocoa hover:bg-retro-bg'
                                     }`}
                             >
                                 {/* Avatar */}
                                 <div className="relative shrink-0">
-                                    <div className={`w-14 h-14 rounded-full bg-[#CD6E67] flex items-center justify-center text-white font-extrabold text-base shadow-sm border-2 border-white`}>
+                                    <div className={`w-12 h-12 border-2 border-cocoa rounded-lg bg-pixel-pink flex items-center justify-center text-cocoa font-pixel text-sm shadow-pixel-sm`}>
                                         {conv.name?.slice(0, 1)?.toUpperCase() || '?'}
                                     </div>
                                     {/* Online indicator */}
                                     {isOnline && (
-                                        <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+                                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-pixel-green border-2 border-cocoa rounded" />
                                     )}
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2">
-                                        <span className={`font-bold text-sm truncate ${isActive ? 'text-[#3E3229]' : 'text-[#3E3229]'}`}>
+                                        <span className={`font-bold text-sm truncate ${isActive ? 'text-cocoa' : 'text-cocoa'}`}>
                                             {conv.name || 'Unknown'}
                                         </span>
-                                        <span className="text-[10px] text-[#7A6862] shrink-0 font-medium">
+                                        <span className="text-[10px] text-cocoa-light shrink-0 font-bold">
                                             {formatTime(conv.lastMessageAt)}
                                         </span>
                                     </div>
@@ -237,21 +237,21 @@ export default function ChatSidebar({
                                         {typingText ? (
                                             <div className="flex items-center gap-2">
                                                 <div className="flex gap-1">
-                                                    <span className="w-1.5 h-1.5 bg-[#CD6E67] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                                    <span className="w-1.5 h-1.5 bg-[#CD6E67] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                                    <span className="w-1.5 h-1.5 bg-[#CD6E67] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                                    <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                    <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                    <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '300ms' }} />
                                                 </div>
-                                                <span className="text-xs text-[#7A6862] italic truncate">
+                                                <span className="text-xs text-cocoa-light italic truncate font-medium">
                                                     {typingText}
                                                 </span>
                                             </div>
                                         ) : (
-                                            <p className="text-xs text-[#7A6862] truncate">
+                                            <p className="text-xs text-cocoa-light truncate font-medium">
                                                 {conv.lastMessage || 'No messages yet'}
                                             </p>
                                         )}
                                         {unreadCount > 0 && (
-                                            <span className="min-w-[18px] h-[18px] px-1.5 bg-[#CD6E67] text-white rounded-full text-[10px] font-bold flex items-center justify-center shrink-0">
+                                            <span className="min-w-[20px] h-[20px] px-1.5 bg-pixel-red border-2 border-cocoa text-white rounded-md text-[10px] font-pixel flex items-center justify-center shrink-0">
                                                 {unreadCount > 99 ? '99+' : unreadCount}
                                             </span>
                                         )}
@@ -264,36 +264,30 @@ export default function ChatSidebar({
             </div>
 
             {/* Quick Navigation */}
-            <div className="p-4 border-t border-[#ECC8CD]/30">
+            <div className="p-3 border-t-3 border-cocoa">
                 <div className="flex gap-2">
                     <Link
                         href="/discover"
-                        className="flex-1 py-2.5 text-xs font-bold text-[#7A6862] hover:text-white bg-white hover:bg-[#CD6E67] rounded-full transition-all flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md hover:shadow-[#CD6E67]/20"
+                        className="flex-1 py-2.5 text-xs font-pixel uppercase tracking-wider text-cocoa bg-retro-white hover:bg-pixel-pink border-2 border-cocoa rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-pixel-sm active:translate-y-0.5 active:shadow-none"
                         title="Discover"
                     >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                        </svg>
+                        <span>💕</span>
                         Discover
                     </Link>
                     <Link
                         href="/community"
-                        className="flex-1 py-2.5 text-xs font-bold text-[#7A6862] hover:text-white bg-white hover:bg-[#CD6E67] rounded-full transition-all flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md hover:shadow-[#CD6E67]/20"
+                        className="flex-1 py-2.5 text-xs font-pixel uppercase tracking-wider text-cocoa bg-retro-white hover:bg-pixel-blue border-2 border-cocoa rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-pixel-sm active:translate-y-0.5 active:shadow-none"
                         title="Community"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
+                        <span>👥</span>
                         Community
                     </Link>
                     <Link
                         href="/video-dating"
-                        className="flex-1 py-2.5 text-xs font-bold text-white bg-[#CD6E67] hover:bg-[#B55B55] rounded-full transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#CD6E67]/30"
+                        className="flex-1 py-2.5 text-xs font-pixel uppercase tracking-wider text-cocoa bg-pixel-green border-2 border-cocoa rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-pixel-sm hover:bg-green-400 active:translate-y-0.5 active:shadow-none"
                         title="Video Dating"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
+                        <span>🎥</span>
                         Video
                     </Link>
                 </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
-import { X, Check, Star, Loader2, Heart, Sparkles } from 'lucide-react';
+import { X, Check, Award, Loader2 } from 'lucide-react';
 import RichProfileCard, { type UserProfile } from './RichProfileCard';
 
 interface SwipeDeckProps {
@@ -88,48 +88,40 @@ export default function SwipeDeck({
         }, 200);
     }, [currentUser, onSuperLike]);
 
-    // Empty state - ToyWorld styled
+    // Empty state
     if (!currentUser && !isLoading) {
         return (
             <div className="flex flex-col items-center justify-center h-[75vh] px-6">
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="bg-white rounded-[40px] p-8 shadow-xl shadow-[#CD6E67]/15 border-2 border-[#ECC8CD]/40 text-center max-w-sm"
-                >
-                    <div className="text-6xl mb-4">🔍</div>
-                    <h2 className="text-2xl font-nunito font-bold text-[#3E3229] mb-2">
-                        No more people to discover
+                <div className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-8 text-center">
+                    <div className="text-6xl mb-6">🔍</div>
+                    <h2 className="font-pixel text-2xl text-cocoa uppercase tracking-widest mb-2">
+                        NO MORE PLAYERS
                     </h2>
-                    <p className="text-[#7A6862] text-sm mb-6">
-                        Check back later for new recommendations ✨
+                    <p className="font-body text-cocoa-light font-bold text-sm mb-6">
+                        Check back later for new recommendations
                     </p>
                     {onEmpty && (
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                        <button
                             onClick={onEmpty}
-                            className="px-8 py-3 bg-[#CD6E67] text-white font-bold rounded-full hover:bg-[#B85C55] transition-colors shadow-lg shadow-[#CD6E67]/30"
+                            className="px-6 py-3 bg-pixel-pink text-cocoa font-pixel uppercase tracking-widest rounded-lg border-3 border-cocoa shadow-pixel hover:bg-pixel-pink-dark hover:translate-y-[-2px] hover:shadow-pixel-lg active:translate-y-1 active:shadow-none transition-all"
                         >
-                            <Sparkles className="w-4 h-4 inline mr-2" />
-                            Refresh
-                        </motion.button>
+                            🔄 REFRESH
+                        </button>
                     )}
-                </motion.div>
+                </div>
             </div>
         );
     }
 
-    // Loading state - ToyWorld styled
+    // Loading state
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center h-[75vh]">
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                    className="w-16 h-16 rounded-full border-4 border-[#ECC8CD] border-t-[#CD6E67] mb-4"
-                />
-                <p className="text-[#7A6862] text-sm font-medium">Finding people near you... 💕</p>
+                <div className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-8 text-center">
+                    <div className="text-4xl mb-4 animate-pixel-bounce">⏳</div>
+                    <p className="font-pixel text-cocoa uppercase tracking-widest">LOADING...</p>
+                    <p className="font-body text-cocoa-light font-bold text-sm mt-2">Finding people near you</p>
+                </div>
             </div>
         );
     }
@@ -166,20 +158,20 @@ export default function SwipeDeck({
                             exit={{ x: exitX, opacity: 0, transition: { duration: 0.2 } }}
                             className="absolute inset-x-0 top-0 cursor-grab active:cursor-grabbing z-10"
                         >
-                            {/* Like Indicator - ToyWorld styled */}
+                            {/* Like Indicator - Retro Style */}
                             <motion.div
                                 style={{ opacity: likeOpacity }}
-                                className="absolute top-8 left-8 z-20 bg-green-100 border-4 border-green-400 text-green-600 px-4 py-2 rounded-full font-bold text-xl rotate-[-15deg] shadow-lg"
+                                className="absolute top-8 left-8 z-20 bg-pixel-green border-3 border-cocoa text-cocoa px-4 py-2 rounded-lg font-pixel text-xl uppercase tracking-widest shadow-pixel rotate-[-15deg]"
                             >
-                                💚 LIKE
+                                ❤️ LIKE
                             </motion.div>
 
-                            {/* Pass Indicator - ToyWorld styled */}
+                            {/* Pass Indicator - Retro Style */}
                             <motion.div
                                 style={{ opacity: passOpacity }}
-                                className="absolute top-8 right-8 z-20 bg-red-100 border-4 border-red-400 text-red-600 px-4 py-2 rounded-full font-bold text-xl rotate-[15deg] shadow-lg"
+                                className="absolute top-8 right-8 z-20 bg-pixel-red border-3 border-cocoa text-white px-4 py-2 rounded-lg font-pixel text-xl uppercase tracking-widest shadow-pixel rotate-[15deg]"
                             >
-                                NOPE 👋
+                                ✕ NOPE
                             </motion.div>
 
                             <RichProfileCard user={currentUser} />
@@ -188,7 +180,7 @@ export default function SwipeDeck({
                 </AnimatePresence>
             </div>
 
-            {/* Floating Action Bar - ToyWorld styled */}
+            {/* Floating Action Bar */}
             <FloatingActionBar
                 onPass={() => handleButtonSwipe('left')}
                 onLike={() => handleButtonSwipe('right')}
@@ -199,7 +191,7 @@ export default function SwipeDeck({
     );
 }
 
-// Floating Action Bar Component - ToyWorld styled
+// Floating Action Bar Component
 interface FloatingActionBarProps {
     onPass: () => void;
     onLike: () => void;
@@ -210,52 +202,49 @@ interface FloatingActionBarProps {
 function FloatingActionBar({ onPass, onLike, onSuperLike, disabled }: FloatingActionBarProps) {
     return (
         <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-6 z-20">
-            {/* Pass Button - ToyWorld styled */}
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+            {/* Pass Button - Retro Style */}
+            <button
                 onClick={onPass}
                 disabled={disabled}
-                className="w-16 h-16 rounded-full border-4 border-[#ECC8CD] flex items-center justify-center 
-                         text-[#7A6862] hover:border-red-400 hover:text-red-500 hover:bg-red-50
-                         transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
-                         bg-white shadow-xl shadow-[#CD6E67]/15"
+                className="w-16 h-16 rounded-xl border-3 border-cocoa flex items-center justify-center 
+                         bg-retro-white text-cocoa hover:bg-pixel-red hover:text-white
+                         shadow-pixel hover:translate-y-[-2px] hover:shadow-pixel-lg
+                         active:translate-y-1 active:shadow-none
+                         transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                 title="Pass"
             >
                 <X className="w-7 h-7" strokeWidth={3} />
-            </motion.button>
+            </button>
 
-            {/* Super Like Button (Optional) - ToyWorld styled */}
+            {/* Super Like Button (Optional) - Retro Style */}
             {onSuperLike && (
-                <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+                <button
                     onClick={onSuperLike}
                     disabled={disabled}
-                    className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 border-4 border-yellow-300 
-                             flex items-center justify-center text-white hover:from-yellow-500 hover:to-orange-500
-                             transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
-                             shadow-xl shadow-yellow-400/30"
+                    className="w-12 h-12 rounded-xl bg-pixel-yellow border-3 border-cocoa flex items-center justify-center 
+                             text-cocoa hover:bg-pixel-purple
+                             shadow-pixel-sm hover:translate-y-[-2px] hover:shadow-pixel
+                             active:translate-y-1 active:shadow-none
+                             transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                     title="Super Like"
                 >
-                    <Star className="w-6 h-6" fill="white" />
-                </motion.button>
+                    <Award className="w-5 h-5" strokeWidth={2.5} />
+                </button>
             )}
 
-            {/* Like Button - ToyWorld styled */}
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+            {/* Like Button - Retro Style */}
+            <button
                 onClick={onLike}
                 disabled={disabled}
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#CD6E67] to-[#E88B85] flex items-center justify-center 
-                         text-white hover:from-[#B85C55] hover:to-[#CD6E67]
-                         transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
-                         shadow-xl shadow-[#CD6E67]/40 border-4 border-white/50"
+                className="w-16 h-16 rounded-xl bg-pixel-pink border-3 border-cocoa flex items-center justify-center 
+                         text-cocoa hover:bg-pixel-green
+                         shadow-pixel hover:translate-y-[-2px] hover:shadow-pixel-lg
+                         active:translate-y-1 active:shadow-none
+                         transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                 title="Like"
             >
-                <Heart className="w-7 h-7" fill="white" />
-            </motion.button>
+                <Check className="w-7 h-7" strokeWidth={3} />
+            </button>
         </div>
     );
 }

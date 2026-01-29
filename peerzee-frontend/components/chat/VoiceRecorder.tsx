@@ -148,26 +148,26 @@ export default function VoiceRecorder({ onSendAudio, disabled }: VoiceRecorderPr
 
     if (isRecording) {
         return (
-            <div className="flex items-center gap-3 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <div className="flex items-center gap-3 px-3 py-2 bg-pixel-red/20 border-2 border-pixel-red rounded-xl">
                 {/* Waveform */}
                 <div className="flex items-center gap-0.5 h-8">
                     {audioLevels.length > 0 ? (
                         audioLevels.map((level, i) => (
                             <div
                                 key={i}
-                                className="w-1 bg-red-400 rounded-full transition-all duration-75"
+                                className="w-1 bg-pixel-red rounded-full transition-all duration-75"
                                 style={{ height: `${Math.max(4, level * 28)}px` }}
                             />
                         ))
                     ) : (
                         Array(8).fill(0).map((_, i) => (
-                            <div key={i} className="w-1 h-1 bg-red-400 rounded-full animate-pulse" />
+                            <div key={i} className="w-1 h-1 bg-pixel-red rounded-full animate-pulse" />
                         ))
                     )}
                 </div>
 
                 {/* Duration */}
-                <span className="text-sm text-red-400 font-mono min-w-[40px]">
+                <span className="text-sm text-pixel-red font-pixel min-w-[40px]">
                     {formatDuration(duration)}
                 </span>
 
@@ -175,7 +175,7 @@ export default function VoiceRecorder({ onSendAudio, disabled }: VoiceRecorderPr
                 <button
                     onClick={stopRecording}
                     disabled={isPending}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-pixel-red text-retro-white rounded-lg border-2 border-cocoa shadow-pixel-sm hover:bg-pixel-red/80 disabled:opacity-50 transition-colors active:translate-y-0.5 active:shadow-none"
                 >
                     {isPending ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -194,7 +194,7 @@ export default function VoiceRecorder({ onSendAudio, disabled }: VoiceRecorderPr
         <button
             onClick={startRecording}
             disabled={disabled}
-            className="p-2 text-[#9B9A97] hover:text-[#E3E3E3] hover:bg-[#2F2F2F] rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 text-cocoa-light hover:text-cocoa hover:bg-pixel-pink/20 rounded-lg border-2 border-transparent hover:border-cocoa transition-colors disabled:opacity-50"
             title="Record voice message"
         >
             <Mic className="w-5 h-5" />

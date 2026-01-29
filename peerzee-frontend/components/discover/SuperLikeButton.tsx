@@ -11,7 +11,8 @@ interface SuperLikeButtonProps {
 }
 
 /**
- * SuperLikeButton - Star button for super likes with daily limit
+ * SuperLikeButton - Retro Pixel OS styled super like button
+ * Star button with daily limit and tooltip
  */
 export default function SuperLikeButton({
     onClick,
@@ -34,32 +35,32 @@ export default function SuperLikeButton({
                 onClick={onClick}
                 disabled={disabled || !canSuperLike}
                 className={`
-                    p-4 rounded-full transition-all duration-300 transform
+                    p-4 rounded-xl border-3 border-cocoa transition-all duration-200
                     ${canSuperLike
-                        ? 'bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 hover:scale-110 active:scale-95 shadow-lg shadow-blue-500/30'
-                        : 'bg-[#2F2F2F] cursor-not-allowed opacity-60'
+                        ? 'bg-pixel-blue shadow-pixel hover:translate-y-0.5 hover:shadow-none active:translate-y-1'
+                        : 'bg-cocoa/20 cursor-not-allowed opacity-60'
                     }
                 `}
             >
                 <Star
                     className={`w-7 h-7 transition-transform ${canSuperLike
-                            ? 'text-white fill-white group-hover:rotate-12'
-                            : 'text-[#9B9A97]'
+                            ? 'text-cocoa fill-cocoa group-hover:rotate-12'
+                            : 'text-cocoa-light'
                         }`}
                 />
             </button>
 
             {/* Tooltip */}
             {!canSuperLike && nextResetAt && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[#2F2F2F] rounded-lg text-xs text-[#E3E3E3] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-retro-paper border-2 border-cocoa rounded-lg text-xs text-cocoa font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-pixel-sm">
                     Next super like in {formatTimeRemaining()}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#2F2F2F]" />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-cocoa" />
                 </div>
             )}
 
             {/* Available indicator */}
             {canSuperLike && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-[#191919]" />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-pixel-green rounded-md border-2 border-cocoa" />
             )}
         </div>
     );

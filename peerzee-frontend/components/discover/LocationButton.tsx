@@ -9,6 +9,9 @@ interface LocationButtonProps {
     className?: string;
 }
 
+/**
+ * LocationButton - Retro Pixel OS styled location update button
+ */
 export function LocationButton({ onLocationUpdate, className = '' }: LocationButtonProps) {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMsg, setErrorMsg] = useState('');
@@ -56,19 +59,19 @@ export function LocationButton({ onLocationUpdate, className = '' }: LocationBut
         return (
             <button
                 onClick={updateLocation}
-                className={`flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl transition-all border border-red-500/20 ${className}`}
+                className={`flex items-center gap-2 px-4 py-2 bg-pixel-red text-cocoa border-2 border-cocoa rounded-lg shadow-pixel-sm hover:translate-y-0.5 hover:shadow-none transition-all font-bold ${className}`}
             >
                 <MapPin className="w-4 h-4" />
-                <span className="text-sm font-medium">{errorMsg || 'Thử lại'}</span>
+                <span className="text-sm">{errorMsg || 'Thử lại'}</span>
             </button>
         );
     }
 
     if (status === 'success') {
         return (
-            <div className={`flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-400 rounded-xl border border-green-500/20 ${className}`}>
+            <div className={`flex items-center gap-2 px-4 py-2 bg-pixel-green text-cocoa border-2 border-cocoa rounded-lg shadow-pixel-sm font-bold ${className}`}>
                 <CheckCircle className="w-4 h-4" />
-                <span className="text-sm font-medium">Đã cập nhật</span>
+                <span className="text-sm">Đã cập nhật</span>
             </div>
         );
     }
@@ -77,17 +80,17 @@ export function LocationButton({ onLocationUpdate, className = '' }: LocationBut
         <button
             onClick={updateLocation}
             disabled={status === 'loading'}
-            className={`flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all border border-blue-500/20 disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
+            className={`flex items-center gap-2 px-4 py-2 bg-pixel-blue text-cocoa border-2 border-cocoa rounded-lg shadow-pixel-sm hover:translate-y-0.5 hover:shadow-none transition-all font-bold disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
         >
             {status === 'loading' ? (
                 <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm font-medium">Đang cập nhật...</span>
+                    <span className="text-sm">Đang cập nhật...</span>
                 </>
             ) : (
                 <>
                     <MapPin className="w-4 h-4" />
-                    <span className="text-sm font-medium">Cập nhật vị trí</span>
+                    <span className="text-sm">Cập nhật vị trí</span>
                 </>
             )}
         </button>

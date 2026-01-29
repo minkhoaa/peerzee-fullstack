@@ -27,8 +27,8 @@ interface ChatInputProps {
 }
 
 /**
- * ChatInput - Cozy Clay floating input with pill-shaped design
- * Warm pink colors and rounded edges inspired by ToyWorld
+ * ChatInput - Retro Pixel floating input with 8-bit design
+ * Pixel borders, cocoa colors, fun aesthetic
  */
 export default function ChatInput({
     value,
@@ -210,21 +210,21 @@ export default function ChatInput({
     }, [showSuggestions]);
 
     return (
-        <div className="p-4 bg-transparent">
+        <div className="p-4 bg-retro-paper border-t-3 border-cocoa">
             {/* Reply Preview */}
             {replyingTo && (
-                <div className="mb-3 mx-4 px-4 py-3 bg-white rounded-[20px] shadow-sm flex items-center gap-3">
-                    <div className="flex-1 min-w-0 border-l-2 border-[#CD6E67] pl-3">
-                        <p className="text-xs font-bold text-[#7A6862]">
-                            Replying to {replyingTo.sender_id === userId ? 'yourself' : 'message'}
+                <div className="mb-3 mx-2 px-4 py-3 bg-retro-white border-2 border-cocoa rounded-lg shadow-pixel-sm flex items-center gap-3">
+                    <div className="flex-1 min-w-0 border-l-3 border-pixel-pink pl-3">
+                        <p className="text-xs font-pixel uppercase tracking-wider text-cocoa-light">
+                            ↩️ Replying to {replyingTo.sender_id === userId ? 'yourself' : 'message'}
                         </p>
-                        <p className="text-sm text-[#3E3229] truncate">
+                        <p className="text-sm text-cocoa truncate font-bold">
                             {replyingTo.body?.slice(0, 60)}{replyingTo.body && replyingTo.body.length > 60 ? '...' : ''}
                         </p>
                     </div>
                     <button
                         onClick={onCancelReply}
-                        className="p-2 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
+                        className="p-2 text-cocoa-light hover:text-pixel-red hover:bg-pixel-red/20 border-2 border-transparent hover:border-pixel-red rounded-lg transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -233,14 +233,14 @@ export default function ChatInput({
 
             {/* File Preview */}
             {selectedFile && (
-                <div className="mb-3 mx-4 px-4 py-3 bg-white rounded-[20px] shadow-sm flex items-center gap-3">
+                <div className="mb-3 mx-2 px-4 py-3 bg-retro-white border-2 border-cocoa rounded-lg shadow-pixel-sm flex items-center gap-3">
                     {previewUrl && (
-                        <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-xl" />
+                        <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-lg border-2 border-cocoa" />
                     )}
-                    <span className="text-sm text-[#3E3229] font-medium flex-1 truncate">{selectedFile.name}</span>
+                    <span className="text-sm text-cocoa font-bold flex-1 truncate">📎 {selectedFile.name}</span>
                     <button
                         onClick={onClearFile}
-                        className="p-2 text-[#7A6862] hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                        className="p-2 text-cocoa-light hover:text-pixel-red hover:bg-pixel-red/20 border-2 border-transparent hover:border-pixel-red rounded-lg transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -249,32 +249,32 @@ export default function ChatInput({
 
             {/* Recording UI */}
             {isRecording ? (
-                <div className="mx-4 mb-4 p-4 bg-white rounded-full shadow-lg shadow-[#CD6E67]/20 flex items-center gap-4">
+                <div className="mx-2 mb-2 p-3 bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel flex items-center gap-4">
                     <div className="flex items-center gap-3 flex-1">
-                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[#3E3229] font-mono text-sm font-bold">{formatTime(recordingTime)}</span>
-                        <div className="flex-1 h-2 bg-[#F3DDE0] rounded-full overflow-hidden">
-                            <div className="h-full bg-red-500 animate-pulse" style={{ width: '60%' }} />
+                        <div className="w-3 h-3 bg-pixel-red border-2 border-cocoa rounded animate-pulse" />
+                        <span className="text-cocoa font-pixel text-sm">{formatTime(recordingTime)}</span>
+                        <div className="flex-1 h-2 bg-retro-bg border border-cocoa rounded overflow-hidden">
+                            <div className="h-full bg-pixel-red animate-pulse" style={{ width: '60%' }} />
                         </div>
                     </div>
                     <button
                         onClick={cancelRecording}
-                        className="p-2 text-[#7A6862] hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                        className="p-2 text-cocoa-light hover:text-pixel-red hover:bg-pixel-red/20 border-2 border-transparent hover:border-pixel-red rounded-lg transition-colors"
                         title="Cancel"
                     >
                         <X className="w-5 h-5" />
                     </button>
                     <button
                         onClick={stopRecording}
-                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md shadow-red-500/30 transition-all hover:scale-105"
+                        className="p-2 bg-pixel-red border-2 border-cocoa text-white rounded-lg shadow-pixel-sm transition-all hover:bg-red-500 active:translate-y-0.5 active:shadow-none"
                         title="Send voice message"
                     >
                         <ArrowUp className="w-5 h-5" />
                     </button>
                 </div>
             ) : (
-                /* Main Input Container - Floating Island */
-                <form onSubmit={handleSubmit} className="mx-4 mb-4 p-2 bg-white rounded-full shadow-lg shadow-[#CD6E67]/10 flex items-center gap-2 focus-within:ring-2 focus-within:ring-[#CD6E67] transition-all">
+                /* Main Input Container - Pixel Island */
+                <form onSubmit={handleSubmit} className="mx-2 mb-2 p-2 bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel flex items-center gap-2 focus-within:ring-2 focus-within:ring-pixel-pink transition-all">
                     {/* Hidden file input */}
                     <input
                         type="file"
@@ -285,11 +285,11 @@ export default function ChatInput({
                     />
 
                     {/* Left Icons */}
-                    <div className="flex items-center gap-1 pb-1">
+                    <div className="flex items-center gap-1">
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="w-10 h-10 rounded-full flex items-center justify-center text-[#7A6862] hover:bg-[#F3DDE0] hover:text-[#3E3229] transition-colors"
+                            className="w-9 h-9 rounded-lg flex items-center justify-center text-cocoa-light hover:text-cocoa hover:bg-pixel-blue border-2 border-transparent hover:border-cocoa transition-colors"
                             title="Attach file"
                         >
                             <Paperclip className="w-5 h-5" />
@@ -297,7 +297,7 @@ export default function ChatInput({
                         <button
                             type="button"
                             onClick={startRecording}
-                            className="w-10 h-10 rounded-full flex items-center justify-center text-[#7A6862] hover:bg-[#F3DDE0] hover:text-[#3E3229] transition-colors"
+                            className="w-9 h-9 rounded-lg flex items-center justify-center text-cocoa-light hover:text-cocoa hover:bg-pixel-red/20 border-2 border-transparent hover:border-pixel-red transition-colors"
                             title="Voice message"
                             disabled={disabled}
                         >
@@ -311,21 +311,21 @@ export default function ChatInput({
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder={replyingTo ? 'Type your reply...' : 'Type a message...'}
-                        className="flex-1 bg-transparent text-[#3E3229] placeholder-[#9CA3AF] text-sm resize-none focus:outline-none min-h-[36px] max-h-[150px] py-2"
+                        placeholder={replyingTo ? '✍️ Type your reply...' : '✍️ Type a message...'}
+                        className="flex-1 bg-transparent text-cocoa placeholder-cocoa-light text-sm resize-none focus:outline-none min-h-[36px] max-h-[150px] py-2 font-bold"
                         rows={1}
                         disabled={disabled}
                     />
 
                     {/* Right Icons */}
-                    <div className="flex items-center gap-1 pb-1">
+                    <div className="flex items-center gap-1">
                         {/* AI Magic Wand Button */}
                         <div className="relative suggestions-container">
                             <button
                                 type="button"
                                 onClick={fetchSuggestions}
                                 disabled={loadingSuggestions || !conversationId}
-                                className="w-10 h-10 rounded-full flex items-center justify-center text-[#CD6E67] hover:text-white hover:bg-[#CD6E67] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-9 h-9 rounded-lg flex items-center justify-center text-pixel-purple hover:text-cocoa hover:bg-pixel-purple/20 border-2 border-transparent hover:border-pixel-purple transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Gợi ý tin nhắn"
                             >
                                 {loadingSuggestions ? (
@@ -337,17 +337,17 @@ export default function ChatInput({
                             
                             {/* Suggestions Popover */}
                             {showSuggestions && (
-                                <div className="absolute bottom-full right-0 mb-2 bg-white rounded-[25px] shadow-xl shadow-[#CD6E67]/20 overflow-hidden min-w-[280px] max-w-[350px]">
+                                <div className="absolute bottom-full right-0 mb-2 bg-retro-paper border-3 border-cocoa rounded-xl shadow-pixel overflow-hidden min-w-[280px] max-w-[350px]">
                                     {/* Header */}
-                                    <div className="px-5 py-4 border-b border-[#ECC8CD]/30 flex items-center justify-between">
+                                    <div className="px-4 py-3 border-b-2 border-cocoa flex items-center justify-between bg-pixel-purple/20">
                                         <div className="flex items-center gap-2">
-                                            <Wand2 className="w-4 h-4 text-[#CD6E67]" />
-                                            <span className="text-sm font-bold text-[#3E3229]">Gợi ý tin nhắn</span>
+                                            <Wand2 className="w-4 h-4 text-pixel-purple" />
+                                            <span className="text-sm font-pixel uppercase tracking-wider text-cocoa">AI Magic ✨</span>
                                         </div>
                                         <button
                                             type="button"
                                             onClick={() => setShowSuggestions(false)}
-                                            className="p-1 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
+                                            className="p-1 text-cocoa-light hover:text-pixel-red hover:bg-pixel-red/20 border border-transparent hover:border-pixel-red rounded-md transition-colors"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
@@ -357,18 +357,18 @@ export default function ChatInput({
                                     <div className="p-3">
                                         {loadingSuggestions ? (
                                             <div className="flex items-center justify-center gap-3 py-6">
-                                                <Loader2 className="w-5 h-5 text-[#CD6E67] animate-spin" />
-                                                <span className="text-sm text-[#7A6862] font-medium">AI đang suy nghĩ...</span>
+                                                <Loader2 className="w-5 h-5 text-pixel-purple animate-spin" />
+                                                <span className="text-sm text-cocoa-light font-bold">AI đang suy nghĩ...</span>
                                             </div>
                                         ) : suggestionError ? (
                                             <div className="py-4 px-3 text-center">
-                                                <p className="text-sm text-red-500 font-medium">{suggestionError}</p>
+                                                <p className="text-sm text-pixel-red font-bold">{suggestionError}</p>
                                                 <button
                                                     type="button"
                                                     onClick={fetchSuggestions}
-                                                    className="mt-2 text-xs text-[#CD6E67] hover:text-[#B55B55] font-bold"
+                                                    className="mt-2 text-xs text-pixel-purple hover:text-purple-600 font-pixel uppercase tracking-wider"
                                                 >
-                                                    Thử lại
+                                                    🔄 Thử lại
                                                 </button>
                                             </div>
                                         ) : suggestions.length > 0 ? (
@@ -378,25 +378,25 @@ export default function ChatInput({
                                                         key={i}
                                                         type="button"
                                                         onClick={() => handleSuggestionClick(suggestion)}
-                                                        className="w-full px-4 py-3 text-left text-sm text-[#3E3229] hover:bg-[#F8E3E6] rounded-[18px] transition-colors group"
+                                                        className="w-full px-4 py-3 text-left text-sm text-cocoa hover:bg-pixel-blue border-2 border-transparent hover:border-cocoa rounded-lg transition-colors group font-bold"
                                                     >
                                                         <span className="inline-flex items-center gap-2">
-                                                            <span className="text-[#CD6E67]">💬</span>
-                                                            <span className="line-clamp-2 font-medium">{suggestion}</span>
+                                                            <span className="text-pixel-pink">💬</span>
+                                                            <span className="line-clamp-2">{suggestion}</span>
                                                         </span>
                                                     </button>
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="py-4 text-center text-sm text-[#7A6862]">
-                                                Bấm để tạo gợi ý
+                                            <div className="py-4 text-center text-sm text-cocoa-light font-bold">
+                                                ✨ Bấm để tạo gợi ý
                                             </div>
                                         )}
                                     </div>
                                     
                                     {/* Footer */}
-                                    <div className="px-4 py-3 border-t border-[#ECC8CD]/30 bg-[#FDF0F1]">
-                                        <p className="text-xs text-[#7A6862] text-center font-medium">
+                                    <div className="px-4 py-3 border-t-2 border-cocoa bg-retro-bg">
+                                        <p className="text-xs text-cocoa-light text-center font-bold">
                                             ✨ Gợi ý dựa trên lịch sử chat & profile đối phương
                                         </p>
                                     </div>
@@ -408,7 +408,7 @@ export default function ChatInput({
                         <button
                             type="submit"
                             disabled={disabled || (!value.trim() && !selectedFile)}
-                            className="w-10 h-10 rounded-full bg-[#CD6E67] text-white flex items-center justify-center hover:bg-[#B55B55] shadow-md shadow-[#CD6E67]/30 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            className="w-9 h-9 rounded-lg bg-pixel-pink border-2 border-cocoa text-cocoa flex items-center justify-center hover:bg-pixel-pink-dark shadow-pixel-sm transition-all active:translate-y-0.5 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Send message"
                         >
                             <ArrowUp className="w-5 h-5" />

@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Music, Search, X, Loader2, Play, Pause, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Music, Search, X, Loader2, Play, Pause, Award } from 'lucide-react';
 import { profileApi } from '@/lib/api';
 
 interface MusicTrack {
@@ -46,6 +45,7 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Cleanup audio on unmount
     useEffect(() => {
         return () => {
             if (audioRef.current) {
@@ -76,6 +76,7 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
     const handleQueryChange = (value: string) => {
         setQuery(value);
 
+        // Debounce search
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
@@ -86,7 +87,7 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
 
     const handleSelectTrack = async (track: MusicTrack) => {
         if (!track.previewUrl) {
-            alert('This song has no preview available');
+            alert('Bài hát này không có preview để phân tích');
             return;
         }
 
@@ -118,7 +119,7 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
             setResults([]);
         } catch (err) {
             console.error('Failed to set music:', err);
-            alert('Could not analyze song. Please try again!');
+            alert('Không thể phân tích bài hát. Vui lòng thử lại!');
         } finally {
             setSetting(false);
         }
@@ -152,53 +153,46 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
         const analysis = currentMusic.analysis;
 
         return (
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-[#FDF0F1] rounded-[40px] p-6 shadow-md"
-            >
+            <div className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-5">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-[#3E3229] font-bold flex items-center gap-2">
-                        <Music className="w-5 h-5 text-[#CD6E67]" />
+                    <h3 className="text-cocoa font-pixel uppercase tracking-widest flex items-center gap-2">
+                        <Music className="w-5 h-5 text-pixel-green" />
                         Vibe Match
                     </h3>
                     <button
                         onClick={() => setShowSearch(true)}
-                        className="text-sm text-[#CD6E67] font-bold hover:underline"
+                        className="text-xs text-pixel-pink-dark hover:text-cocoa font-bold uppercase"
                     >
-                        Change song
+                        Đổi bài
                     </button>
                 </div>
 
                 {/* Vinyl Card */}
                 <div
-                    className="rounded-[30px] p-5 relative overflow-hidden"
-                    style={{ backgroundColor: analysis?.color || '#CD6E67' }}
+                    className="rounded-xl p-4 relative overflow-hidden border-2 border-cocoa"
+                    style={{ backgroundColor: analysis?.color || '#C9B1FF' }}
                 >
+                    {/* Album Cover as Vinyl */}
                     <div className="flex items-center gap-4">
                         <div className="relative">
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                                className="w-20 h-20 rounded-full overflow-hidden border-4 border-white/20 shadow-lg"
-                            >
+                            <div className="w-20 h-20 rounded-xl overflow-hidden border-3 border-cocoa shadow-pixel animate-spin-slow">
                                 <img
                                     src={currentMusic.cover}
                                     alt={currentMusic.song}
                                     className="w-full h-full object-cover"
                                 />
-                            </motion.div>
+                            </div>
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-6 h-6 rounded-full bg-white/30" />
+                                <div className="w-6 h-6 rounded-full bg-cocoa/50" />
                             </div>
                         </div>
 
                         <div className="flex-1 min-w-0">
-                            <p className="text-white font-bold truncate">{currentMusic.song}</p>
-                            <p className="text-white/70 text-sm truncate">{currentMusic.artist}</p>
+                            <p className="text-cocoa font-bold truncate">{currentMusic.song}</p>
+                            <p className="text-cocoa/70 text-sm truncate font-medium">{currentMusic.artist}</p>
                             {analysis && (
                                 <div className="mt-2 flex items-center gap-2">
-                                    <span className="px-3 py-1 bg-white/20 rounded-full text-white text-xs font-bold">
+                                    <span className="px-2 py-0.5 bg-retro-white/80 rounded-lg text-cocoa text-xs font-bold border border-cocoa">
                                         {analysis.mood}
                                     </span>
                                 </div>
@@ -208,37 +202,43 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
 
                     {/* Vibe Analysis */}
                     {analysis && (
-                        <div className="mt-4 pt-4 border-t border-white/20">
+                        <div className="mt-4 pt-4 border-t border-cocoa/30">
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {analysis.keywords.map((kw, i) => (
                                     <span
                                         key={i}
-                                        className="px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold"
+                                        className="px-2 py-1 bg-retro-white/80 rounded-lg text-cocoa text-xs font-bold border border-cocoa"
                                     >
                                         {kw}
                                     </span>
                                 ))}
                             </div>
-                            <p className="text-white/90 text-sm italic leading-relaxed">
+                            <p className="text-cocoa/80 text-sm italic leading-relaxed font-medium">
                                 "{analysis.description}"
                             </p>
                         </div>
                     )}
                 </div>
-            </motion.div>
+
+                <style jsx>{`
+                    @keyframes spin-slow {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                    .animate-spin-slow {
+                        animation: spin-slow 8s linear infinite;
+                    }
+                `}</style>
+            </div>
         );
     }
 
     // Render search/empty state
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-[#FDF0F1] rounded-[40px] p-6 shadow-md"
-        >
+        <div className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-5">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[#3E3229] font-bold flex items-center gap-2">
-                    <Music className="w-5 h-5 text-[#CD6E67]" />
+                <h3 className="text-cocoa font-pixel uppercase tracking-widest flex items-center gap-2">
+                    <Music className="w-5 h-5 text-pixel-green" />
                     Vibe Match
                 </h3>
                 {showSearch && (
@@ -249,7 +249,7 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
                             setResults([]);
                             stopAudio();
                         }}
-                        className="p-1 text-[#7A6862] hover:text-[#3E3229] rounded-full hover:bg-[#ECC8CD] transition-colors"
+                        className="text-cocoa-light hover:text-cocoa p-1.5 rounded-lg border-2 border-transparent hover:border-cocoa hover:bg-pixel-red/20"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -260,16 +260,16 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
                 // Empty state
                 <button
                     onClick={() => setShowSearch(true)}
-                    className="w-full py-10 border-2 border-dashed border-[#CD6E67]/30 rounded-[30px] hover:border-[#CD6E67] hover:bg-white transition-all group"
+                    className="w-full py-8 border-3 border-dashed border-cocoa-light rounded-xl hover:border-pixel-green transition-colors group bg-retro-paper"
                 >
                     <div className="flex flex-col items-center gap-3">
-                        <div className="w-16 h-16 rounded-full bg-[#CD6E67]/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-[#CD6E67]/20 transition-all">
-                            <Music className="w-8 h-8 text-[#CD6E67]" />
+                        <div className="w-16 h-16 rounded-xl bg-pixel-green flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-cocoa shadow-pixel-sm">
+                            <Music className="w-8 h-8 text-cocoa" />
                         </div>
                         <div className="text-center">
-                            <p className="text-[#3E3229] font-bold">Add your favorite song</p>
-                            <p className="text-[#7A6862] text-sm mt-1 font-semibold">
-                                AI will analyze your vibe through music
+                            <p className="text-cocoa font-bold">Thêm bài hát yêu thích</p>
+                            <p className="text-cocoa-light text-sm mt-1 font-medium">
+                                AI sẽ phân tích vibe của bạn qua âm nhạc
                             </p>
                         </div>
                     </div>
@@ -278,31 +278,29 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
                 // Search UI
                 <div>
                     <div className="relative mb-4">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#7A6862]" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cocoa-light" />
                         <input
                             type="text"
                             value={query}
                             onChange={(e) => handleQueryChange(e.target.value)}
-                            placeholder="Search for a song..."
-                            className="w-full pl-12 pr-4 py-4 bg-white border-2 border-transparent rounded-full text-[#3E3229] placeholder-[#7A6862] font-semibold focus:outline-none focus:border-[#CD6E67] transition-colors shadow-sm"
+                            placeholder="Tìm bài hát..."
+                            className="w-full pl-10 pr-4 py-3 bg-retro-paper border-2 border-cocoa rounded-xl text-cocoa placeholder-cocoa-light focus:outline-none focus:ring-2 focus:ring-pixel-green font-bold shadow-pixel-inset"
                             autoFocus
                         />
                         {searching && (
-                            <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#CD6E67] animate-spin" />
+                            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-pixel-green animate-spin" />
                         )}
                     </div>
 
                     {/* Results */}
-                    <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    <div className="space-y-2 max-h-80 overflow-y-auto">
                         {results.map((track) => (
-                            <motion.div
+                            <div
                                 key={track.trackId}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className="flex items-center gap-3 p-3 bg-white rounded-[20px] hover:shadow-md transition-all"
+                                className="flex items-center gap-3 p-3 bg-retro-paper rounded-xl hover:bg-pixel-green/20 transition-colors border-2 border-cocoa"
                             >
                                 {/* Album Cover */}
-                                <div className="relative w-14 h-14 rounded-[15px] overflow-hidden shadow-sm">
+                                <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-cocoa">
                                     <img
                                         src={track.coverUrl}
                                         alt={track.songName}
@@ -311,12 +309,12 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
                                     {track.previewUrl && (
                                         <button
                                             onClick={() => togglePlay(track)}
-                                            className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity"
+                                            className="absolute inset-0 flex items-center justify-center bg-cocoa/50 opacity-0 hover:opacity-100 transition-opacity"
                                         >
                                             {playingId === track.trackId ? (
-                                                <Pause className="w-6 h-6 text-white" />
+                                                <Pause className="w-5 h-5 text-retro-white" />
                                             ) : (
-                                                <Play className="w-6 h-6 text-white" />
+                                                <Play className="w-5 h-5 text-retro-white" />
                                             )}
                                         </button>
                                     )}
@@ -324,47 +322,45 @@ export function VibeMatch({ currentMusic, onMusicSet }: VibeMatchProps) {
 
                                 {/* Track Info */}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-[#3E3229] font-bold truncate">{track.songName}</p>
-                                    <p className="text-[#7A6862] text-sm truncate font-semibold">{track.artistName}</p>
+                                    <p className="text-cocoa font-bold truncate">{track.songName}</p>
+                                    <p className="text-cocoa-light text-sm truncate font-medium">{track.artistName}</p>
                                 </div>
 
                                 {/* Select Button */}
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                <button
                                     onClick={() => handleSelectTrack(track)}
                                     disabled={setting || !track.previewUrl}
-                                    className="px-4 py-2 bg-[#CD6E67] hover:bg-[#B55B55] disabled:bg-[#ECC8CD] disabled:cursor-not-allowed text-white text-sm font-bold rounded-full transition-colors flex items-center gap-1 shadow-md"
+                                    className="px-3 py-1.5 bg-pixel-green hover:bg-pixel-green/80 disabled:bg-cocoa-light/30 disabled:cursor-not-allowed text-cocoa text-sm font-bold rounded-lg transition-colors flex items-center gap-1 border-2 border-cocoa shadow-pixel-sm active:translate-y-0.5 active:shadow-none"
                                 >
                                     {setting ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
                                     ) : (
                                         <>
-                                            <Sparkles className="w-4 h-4" />
-                                            Select
+                                            <Award className="w-4 h-4" strokeWidth={2.5} />
+                                            Chọn
                                         </>
                                     )}
-                                </motion.button>
-                            </motion.div>
+                                </button>
+                            </div>
                         ))}
 
                         {query && !searching && results.length === 0 && (
-                            <div className="text-center py-8 text-[#7A6862] font-semibold">
-                                No songs found
+                            <div className="text-center py-8 text-cocoa-light font-medium">
+                                Không tìm thấy bài hát nào
                             </div>
                         )}
 
                         {!query && (
-                            <div className="text-center py-8 text-[#7A6862]">
-                                <p className="font-semibold">Enter song or artist name</p>
-                                <p className="text-sm mt-2">
-                                    Example: "Shape of You", "Ed Sheeran"
+                            <div className="text-center py-8 text-cocoa-light">
+                                <p className="font-medium">Nhập tên bài hát hoặc nghệ sĩ</p>
+                                <p className="text-xs mt-2">
+                                    Ví dụ: "Có chắc yêu là đây", "Sơn Tùng"
                                 </p>
                             </div>
                         )}
                     </div>
                 </div>
             )}
-        </motion.div>
+        </div>
     );
 }

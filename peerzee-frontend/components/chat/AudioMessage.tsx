@@ -71,9 +71,9 @@ export default function AudioMessage({ audioUrl, duration = 0, isOwn }: AudioMes
     const waveformBars = Array(20).fill(0).map(() => 0.3 + Math.random() * 0.7);
 
     return (
-        <div className={`flex items-center gap-3 p-3 rounded-xl max-w-[280px] ${isOwn
-            ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/20'
-            : 'bg-[#2F2F2F]'
+        <div className={`flex items-center gap-3 p-3 rounded-xl max-w-[280px] border-2 border-cocoa ${isOwn
+            ? 'bg-pixel-pink/20'
+            : 'bg-retro-paper'
             }`}>
             <audio
                 ref={audioRef}
@@ -90,9 +90,9 @@ export default function AudioMessage({ audioUrl, duration = 0, isOwn }: AudioMes
             {/* Play button */}
             <button
                 onClick={togglePlay}
-                className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${isOwn
-                    ? 'bg-purple-500 text-white hover:bg-purple-600'
-                    : 'bg-[#505050] text-[#E3E3E3] hover:bg-[#606060]'
+                className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl transition-colors border-2 border-cocoa shadow-pixel-sm active:translate-y-0.5 active:shadow-none ${isOwn
+                    ? 'bg-pixel-pink text-cocoa hover:bg-pixel-pink-dark'
+                    : 'bg-pixel-blue text-cocoa hover:bg-pixel-blue/80'
                     }`}
             >
                 {isPlaying ? (
@@ -113,8 +113,8 @@ export default function AudioMessage({ audioUrl, duration = 0, isOwn }: AudioMes
                         <div
                             key={i}
                             className={`w-1 rounded-full transition-colors ${(i / waveformBars.length) * 100 <= progress
-                                ? (isOwn ? 'bg-purple-400' : 'bg-[#E3E3E3]')
-                                : 'bg-[#505050]'
+                                ? (isOwn ? 'bg-pixel-pink' : 'bg-cocoa')
+                                : 'bg-cocoa-light/50'
                                 }`}
                             style={{ height: `${height * 24}px` }}
                         />
@@ -122,7 +122,7 @@ export default function AudioMessage({ audioUrl, duration = 0, isOwn }: AudioMes
                 </div>
 
                 {/* Time */}
-                <div className="flex items-center justify-between text-xs text-[#9B9A97]">
+                <div className="flex items-center justify-between text-xs text-cocoa-light font-medium">
                     <span>{formatTime(currentTime)}</span>
                     <div className="flex items-center gap-1">
                         <Volume2 className="w-3 h-3" />

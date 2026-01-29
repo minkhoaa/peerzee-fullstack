@@ -5,28 +5,14 @@ import { MapPin, Briefcase, GraduationCap, Music, Instagram } from 'lucide-react
 import type { DiscoverUser } from '@/hooks/useDiscover';
 import ProfilePropertiesGrid from './ProfilePropertiesGrid';
 
-// ============================================
-// HIGH CONTRAST COLOR TOKENS (WCAG AA)
-// ============================================
-const COLORS = {
-  text: '#2C1A1D',           // Very Dark Cocoa
-  textMuted: '#5D4037',      // Medium Brown
-  background: '#FFFFFF',      // Pure White
-  border: '#4A3228',          // Dark Coffee
-  pink: '#F4B0C8',            // Retro Pink
-  green: '#98D689',           // Pixel Green
-  yellow: '#FFE082',          // Soft Yellow
-  cardBg: '#FFF9F5',          // Warm White
-} as const;
-
 interface ProfileCardProps {
     user: DiscoverUser;
     onContentClick?: (contentId: string, contentType: 'photo' | 'prompt' | 'vibe') => void;
 }
 
 /**
- * ProfileCard - High Contrast Retro OS Style
- * Scrollable profile with pixel borders and hard shadows
+ * ProfileCard - Retro Pixel OS styled profile card
+ * Scrollable profile doc with cover image, details, and prompts
  */
 export default function ProfileCard({ user, onContentClick }: ProfileCardProps) {
     const cardRef = useRef<HTMLDivElement>(null);
@@ -39,8 +25,7 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
     return (
         <div
             ref={cardRef}
-            className="w-full h-full border-[4px] rounded-lg overflow-hidden flex flex-col shadow-[6px_6px_0px_#4A3228]"
-            style={{ borderColor: COLORS.border, backgroundColor: COLORS.cardBg }}
+            className="w-full h-full bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel overflow-hidden flex flex-col"
         >
             {/* Cover Image - 40% height */}
             <div className="relative h-[40%] min-h-[240px] flex-shrink-0">
@@ -51,37 +36,14 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                     onClick={() => user.photos?.[0]?.id && onContentClick?.(user.photos[0].id, 'photo')}
                 />
                 {/* Gradient overlay */}
-                <div 
-                    className="absolute inset-0"
-                    style={{ background: `linear-gradient(to top, ${COLORS.cardBg}, transparent 50%)` }}
-                />
-                
-                {/* Distance Badge */}
-                {user.distance_km !== undefined && user.distance_km !== null && (
-                    <div 
-                        className="absolute top-3 right-3 px-3 py-1 border-[2px] flex items-center gap-1 font-pixel text-xs"
-                        style={{ 
-                            backgroundColor: COLORS.green, 
-                            borderColor: COLORS.border,
-                            color: COLORS.border 
-                        }}
-                    >
-                        <MapPin className="w-3 h-3" />
-                        {user.distance_km < 1
-                            ? `${Math.round(user.distance_km * 1000)}m`
-                            : `${user.distance_km.toFixed(1)}km`}
-                    </div>
-                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-retro-white via-transparent to-transparent" />
             </div>
 
             {/* Scrollable Body - 60% */}
             <div className="flex-1 overflow-y-auto px-5 pb-5 -mt-8 relative z-10">
                 {/* Avatar + Name + Age + Location */}
                 <div className="flex items-end gap-4 mb-4">
-                    <div 
-                        className="w-20 h-20 overflow-hidden border-[3px] flex-shrink-0"
-                        style={{ borderColor: COLORS.border, backgroundColor: COLORS.pink }}
-                    >
+                    <div className="w-20 h-20 rounded-xl overflow-hidden border-3 border-cocoa bg-pixel-pink shadow-pixel flex-shrink-0">
                         <img
                             src={user.photos?.[1]?.url || coverPhoto}
                             alt={user.display_name}
@@ -89,52 +51,41 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                         />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h2 
-                            className="font-pixel text-xl truncate uppercase"
-                            style={{ color: COLORS.text }}
-                        >
+                        <h2 className="text-xl font-pixel uppercase tracking-widest text-cocoa truncate">
                             {user.display_name}
-                            {user.age && (
-                                <span 
-                                    className="ml-2 px-2 py-0.5 text-sm border-[2px]"
-                                    style={{ 
-                                        backgroundColor: COLORS.yellow, 
-                                        borderColor: COLORS.border 
-                                    }}
-                                >
-                                    LVL {user.age}
+                            {user.age && <span className="ml-2">{user.age}</span>}
+                        </h2>
+                        <div className="flex items-center gap-2 mt-1">
+                            {user.location && (
+                                <p className="text-sm text-cocoa-light font-bold flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5" />
+                                    {user.location}
+                                </p>
+                            )}
+                            {/* Distance badge from PostGIS */}
+                            {user.distance_km !== undefined && user.distance_km !== null && (
+                                <span className="px-2 py-1 bg-pixel-blue text-cocoa text-xs rounded-lg flex items-center gap-1 font-bold border border-cocoa shadow-pixel-sm">
+                                    <MapPin className="w-3 h-3" />
+                                    {user.distance_km < 1
+                                        ? `${Math.round(user.distance_km * 1000)}m`
+                                        : `${user.distance_km.toFixed(1)}km`}
                                 </span>
                             )}
-                        </h2>
-                        {user.location && (
-                            <p 
-                                className="text-sm font-bold flex items-center gap-1 mt-1"
-                                style={{ color: COLORS.textMuted }}
-                            >
-                                <MapPin className="w-3.5 h-3.5" />
-                                {user.location}
-                            </p>
-                        )}
+                        </div>
                     </div>
                 </div>
 
                 {/* Occupation & Education */}
                 <div className="space-y-2 mb-5">
                     {user.occupation && (
-                        <div 
-                            className="flex items-center gap-2 text-sm font-bold"
-                            style={{ color: COLORS.text }}
-                        >
-                            <Briefcase className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.border }} />
+                        <div className="flex items-center gap-2 text-sm text-cocoa font-bold">
+                            <Briefcase className="w-4 h-4 flex-shrink-0 text-pixel-pink" />
                             <span className="truncate">{user.occupation}</span>
                         </div>
                     )}
                     {user.education && (
-                        <div 
-                            className="flex items-center gap-2 text-sm font-bold"
-                            style={{ color: COLORS.text }}
-                        >
-                            <GraduationCap className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.border }} />
+                        <div className="flex items-center gap-2 text-sm text-cocoa font-bold">
+                            <GraduationCap className="w-4 h-4 flex-shrink-0 text-pixel-purple" />
                             <span className="truncate">{user.education}</span>
                         </div>
                     )}
@@ -148,24 +99,15 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                 {/* Tags / Vibes */}
                 {user.tags && user.tags.length > 0 && (
                     <div className="mb-5">
-                        <h3 
-                            className="font-pixel text-xs uppercase tracking-wider mb-3"
-                            style={{ color: COLORS.textMuted }}
-                        >
-                            ⚔️ MY VIBES
+                        <h3 className="text-xs font-pixel uppercase tracking-widest text-cocoa mb-3">
+                            My Vibe
                         </h3>
                         <div className="flex flex-wrap gap-2">
                             {user.tags.map((tag, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => onContentClick?.(`tag-${idx}`, 'vibe')}
-                                    className="px-3 py-1.5 text-xs font-bold border-[2px] transition-all hover:translate-y-[-2px]"
-                                    style={{ 
-                                        backgroundColor: COLORS.background, 
-                                        borderColor: COLORS.border,
-                                        color: COLORS.text,
-                                        boxShadow: `2px 2px 0px ${COLORS.border}`
-                                    }}
+                                    className="px-3 py-1.5 text-sm bg-pixel-yellow text-cocoa font-bold rounded-lg border-2 border-cocoa shadow-pixel-sm hover:bg-pixel-pink hover:translate-y-0.5 hover:shadow-none transition-all"
                                 >
                                     {tag}
                                 </button>
@@ -177,16 +119,10 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                 {/* Bio */}
                 {user.bio && (
                     <div className="mb-5">
-                        <h3 
-                            className="font-pixel text-xs uppercase tracking-wider mb-3"
-                            style={{ color: COLORS.textMuted }}
-                        >
-                            📜 ABOUT ME
+                        <h3 className="text-xs font-pixel uppercase tracking-widest text-cocoa mb-3">
+                            About Me
                         </h3>
-                        <p 
-                            className="text-sm font-body leading-relaxed"
-                            style={{ color: COLORS.text }}
-                        >
+                        <p className="text-sm text-cocoa font-medium leading-relaxed">
                             {user.bio}
                         </p>
                     </div>
@@ -199,49 +135,33 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                             <button
                                 key={prompt.id || idx}
                                 onClick={() => onContentClick?.(prompt.id || `prompt-${idx}`, 'prompt')}
-                                className="w-full text-left p-4 border-[3px] transition-all hover:translate-y-[-2px]"
-                                style={{ 
-                                    backgroundColor: COLORS.background, 
-                                    borderColor: COLORS.border,
-                                    boxShadow: `3px 3px 0px ${COLORS.border}`
-                                }}
+                                className="w-full text-left p-4 bg-retro-paper border-2 border-cocoa rounded-xl shadow-pixel-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
                             >
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-lg">{prompt.emoji || '💬'}</span>
-                                    <span 
-                                        className="font-pixel text-xs uppercase tracking-wide"
-                                        style={{ color: COLORS.textMuted }}
-                                    >
+                                    <span className="text-xs font-pixel uppercase tracking-widest text-cocoa-light">
                                         {prompt.question}
                                     </span>
                                 </div>
-                                <p 
-                                    className="text-sm font-body font-bold"
-                                    style={{ color: COLORS.text }}
-                                >
-                                    {prompt.answer}
-                                </p>
+                                <p className="text-sm text-cocoa font-bold">{prompt.answer}</p>
                             </button>
                         ))}
                     </div>
                 )}
 
                 {/* Spotify & Instagram */}
-                <div 
-                    className="flex items-center gap-4 text-xs font-bold"
-                    style={{ color: COLORS.textMuted }}
-                >
+                <div className="flex items-center gap-4 text-xs text-cocoa font-bold">
                     {user.spotify && (
-                        <div className="flex items-center gap-1.5">
-                            <Music className="w-4 h-4" style={{ color: COLORS.green }} />
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-pixel-green rounded-lg border-2 border-cocoa shadow-pixel-sm">
+                            <Music className="w-4 h-4 text-cocoa" />
                             <span className="truncate max-w-[120px]">
                                 {user.spotify.song}
                             </span>
                         </div>
                     )}
                     {user.instagram && (
-                        <div className="flex items-center gap-1.5">
-                            <Instagram className="w-4 h-4" style={{ color: COLORS.pink }} />
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-pixel-pink rounded-lg border-2 border-cocoa shadow-pixel-sm">
+                            <Instagram className="w-4 h-4 text-cocoa" />
                             <span>{user.instagram}</span>
                         </div>
                     )}

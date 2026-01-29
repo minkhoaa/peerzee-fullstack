@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Search, Loader2, Play, Pause, Sparkles, Music } from 'lucide-react';
+import { X, Search, Loader2, Play, Pause, Award, Music } from 'lucide-react';
 import { profileApi } from '@/lib/api';
 
 interface MusicTrack {
@@ -166,44 +166,44 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop with blur - Darker for focus */}
+            {/* Backdrop */}
             <div 
-                className="absolute inset-0 backdrop-blur-sm bg-black/10"
+                className="absolute inset-0 bg-cocoa/50"
                 onClick={onClose}
             />
             
-            {/* Modal Container - Dreamy Glass */}
-            <div className="relative bg-white/80 backdrop-blur-2xl rounded-[32px] w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col shadow-2xl border border-white shadow-rose-500/10">
+            {/* Modal Container - Pixel Style */}
+            <div className="relative bg-retro-white rounded-xl w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col border-3 border-cocoa shadow-pixel-lg">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-white/30 flex-shrink-0">
-                    <h2 className="text-zinc-900 font-semibold flex items-center gap-2">
-                        <Music className="w-5 h-5 text-rose-500" />
+                <div className="flex items-center justify-between p-4 border-b-2 border-cocoa flex-shrink-0">
+                    <h2 className="text-cocoa font-pixel uppercase tracking-widest flex items-center gap-2">
+                        <Music className="w-5 h-5 text-pixel-green" />
                         Chọn Bài Hát
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-1 text-zinc-500 hover:text-zinc-900 hover:bg-white/50 rounded-lg transition-colors"
+                        className="p-1.5 text-cocoa-light hover:text-cocoa hover:bg-pixel-red/20 rounded-lg border-2 border-transparent hover:border-cocoa transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Search Input */}
-                <div className="p-4 border-b border-white/30 flex-shrink-0">
+                <div className="p-4 border-b-2 border-cocoa flex-shrink-0">
                     <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cocoa-light" />
                         <input
                             type="text"
                             value={query}
                             onChange={(e) => handleQueryChange(e.target.value)}
                             placeholder="Tìm bài hát hoặc nghệ sĩ..."
-                            className="w-full pl-12 pr-12 py-3.5 bg-white/50 border border-white/50 rounded-xl text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200/50 focus:bg-white transition-all text-base"
+                            className="w-full pl-12 pr-12 py-3.5 bg-retro-paper border-2 border-cocoa rounded-xl text-cocoa placeholder-cocoa-light focus:outline-none focus:ring-2 focus:ring-pixel-green font-bold shadow-pixel-inset transition-all text-base"
                             autoFocus
                         />
                         {searching && (
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                                <Loader2 className="w-5 h-5 text-rose-500 animate-spin" />
-                                <span className="text-rose-500 text-xs">Đang tìm...</span>
+                                <Loader2 className="w-5 h-5 text-pixel-green animate-spin" />
+                                <span className="text-pixel-green text-xs font-bold">Đang tìm...</span>
                             </div>
                         )}
                     </div>
@@ -213,8 +213,8 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                 <div className="flex-1 overflow-y-auto relative">
                     {/* Analyzing Overlay */}
                     {analyzing && selectedTrack && (
-                        <div className="absolute inset-0 bg-white/90 backdrop-blur-xl flex flex-col items-center justify-center z-10">
-                            <div className="w-24 h-24 rounded-xl overflow-hidden mb-6 shadow-2xl animate-pulse ring-4 ring-rose-500/30">
+                        <div className="absolute inset-0 bg-retro-white/95 flex flex-col items-center justify-center z-10">
+                            <div className="w-24 h-24 rounded-xl overflow-hidden mb-6 shadow-pixel animate-pulse border-3 border-cocoa">
                                 {!imageErrors.has(selectedTrack.trackId) ? (
                                     <img
                                         src={selectedTrack.coverUrl}
@@ -223,14 +223,14 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                                         onError={() => handleImageError(selectedTrack.trackId)}
                                     />
                                 ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                                        <Music className="w-10 h-10 text-white" />
+                                    <div className="w-full h-full bg-pixel-green flex items-center justify-center">
+                                        <Music className="w-10 h-10 text-cocoa" />
                                     </div>
                                 )}
                             </div>
-                            <Loader2 className="w-8 h-8 text-rose-500 animate-spin mb-4" />
-                            <p className="text-zinc-900 font-semibold text-lg">Đang phân tích vibe...</p>
-                            <p className="text-zinc-600 text-sm mt-2 text-center px-4">
+                            <Loader2 className="w-8 h-8 text-pixel-green animate-spin mb-4" />
+                            <p className="text-cocoa font-pixel uppercase tracking-widest text-lg">Đang phân tích vibe...</p>
+                            <p className="text-cocoa-light text-sm mt-2 text-center px-4 font-medium">
                                 AI đang nghe &ldquo;{selectedTrack.songName}&rdquo;
                             </p>
                         </div>
@@ -239,7 +239,7 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                     {/* Results List */}
                     <div className="p-4 space-y-2">
                         {results.length > 0 && (
-                            <p className="text-[#666] text-xs mb-2">Tìm thấy {results.length} bài hát</p>
+                            <p className="text-cocoa-light text-xs mb-2 font-medium">Tìm thấy {results.length} bài hát</p>
                         )}
                         
                         {results.map((track) => {
@@ -254,10 +254,10 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                             return (
                                 <div
                                     key={track.trackId}
-                                    className="flex items-center gap-3 p-3 bg-white/40 backdrop-blur-sm rounded-xl hover:bg-gradient-to-r hover:from-rose-50 hover:to-transparent border border-white/30 transition-all group"
+                                    className="flex items-center gap-3 p-3 bg-retro-paper rounded-xl hover:bg-pixel-green/20 border-2 border-cocoa transition-all group"
                                 >
                                     {/* Cover Art - Fixed Size */}
-                                    <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-[#333]">
+                                    <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-cocoa-light/20 border-2 border-cocoa">
                                         {!imageErrors.has(track.trackId) && track.coverUrl ? (
                                             <img
                                                 src={track.coverUrl}
@@ -266,8 +266,8 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                                                 onError={() => handleImageError(track.trackId)}
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-gradient-to-br from-green-500/50 to-emerald-600/50 flex items-center justify-center">
-                                                <Music className="w-6 h-6 text-white/70" />
+                                            <div className="w-full h-full bg-pixel-green/50 flex items-center justify-center">
+                                                <Music className="w-6 h-6 text-cocoa" />
                                             </div>
                                         )}
                                         
@@ -278,32 +278,32 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                                                     e.stopPropagation();
                                                     togglePlay(track);
                                                 }}
-                                                className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute inset-0 flex items-center justify-center bg-cocoa/60 opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 {playingId === track.trackId ? (
-                                                    <Pause className="w-5 h-5 text-white" />
+                                                    <Pause className="w-5 h-5 text-retro-white" />
                                                 ) : (
-                                                    <Play className="w-5 h-5 text-white ml-0.5" />
+                                                    <Play className="w-5 h-5 text-retro-white ml-0.5" />
                                                 )}
                                             </button>
                                         )}
                                         
                                         {/* Playing indicator */}
                                         {playingId === track.trackId && (
-                                            <div className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
+                                            <div className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-pixel-green animate-pulse" />
                                         )}
                                     </div>
 
-                                    {/* Track Info - NO OVERFLOW HIDDEN */}
+                                    {/* Track Info */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-zinc-900 font-semibold text-sm mb-1 truncate">
+                                        <div className="text-cocoa font-bold text-sm mb-1 truncate">
                                             {track.songName || 'Unknown Song'}
                                         </div>
-                                        <div className="text-zinc-600 text-xs truncate">
+                                        <div className="text-cocoa-light text-xs truncate font-medium">
                                             {track.artistName || 'Unknown Artist'}
                                         </div>
                                         {track.genre && (
-                                            <div className="text-zinc-500 text-[10px] truncate mt-0.5">
+                                            <div className="text-cocoa-light/70 text-[10px] truncate mt-0.5">
                                                 {track.genre}
                                             </div>
                                         )}
@@ -318,10 +318,10 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                                                 e.stopPropagation();
                                                 togglePlay(track);
                                             }}
-                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all border-2 border-cocoa ${
                                                 playingId === track.trackId
-                                                    ? 'bg-gradient-to-r from-rose-500 to-rose-400 text-white shadow-md shadow-rose-500/30'
-                                                    : 'bg-white/50 text-zinc-600 hover:bg-white hover:text-zinc-900 border border-white/50'
+                                                    ? 'bg-pixel-green text-cocoa shadow-pixel-sm'
+                                                    : 'bg-retro-white text-cocoa hover:bg-pixel-blue/30'
                                             }`}
                                         >
                                             {playingId === track.trackId ? (
@@ -336,9 +336,9 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                                     <button
                                         onClick={() => handleSelectTrack(track)}
                                         disabled={analyzing || !track.previewUrl}
-                                        className="px-3 py-1.5 bg-gradient-to-r from-rose-500 to-rose-400 hover:scale-[1.02] active:scale-[0.98] disabled:from-zinc-300 disabled:to-zinc-300 disabled:text-zinc-500 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg shadow-lg shadow-rose-500/30 transition-all flex items-center gap-1"
+                                        className="px-3 py-1.5 bg-pixel-pink hover:bg-pixel-pink-dark disabled:bg-cocoa-light/30 disabled:text-cocoa-light disabled:cursor-not-allowed text-cocoa text-xs font-bold rounded-lg border-2 border-cocoa shadow-pixel-sm active:translate-y-0.5 active:shadow-none transition-all flex items-center gap-1"
                                     >
-                                        <Sparkles className="w-3 h-3" />
+                                        <Award className="w-3 h-3" strokeWidth={2.5} />
                                         Chọn
                                     </button>
                                 </div>
@@ -350,11 +350,11 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                     {/* Empty States */}
                     {!searching && query && results.length === 0 && (
                         <div className="text-center py-16 px-6">
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/50 backdrop-blur-sm border border-white/50 flex items-center justify-center">
-                                <Search className="w-8 h-8 text-zinc-400" />
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-retro-paper border-2 border-cocoa flex items-center justify-center">
+                                <Search className="w-8 h-8 text-cocoa-light" />
                             </div>
-                            <p className="text-zinc-900 font-medium">Không tìm thấy bài hát</p>
-                            <p className="text-zinc-600 text-sm mt-1">
+                            <p className="text-cocoa font-bold">Không tìm thấy bài hát</p>
+                            <p className="text-cocoa-light text-sm mt-1 font-medium">
                                 Thử tìm với từ khóa khác
                             </p>
                         </div>
@@ -362,11 +362,11 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
 
                     {!query && (
                         <div className="text-center py-16 px-6">
-                            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-rose-500/20 to-pink-500/20 backdrop-blur-sm flex items-center justify-center">
-                                <Music className="w-10 h-10 text-rose-500" />
+                            <div className="w-20 h-20 mx-auto mb-6 rounded-xl bg-pixel-green/30 border-2 border-cocoa flex items-center justify-center">
+                                <Music className="w-10 h-10 text-pixel-green" />
                             </div>
-                            <p className="text-zinc-900 font-semibold text-lg">🎵 Tìm vibe của bạn</p>
-                            <p className="text-zinc-600 text-sm mt-2 max-w-xs mx-auto">
+                            <p className="text-cocoa font-pixel uppercase tracking-widest text-lg">🎵 Tìm vibe của bạn</p>
+                            <p className="text-cocoa-light text-sm mt-2 max-w-xs mx-auto font-medium">
                                 Tìm bài hát yêu thích và để AI phân tích vibe âm nhạc của bạn
                             </p>
                             <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -374,7 +374,7 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                                     <button
                                         key={suggestion}
                                         onClick={() => handleQueryChange(suggestion)}
-                                        className="px-3 py-1.5 bg-white/40 hover:bg-white/60 backdrop-blur-sm border border-white/40 text-zinc-700 hover:text-zinc-900 text-xs rounded-full transition-all"
+                                        className="px-3 py-1.5 bg-pixel-yellow hover:bg-pixel-yellow/80 border-2 border-cocoa text-cocoa text-xs rounded-lg font-bold transition-all shadow-pixel-sm active:translate-y-0.5 active:shadow-none"
                                     >
                                         {suggestion}
                                     </button>
@@ -385,8 +385,8 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                 </div>
 
                 {/* Footer */}
-                <div className="p-3 border-t border-white/30 bg-white/60 backdrop-blur-md flex-shrink-0">
-                    <p className="text-zinc-600 text-xs text-center">
+                <div className="p-3 border-t-2 border-cocoa bg-retro-paper flex-shrink-0">
+                    <p className="text-cocoa-light text-xs text-center font-medium">
                         💡 AI sẽ nghe preview bài hát để phân tích &ldquo;Vibe&rdquo; của bạn
                     </p>
                 </div>

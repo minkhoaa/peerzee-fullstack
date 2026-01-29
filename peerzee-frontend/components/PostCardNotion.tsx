@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ArrowDown, MessageCircle, Share, Bookmark, MoreHorizontal, Trash2, Send, Loader2, Heart } from 'lucide-react';
+import { ArrowUp, ArrowDown, MessageSquareText, Share, Bookmark, MoreHorizontal, Trash2, Send, Loader2 } from 'lucide-react';
 import { SocialPost, communityApi, type Comment } from '@/lib/communityApi';
 import { useVote, useDeletePost } from '@/hooks/usePosts';
-import { PushPin, CarvedInput } from './village';
 
 interface PostCardNotionProps {
     post: SocialPost;
@@ -26,10 +25,6 @@ function getInitials(name?: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-/**
- * PostCardNotion - Village themed post card
- * Features: Push pins, wooden borders, medieval aesthetic
- */
 export default function PostCardNotion({ post, currentUserId }: PostCardNotionProps) {
     const [showMenu, setShowMenu] = useState(false);
     const [showComments, setShowComments] = useState(false);
@@ -52,12 +47,14 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
 
     const handleUpvote = useCallback(() => {
         if (voteMutation.isPending) return;
+        // If already upvoted, unvote (toggle); otherwise upvote
         const newValue = userVote === 1 ? 0 : 1;
         voteMutation.mutate({ postId: post.id, value: newValue as 1 | 0 });
     }, [voteMutation, post.id, userVote]);
 
     const handleDownvote = useCallback(() => {
         if (voteMutation.isPending) return;
+        // If already downvoted, unvote (toggle); otherwise downvote
         const newValue = userVote === -1 ? 0 : -1;
         voteMutation.mutate({ postId: post.id, value: newValue as -1 | 0 });
     }, [voteMutation, post.id, userVote]);
@@ -109,72 +106,68 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
     };
 
     return (
-        <article className="relative bg-parchment border-3 border-wood-dark mb-6 hover:border-primary-orange transition-all">
-            {/* Push Pin */}
-            <div className="absolute -top-2 -left-2 z-10">
-                <PushPin color={userVote === 1 ? 'red' : 'yellow'} />
-            </div>
-            
-            <div className="flex">
-                {/* Vote Strip */}
-                <div className="flex flex-col items-center gap-1 p-3 bg-cork/30 border-r-3 border-wood-dark/30">
+        <article className="bg-retro-white p-5 border-3 border-cocoa rounded-xl shadow-pixel hover:shadow-pixel-lg transition-all mb-5 hover:-translate-y-1">
+            <div className="flex gap-4">
+                {/* Vote Strip - Reddit style */}
+                <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
                     <button
                         onClick={handleUpvote}
                         disabled={voteMutation.isPending}
-                        className={`p-2 border-2 transition-all ${userVote === 1
-                            ? 'bg-accent-pink border-wood-dark text-parchment'
-                            : 'bg-parchment border-wood-dark text-wood-dark hover:bg-accent-pink/30'
+                        className={`p-1.5 rounded-lg border-2 transition-colors ${userVote === 1
+                                ? 'text-cocoa bg-pixel-pink border-cocoa shadow-pixel-sm'
+                                : 'text-cocoa-light border-transparent hover:text-cocoa hover:bg-pixel-pink/30 hover:border-cocoa'
                             }`}
                     >
-                        <Heart className={`w-4 h-4 ${userVote === 1 ? 'fill-parchment' : ''}`} />
+                        <ArrowUp className="w-5 h-5" />
                     </button>
-                    <span className={`font-pixel text-sm min-w-[24px] text-center ${userVote === 1 ? 'text-accent-pink' : userVote === -1 ? 'text-accent-blue' : 'text-wood-dark'}`}>
+                    <span className={`text-xs font-pixel min-w-[24px] text-center ${userVote === 1 ? 'text-pixel-pink' : userVote === -1 ? 'text-pixel-blue' : 'text-cocoa'
+                        }`}>
                         {score}
                     </span>
                     <button
                         onClick={handleDownvote}
                         disabled={voteMutation.isPending}
-                        className={`p-2 border-2 transition-all ${userVote === -1
-                            ? 'bg-accent-blue border-wood-dark text-parchment'
-                            : 'bg-parchment border-wood-dark text-wood-dark hover:bg-accent-blue/30'
+                        className={`p-1.5 rounded-lg border-2 transition-colors ${userVote === -1
+                                ? 'text-cocoa bg-pixel-blue border-cocoa shadow-pixel-sm'
+                                : 'text-cocoa-light border-transparent hover:text-cocoa hover:bg-pixel-blue/30 hover:border-cocoa'
                             }`}
                     >
-                        <ArrowDown className="w-4 h-4" />
+                        <ArrowDown className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0 p-4">
+                <div className="flex-1 min-w-0">
                     {/* Header */}
                     <div className="flex items-center gap-2 mb-3">
-                        <div className="w-9 h-9 bg-primary-orange border-2 border-wood-dark flex items-center justify-center text-parchment font-pixel text-xs">
+                        <div className="w-8 h-8 rounded-lg bg-pixel-pink border-2 border-cocoa flex items-center justify-center text-cocoa text-xs font-pixel shadow-pixel-sm">
                             {getInitials(displayName)}
                         </div>
-                        <span className="font-pixel text-wood-dark text-sm uppercase hover:text-primary-orange cursor-pointer transition-colors">
+                        <span className="text-cocoa text-sm font-bold hover:underline cursor-pointer">
                             {displayName}
                         </span>
-                        <span className="text-wood-dark/50 text-xs">·</span>
-                        <span className="text-wood-dark/50 text-xs">{formatTimeAgo(post.createdAt)}</span>
+                        <span className="text-cocoa-light text-xs">·</span>
+                        <span className="text-cocoa-light text-xs font-bold">{formatTimeAgo(post.createdAt)}</span>
 
                         {isAuthor && (
                             <div className="relative ml-auto">
                                 <button
                                     onClick={() => setShowMenu(!showMenu)}
-                                    className="p-2 text-wood-dark/50 hover:text-wood-dark hover:bg-cork/50 border-2 border-wood-dark transition-colors"
+                                    className="p-1.5 text-cocoa-light hover:text-cocoa hover:bg-pixel-blue/30 rounded-lg border-2 border-transparent hover:border-cocoa transition-colors"
                                 >
-                                    <MoreHorizontal className="w-4 h-4" />
+                                    <MoreHorizontal className="w-5 h-5" />
                                 </button>
                                 {showMenu && (
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                                        <div className="absolute right-0 top-10 z-20 bg-parchment border-3 border-wood-dark py-1 min-w-[120px]">
+                                        <div className="absolute right-0 top-8 z-20 bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel py-2 min-w-[120px]">
                                             <button
                                                 onClick={handleDelete}
                                                 disabled={deletePostMutation.isPending}
-                                                className="flex items-center gap-2 px-4 py-2 font-pixel text-xs text-primary-red uppercase hover:bg-primary-red/10 w-full transition-colors"
+                                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-pixel-red hover:bg-pixel-red/10 w-full transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4" />
-                                                DELETE
+                                                Delete
                                             </button>
                                         </div>
                                     </>
@@ -184,7 +177,7 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                     </div>
 
                     {/* Body */}
-                    <p className="text-wood-dark text-sm leading-relaxed whitespace-pre-wrap break-words mb-3">
+                    <p className="text-cocoa text-sm leading-relaxed whitespace-pre-wrap break-words mb-3 font-bold">
                         {post.content}
                     </p>
 
@@ -194,7 +187,7 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                             {post.tags.map((tag, index) => (
                                 <span
                                     key={index}
-                                    className="bg-cork/50 text-wood-dark font-pixel text-xs uppercase px-2 py-1 border-2 border-wood-dark cursor-pointer hover:bg-primary-orange hover:text-parchment transition-colors"
+                                    className="text-cocoa text-xs font-bold bg-pixel-yellow hover:bg-pixel-pink px-2 py-1 rounded-md border border-cocoa cursor-pointer transition-colors"
                                 >
                                     #{tag.replace(/^#/, '')}
                                 </span>
@@ -206,15 +199,15 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                     {post.media && post.media.length > 0 && (
                         <div className={`mb-4 grid gap-2 ${post.media.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                             {post.media.slice(0, 4).map((item, index) => (
-                                <div key={index} className="relative border-3 border-wood-dark overflow-hidden aspect-video">
+                                <div key={index} className="relative rounded-lg overflow-hidden border-2 border-cocoa shadow-pixel-sm aspect-video">
                                     {item.type === 'video' ? (
                                         <video src={item.url} className="w-full h-full object-cover" controls preload="metadata" />
                                     ) : (
                                         <img src={item.url} alt="" className="w-full h-full object-cover" loading="lazy" />
                                     )}
                                     {index === 3 && post.media.length > 4 && (
-                                        <div className="absolute inset-0 bg-wood-dark/80 flex items-center justify-center">
-                                            <span className="font-pixel text-parchment text-lg">+{post.media.length - 4}</span>
+                                        <div className="absolute inset-0 bg-cocoa/80 flex items-center justify-center">
+                                            <span className="text-retro-white font-pixel text-lg">+{post.media.length - 4}</span>
                                         </div>
                                     )}
                                 </div>
@@ -223,24 +216,24 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 flex-wrap pt-3 border-t-2 border-dashed border-wood-dark/30">
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={handleToggleComments}
-                            className={`flex items-center gap-2 px-3 py-1.5 border-2 font-pixel text-xs uppercase transition-all ${showComments
-                                ? 'bg-primary-orange border-wood-dark text-parchment'
-                                : 'bg-parchment border-wood-dark text-wood-dark hover:bg-cork/50'
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border-2 ${showComments
+                                ? 'bg-pixel-pink border-cocoa text-cocoa shadow-pixel-sm'
+                                : 'bg-retro-paper border-cocoa text-cocoa hover:bg-pixel-blue/30'
                                 }`}
                         >
-                            <MessageCircle className="w-4 h-4" />
+                            <MessageSquareText className="w-4 h-4" strokeWidth={2.5} />
                             <span>{localCommentsCount}</span>
                         </button>
-                        <button className="flex items-center gap-2 px-3 py-1.5 border-2 border-wood-dark bg-parchment text-wood-dark hover:bg-accent-blue/30 font-pixel text-xs uppercase transition-all">
+                        <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-retro-paper border-2 border-cocoa text-cocoa hover:bg-pixel-purple/30 transition-colors">
                             <Share className="w-4 h-4" />
-                            <span>SHARE</span>
+                            <span>Share</span>
                         </button>
-                        <button className="flex items-center gap-2 px-3 py-1.5 border-2 border-wood-dark bg-parchment text-wood-dark hover:bg-accent-yellow/30 font-pixel text-xs uppercase transition-all">
+                        <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-retro-paper border-2 border-cocoa text-cocoa hover:bg-pixel-yellow/30 transition-colors">
                             <Bookmark className="w-4 h-4" />
-                            <span>SAVE</span>
+                            <span>Save</span>
                         </button>
                     </div>
                 </div>
@@ -248,7 +241,7 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
 
             {/* Comments */}
             {showComments && (
-                <div className="mx-4 mb-4 p-4 bg-cork/20 border-3 border-wood-dark">
+                <div className="mt-5 ml-12 border-l-3 border-cocoa/30 pl-5">
                     {/* Input */}
                     <form onSubmit={handleSubmitComment} className="flex items-center gap-2 mb-4">
                         <input
@@ -257,15 +250,15 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             placeholder="Add a comment..."
-                            className="flex-1 bg-parchment border-3 border-wood-dark text-wood-dark placeholder-wood-dark/50 px-4 py-2 text-sm outline-none focus:border-primary-orange transition-all"
+                            className="flex-1 bg-retro-white border-2 border-cocoa rounded-lg text-cocoa placeholder-cocoa-light px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-pixel-pink transition-all shadow-pixel-inset font-bold"
                             disabled={isSubmitting}
                         />
                         <button
                             type="submit"
                             disabled={!newComment.trim() || isSubmitting}
-                            className={`p-2 border-2 transition-all ${newComment.trim() && !isSubmitting
-                                ? 'bg-primary-orange border-wood-dark text-parchment'
-                                : 'bg-cork/50 border-wood-dark/50 text-wood-dark/50 cursor-not-allowed'
+                            className={`p-2 rounded-lg border-2 transition-all ${newComment.trim() && !isSubmitting
+                                ? 'text-cocoa bg-pixel-pink border-cocoa hover:bg-pixel-pink-dark shadow-pixel-sm active:translate-y-0.5 active:shadow-none'
+                                : 'text-cocoa-light bg-retro-bg border-cocoa/30 cursor-not-allowed'
                                 }`}
                         >
                             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
@@ -276,25 +269,25 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                     <div className="space-y-3">
                         {isLoadingComments ? (
                             <div className="flex items-center justify-center py-3">
-                                <Loader2 className="w-5 h-5 text-primary-orange animate-spin" />
+                                <Loader2 className="w-5 h-5 text-pixel-pink animate-spin" />
                             </div>
                         ) : comments.length === 0 ? (
-                            <p className="text-wood-dark/50 text-xs text-center">No comments yet. Be the first!</p>
+                            <p className="text-cocoa-light text-xs font-bold">No comments yet. Be the first!</p>
                         ) : (
                             comments.map(comment => (
-                                <div key={comment.id} className="flex gap-2">
-                                    <div className="w-7 h-7 bg-landscape-green border-2 border-wood-dark flex items-center justify-center text-parchment font-pixel text-xs shrink-0">
+                                <div key={comment.id} className="flex gap-3">
+                                    <div className="w-7 h-7 rounded-lg bg-pixel-purple border-2 border-cocoa flex items-center justify-center text-cocoa text-xs font-pixel shrink-0">
                                         {getInitials(comment.author.display_name || comment.author.email)}
                                     </div>
-                                    <div className="flex-1 min-w-0 bg-parchment p-3 border-2 border-wood-dark">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="font-pixel text-xs text-wood-dark uppercase">
+                                    <div className="flex-1 min-w-0 bg-retro-paper p-3 rounded-lg border-2 border-cocoa shadow-pixel-sm">
+                                        <div className="flex items-center gap-2 text-xs mb-1">
+                                            <span className="text-cocoa font-bold">
                                                 {comment.author.display_name || comment.author.email?.split('@')[0]}
                                             </span>
-                                            <span className="text-wood-dark/50 text-xs">·</span>
-                                            <span className="text-wood-dark/50 text-xs">{formatTimeAgo(comment.createdAt)}</span>
+                                            <span className="text-cocoa-light">·</span>
+                                            <span className="text-cocoa-light font-bold">{formatTimeAgo(comment.createdAt)}</span>
                                         </div>
-                                        <p className="text-wood-dark text-sm">{comment.content}</p>
+                                        <p className="text-cocoa text-sm font-bold">{comment.content}</p>
                                     </div>
                                 </div>
                             ))
@@ -308,25 +301,25 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
 
 export function PostCardNotionSkeleton() {
     return (
-        <div className="bg-parchment border-3 border-wood-dark mb-6 animate-pulse">
-            <div className="flex">
-                <div className="flex flex-col items-center gap-2 p-3 bg-cork/30 border-r-3 border-wood-dark/30">
-                    <div className="w-8 h-8 bg-cork/50 border-2 border-wood-dark" />
-                    <div className="w-6 h-4 bg-cork/50" />
-                    <div className="w-8 h-8 bg-cork/50 border-2 border-wood-dark" />
+        <div className="bg-retro-white p-5 border-3 border-cocoa rounded-xl shadow-pixel mb-5 animate-pulse">
+            <div className="flex gap-4">
+                <div className="flex flex-col items-center gap-2 pt-1">
+                    <div className="w-8 h-8 bg-pixel-blue/30 rounded-lg" />
+                    <div className="w-6 h-4 bg-pixel-blue/30 rounded" />
+                    <div className="w-8 h-8 bg-pixel-blue/30 rounded-lg" />
                 </div>
-                <div className="flex-1 p-4">
+                <div className="flex-1">
                     <div className="flex items-center gap-2 mb-3">
-                        <div className="w-9 h-9 bg-cork/50 border-2 border-wood-dark" />
-                        <div className="w-24 h-4 bg-cork/50" />
+                        <div className="w-8 h-8 bg-pixel-pink/30 rounded-lg" />
+                        <div className="w-24 h-4 bg-pixel-blue/30 rounded-lg" />
                     </div>
                     <div className="space-y-2 mb-4">
-                        <div className="h-4 bg-cork/50 w-full" />
-                        <div className="h-4 bg-cork/50 w-3/4" />
+                        <div className="h-4 bg-pixel-blue/30 rounded-lg w-full" />
+                        <div className="h-4 bg-pixel-blue/30 rounded-lg w-3/4" />
                     </div>
                     <div className="flex gap-2">
-                        <div className="w-20 h-8 bg-cork/50 border-2 border-wood-dark" />
-                        <div className="w-20 h-8 bg-cork/50 border-2 border-wood-dark" />
+                        <div className="w-20 h-8 bg-pixel-blue/30 rounded-lg" />
+                        <div className="w-20 h-8 bg-pixel-blue/30 rounded-lg" />
                     </div>
                 </div>
             </div>

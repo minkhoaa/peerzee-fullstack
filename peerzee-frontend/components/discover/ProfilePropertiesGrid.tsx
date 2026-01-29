@@ -31,23 +31,23 @@ const PropertyRow = ({
         <div className="flex items-center gap-3 py-1.5">
             {/* Icon + Label */}
             <div className="flex items-center gap-2 min-w-[100px]">
-                <Icon className="w-3.5 h-3.5 text-[#9B9A97]" />
-                <span className="text-xs text-[#9B9A97]">{label}</span>
+                <Icon className="w-3.5 h-3.5 text-cocoa-light" />
+                <span className="text-xs text-cocoa-light font-bold uppercase">{label}</span>
             </div>
 
             {/* Value(s) */}
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
                 {Array.isArray(value) ? (
                     value.map((v, i) => (
                         <span
                             key={i}
-                            className="text-xs text-[#E3E3E3] bg-[#2F2F2F] rounded-md px-2 py-0.5"
+                            className="text-xs text-cocoa bg-pixel-purple/50 rounded-lg px-2.5 py-1 border border-cocoa font-bold"
                         >
                             {v}
                         </span>
                     ))
                 ) : (
-                    <span className="text-xs text-[#E3E3E3] bg-[#2F2F2F] rounded-md px-2 py-0.5">
+                    <span className="text-xs text-cocoa bg-pixel-purple/50 rounded-lg px-2.5 py-1 border border-cocoa font-bold">
                         {value}
                     </span>
                 )}
@@ -57,8 +57,8 @@ const PropertyRow = ({
 };
 
 /**
- * Notion-style profile properties grid
- * Renders user properties like Zodiac, MBTI, Habits in a database row format
+ * Retro Pixel OS styled profile properties grid
+ * Renders user properties like Zodiac, MBTI, Habits in database row format
  */
 export default function ProfilePropertiesGrid({ properties }: ProfilePropertiesGridProps) {
     const hasProperties = properties && Object.values(properties).some(v =>
@@ -68,7 +68,7 @@ export default function ProfilePropertiesGrid({ properties }: ProfilePropertiesG
     if (!hasProperties) return null;
 
     return (
-        <div className="mt-3 pt-3 border-t border-[#2F2F2F]">
+        <div className="mt-3 pt-3 border-t-2 border-cocoa/30 mb-5">
             <PropertyRow icon={Star} label="Zodiac" value={properties.zodiac} />
             <PropertyRow icon={Brain} label="MBTI" value={properties.mbti} />
             <PropertyRow icon={Dumbbell} label="Habits" value={properties.habits} />

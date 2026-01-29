@@ -16,6 +16,9 @@ interface SwipeCardProps {
     isTop: boolean;
 }
 
+/**
+ * SwipeCard - Retro Pixel OS styled swipeable card
+ */
 export default function SwipeCard({ user, onSwipe, isTop }: SwipeCardProps) {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-30, 30]);
@@ -36,7 +39,7 @@ export default function SwipeCard({ user, onSwipe, isTop }: SwipeCardProps) {
 
     return (
         <motion.div
-            className={`absolute w-full max-w-sm bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden cursor-grab active:cursor-grabbing ${isTop ? 'z-10' : 'z-0'
+            className={`absolute w-full max-w-sm bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel overflow-hidden cursor-grab active:cursor-grabbing ${isTop ? 'z-10' : 'z-0'
                 }`}
             style={{
                 x: isTop ? x : 0,
@@ -59,7 +62,7 @@ export default function SwipeCard({ user, onSwipe, isTop }: SwipeCardProps) {
         >
             {/* LIKE indicator */}
             <motion.div
-                className="absolute top-8 left-6 z-20 border-2 border-neutral-900 dark:border-white text-neutral-900 dark:text-white px-3 py-1.5 rounded-lg font-semibold text-sm rotate-[-20deg]"
+                className="absolute top-8 left-6 z-20 border-3 border-cocoa bg-pixel-green text-cocoa px-4 py-2 rounded-xl font-pixel uppercase tracking-widest text-sm rotate-[-20deg] shadow-pixel"
                 style={{ opacity: likeOpacity }}
             >
                 LIKE
@@ -67,26 +70,26 @@ export default function SwipeCard({ user, onSwipe, isTop }: SwipeCardProps) {
 
             {/* PASS indicator */}
             <motion.div
-                className="absolute top-8 right-6 z-20 border-2 border-neutral-400 text-neutral-400 px-3 py-1.5 rounded-lg font-semibold text-sm rotate-[20deg]"
+                className="absolute top-8 right-6 z-20 border-3 border-cocoa bg-pixel-red text-cocoa px-4 py-2 rounded-xl font-pixel uppercase tracking-widest text-sm rotate-[20deg] shadow-pixel"
                 style={{ opacity: passOpacity }}
             >
                 PASS
             </motion.div>
 
             {/* User avatar placeholder */}
-            <div className="h-64 bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
-                <span className="text-neutral-400 dark:text-neutral-500 text-7xl font-bold">
+            <div className="h-64 bg-pixel-pink flex items-center justify-center">
+                <span className="text-cocoa text-7xl font-pixel">
                     {user.display_name.charAt(0).toUpperCase()}
                 </span>
             </div>
 
             {/* User info */}
             <div className="p-6">
-                <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                <h2 className="text-xl font-pixel uppercase tracking-widest text-cocoa mb-2">
                     {user.display_name}
                 </h2>
                 {user.location && (
-                    <p className="text-neutral-500 dark:text-neutral-400 flex items-center gap-1 mb-3 text-sm">
+                    <p className="text-cocoa-light flex items-center gap-1 mb-3 text-sm font-bold">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -95,7 +98,7 @@ export default function SwipeCard({ user, onSwipe, isTop }: SwipeCardProps) {
                     </p>
                 )}
                 {user.bio && (
-                    <p className="text-neutral-600 dark:text-neutral-300 text-sm line-clamp-3">
+                    <p className="text-cocoa text-sm font-medium line-clamp-3">
                         {user.bio}
                     </p>
                 )}

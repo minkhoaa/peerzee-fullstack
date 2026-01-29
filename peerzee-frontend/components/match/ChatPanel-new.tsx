@@ -43,10 +43,10 @@ export function ChatPanel({ state, matchInfo, interests, messages, onSendMessage
   const isConnected = state === 'matched' || state === 'connected';
 
   return (
-    <div className="flex-[1] h-full bg-[#FDF0F1]/80 backdrop-blur-md rounded-[40px] shadow-xl flex flex-col overflow-hidden">
+    <div className="flex-[1] h-full bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="p-6 border-b-2 border-[#ECC8CD]/30">
-        <h2 className="text-[#3E3229] text-lg font-extrabold mb-2">
+      <div className="p-6 border-b-3 border-cocoa">
+        <h2 className="text-cocoa font-pixel uppercase tracking-widest text-lg mb-2">
           {isConnected ? "You're chatting with a Stranger" : state === 'searching' ? "Finding a match..." : "Waiting..."}
         </h2>
         {interests.length > 0 && (
@@ -54,7 +54,7 @@ export function ChatPanel({ state, matchInfo, interests, messages, onSendMessage
             {interests.map((interest, idx) => (
               <span
                 key={idx}
-                className="bg-white text-[#CD6E67] px-2 py-1 rounded-md text-xs font-bold shadow-sm"
+                className="bg-pixel-yellow text-cocoa px-2 py-1 rounded-lg text-xs font-bold border-2 border-cocoa"
               >
                 {interest}
               </span>
@@ -64,26 +64,26 @@ export function ChatPanel({ state, matchInfo, interests, messages, onSendMessage
       </div>
 
       {/* Chat Log */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-retro-paper">
         {messages.map((msg, idx) => (
           <div key={idx}>
             {msg.sender === "system" ? (
-              <div className="text-center text-[#7A6862] text-sm italic py-2">
+              <div className="text-center text-cocoa-light text-sm italic py-2 font-medium">
                 {msg.content}
               </div>
             ) : (
               <div className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`max-w-[75%] px-4 py-3 rounded-[20px] shadow-sm ${
+                  className={`max-w-[75%] px-4 py-3 rounded-xl border-2 border-cocoa ${
                     msg.sender === "me"
-                      ? "bg-[#CD6E67] text-white shadow-[#CD6E67]/30"
-                      : "bg-white text-[#3E3229]"
+                      ? "bg-pixel-pink text-cocoa shadow-pixel-sm"
+                      : "bg-retro-white text-cocoa"
                   }`}
                 >
-                  <p className="text-sm">{msg.content}</p>
+                  <p className="text-sm font-medium">{msg.content}</p>
                   <p
                     className={`text-xs mt-1 ${
-                      msg.sender === "me" ? "text-white/70" : "text-[#7A6862]"
+                      msg.sender === "me" ? "text-cocoa/70" : "text-cocoa-light"
                     }`}
                   >
                     {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -97,7 +97,7 @@ export function ChatPanel({ state, matchInfo, interests, messages, onSendMessage
       </div>
 
       {/* Input Area */}
-      <div className="p-6 border-t-2 border-[#ECC8CD]/30">
+      <div className="p-6 border-t-3 border-cocoa">
         <form onSubmit={handleSubmit} className="flex items-center gap-3">
           <input
             type="text"
@@ -105,12 +105,12 @@ export function ChatPanel({ state, matchInfo, interests, messages, onSendMessage
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
             disabled={!isConnected}
-            className="flex-1 bg-white rounded-[30px] py-3 px-5 shadow-inner focus:ring-2 focus:ring-[#CD6E67] outline-none text-[#3E3229] placeholder-[#9CA3AF] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-retro-paper rounded-xl py-3 px-5 border-2 border-cocoa shadow-pixel-inset focus:ring-2 focus:ring-pixel-pink outline-none text-cocoa placeholder-cocoa-light font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <button
             type="submit"
             disabled={!input.trim() || !isConnected}
-            className="bg-[#CD6E67] text-white p-3 rounded-full hover:bg-[#B55B55] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-pixel-pink text-cocoa p-3 rounded-xl hover:bg-pixel-pink-dark transition-all border-2 border-cocoa shadow-pixel-sm active:translate-y-0.5 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-5 h-5" />
           </button>

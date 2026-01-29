@@ -70,8 +70,8 @@ const Icons = {
 };
 
 /**
- * ChatWindow - Cozy Clay Theme with Claymorphism Bubbles
- * Warm, soft, romantic design inspired by ToyWorld
+ * ChatWindow - Retro Pixel OS Style with 8-bit Bubbles
+ * Pixel borders, warm cocoa colors, fun aesthetic
  */
 export default function ChatWindow({
     conversation,
@@ -162,26 +162,9 @@ export default function ChatWindow({
         return prevMessage.sender_id !== currentMessage.sender_id || prevMessage.isDeleted ? 'mt-4' : 'mt-1';
     };
 
-    // Get bubble radius based on position in group
+    // Get bubble radius based on position in group - Pixel style
     const getBubbleRadius = (m: Message, index: number) => {
-        const prevMessage = messages[index - 1];
-        const nextMessage = messages[index + 1];
-        const isFirstInGroup = !prevMessage || prevMessage.sender_id !== m.sender_id || prevMessage.isDeleted;
-        const isLastInGroup = !nextMessage || nextMessage.sender_id !== m.sender_id || nextMessage.isDeleted;
-
-        if (m.sender_id === userId) {
-            // My messages - right aligned, rounded-tr-sm
-            if (isFirstInGroup && isLastInGroup) return 'rounded-2xl rounded-tr-sm';
-            if (isFirstInGroup) return 'rounded-2xl rounded-tr-sm rounded-br-lg';
-            if (isLastInGroup) return 'rounded-2xl rounded-tr-lg rounded-br-sm';
-            return 'rounded-2xl rounded-r-lg';
-        } else {
-            // Their messages - left aligned, rounded-tl-sm
-            if (isFirstInGroup && isLastInGroup) return 'rounded-2xl rounded-tl-sm';
-            if (isFirstInGroup) return 'rounded-2xl rounded-tl-sm rounded-bl-lg';
-            if (isLastInGroup) return 'rounded-2xl rounded-tl-lg rounded-bl-sm';
-            return 'rounded-2xl rounded-l-lg';
-        }
+        return 'rounded-lg'; // Simple pixel-style radius
     };
 
     const handleEditSubmit = () => {
@@ -204,11 +187,11 @@ export default function ChatWindow({
         return (
             <div className="px-5 py-2 flex items-center gap-2">
                 <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-[#CD6E67] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 bg-[#CD6E67] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 bg-[#CD6E67] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-                <span className="text-xs text-[#7A6862] font-medium">
+                <span className="text-xs text-cocoa-light font-bold">
                     {typingUsers.length === 1
                         ? `${userNames[typingUsers[0]] || 'Someone'} is typing`
                         : `${typingUsers.length} people typing`}
@@ -228,32 +211,32 @@ export default function ChatWindow({
 
         return (
             <div className="flex-1 flex items-center justify-center p-8">
-                <div className="bg-white rounded-[30px] shadow-lg shadow-[#CD6E67]/20 p-8 max-w-sm text-center">
-                    <div className="w-16 h-16 rounded-full bg-[#CD6E67] flex items-center justify-center mx-auto mb-5 shadow-md shadow-[#CD6E67]/30">
-                        <Wand2 className="w-8 h-8 text-white" />
+                <div className="bg-retro-paper border-3 border-cocoa rounded-xl shadow-pixel p-8 max-w-sm text-center">
+                    <div className="w-20 h-20 border-3 border-cocoa rounded-xl bg-pixel-purple flex items-center justify-center mx-auto mb-5 shadow-pixel-sm">
+                        <Wand2 className="w-10 h-10 text-cocoa" />
                     </div>
-                    <h3 className="text-[#3E3229] font-extrabold text-xl mb-3">Break the ice! 🧊</h3>
-                    <p className="text-[#7A6862] text-sm mb-4">
+                    <h3 className="font-pixel text-cocoa text-xl uppercase tracking-widest mb-3">🧊 Break the Ice!</h3>
+                    <p className="text-cocoa-light text-sm mb-4 font-bold">
                         Start a conversation with {conversation.name || 'this person'}
                     </p>
                     {isAiGenerated && (
-                        <div className="flex items-center justify-center gap-1 text-[10px] text-[#CD6E67] font-bold mb-2">
+                        <div className="flex items-center justify-center gap-1 text-xs text-pixel-purple font-pixel uppercase tracking-wider mb-2">
                             <span>✨</span>
-                            <span>AI-generated for you</span>
+                            <span>AI-Generated</span>
                         </div>
                     )}
-                    <div className="bg-[#F3DDE0] rounded-[20px] p-4 mb-5">
-                        <p className="text-[#3E3229] text-sm italic font-medium">
+                    <div className="bg-retro-white border-2 border-cocoa rounded-lg p-4 mb-5 shadow-pixel-inset">
+                        <p className="text-cocoa text-sm italic font-bold">
                             "{icebreakerText}"
                         </p>
                     </div>
                     <button
-                        className="w-full py-3 bg-[#CD6E67] hover:bg-[#B55B55] hover:scale-105 active:scale-95 text-white text-sm font-bold rounded-full shadow-md shadow-[#CD6E67]/30 transition-all"
+                        className="w-full py-3 bg-pixel-pink border-3 border-cocoa hover:bg-pixel-pink-dark text-cocoa font-pixel uppercase tracking-widest rounded-lg shadow-pixel transition-all active:translate-y-0.5 active:shadow-none"
                         onClick={() => {
                             onSendIcebreaker(icebreakerText);
                         }}
                     >
-                        Send this message
+                        Send ✨
                     </button>
                 </div>
             </div>
@@ -262,23 +245,23 @@ export default function ChatWindow({
 
     return (
         <div className="flex-1 flex flex-col min-w-0 bg-transparent">
-            {/* Header - Cozy Clay style */}
-            <div className="h-18 border-b border-[#ECC8CD]/50 bg-transparent flex items-center px-6 justify-between shrink-0 sticky top-0 z-10">
+            {/* Header - Retro Pixel style */}
+            <div className="h-18 border-b-3 border-cocoa bg-retro-paper flex items-center px-4 justify-between shrink-0 sticky top-0 z-10">
                 {/* Left - User Info */}
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <div className="w-14 h-14 rounded-full bg-[#CD6E67] flex items-center justify-center text-white font-extrabold text-base border-2 border-white shadow-md shadow-[#CD6E67]/20">
+                        <div className="w-12 h-12 border-2 border-cocoa rounded-lg bg-pixel-pink flex items-center justify-center text-cocoa font-pixel text-base shadow-pixel-sm">
                             {conversation.name?.slice(0, 1)?.toUpperCase() || '?'}
                         </div>
                         {/* Status dot */}
                         {isOnline && (
-                            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-pixel-green border-2 border-cocoa rounded" />
                         )}
                     </div>
                     <div>
-                        <h2 className="text-[#3E3229] font-extrabold text-base">{conversation.name || 'Unknown'}</h2>
-                        <p className={`text-xs font-medium ${isOnline ? 'text-green-600' : 'text-[#7A6862]'}`}>
-                            {isOnline ? '● Online' : 'Offline'}
+                        <h2 className="font-pixel text-cocoa text-base uppercase tracking-widest">{conversation.name || 'Unknown'}</h2>
+                        <p className={`text-xs font-bold ${isOnline ? 'text-pixel-green' : 'text-cocoa-light'}`}>
+                            {isOnline ? '● ONLINE' : '○ OFFLINE'}
                         </p>
                     </div>
                 </div>
@@ -293,16 +276,16 @@ export default function ChatWindow({
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                                placeholder="Search messages..."
-                                className="px-4 py-2 text-sm bg-[#F3DDE0] border-none rounded-full text-[#3E3229] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#CD6E67] w-48"
+                                placeholder="🔍 Search messages..."
+                                className="px-4 py-2 text-sm bg-retro-white border-2 border-cocoa rounded-lg text-cocoa placeholder-cocoa-light focus:outline-none focus:ring-2 focus:ring-pixel-pink shadow-pixel-inset w-48 font-bold"
                                 autoFocus
                             />
-                            <button onClick={() => { setShowSearchBar(false); setSearchQuery(''); }} className="p-2 text-[#7A6862] hover:text-[#3E3229] rounded-full hover:bg-[#F3DDE0] transition-colors">
+                            <button onClick={() => { setShowSearchBar(false); setSearchQuery(''); }} className="p-2 text-cocoa hover:bg-pixel-red hover:text-white border-2 border-transparent hover:border-cocoa rounded-lg transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
                     ) : (
-                        <button onClick={() => setShowSearchBar(true)} className="p-2 text-[#7A6862] hover:text-[#CD6E67] hover:bg-[#F3DDE0] rounded-full transition-colors">
+                        <button onClick={() => setShowSearchBar(true)} className="p-2 text-cocoa-light hover:text-cocoa hover:bg-pixel-blue border-2 border-transparent hover:border-cocoa rounded-lg transition-colors">
                             <Search className="w-5 h-5" />
                         </button>
                     )}
@@ -312,14 +295,14 @@ export default function ChatWindow({
                         <>
                             <button
                                 onClick={onStartAudioCall}
-                                className="p-2 text-[#7A6862] hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                                className="p-2 text-cocoa-light hover:text-cocoa hover:bg-pixel-green border-2 border-transparent hover:border-cocoa rounded-lg transition-colors"
                                 title="Audio Call"
                             >
                                 <Phone className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={onStartVideoCall}
-                                className="p-2 text-[#7A6862] hover:text-[#CD6E67] hover:bg-[#F3DDE0] rounded-full transition-colors"
+                                className="p-2 text-cocoa-light hover:text-cocoa hover:bg-pixel-pink border-2 border-transparent hover:border-cocoa rounded-lg transition-colors"
                                 title="Video Call"
                             >
                                 <Video className="w-5 h-5" />
@@ -328,14 +311,14 @@ export default function ChatWindow({
                     ) : (
                         <button
                             onClick={onEndCall}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors animate-pulse"
+                            className="p-2 text-white bg-pixel-red border-2 border-cocoa rounded-lg transition-colors animate-pulse shadow-pixel-sm"
                             title="End Call"
                         >
                             <Phone className="w-5 h-5" />
                         </button>
                     )}
 
-                    <button className="p-2 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors">
+                    <button className="p-2 text-cocoa-light hover:text-cocoa hover:bg-retro-bg border-2 border-transparent hover:border-cocoa rounded-lg transition-colors">
                         <MoreHorizontal className="w-5 h-5" />
                     </button>
                 </div>
@@ -345,17 +328,17 @@ export default function ChatWindow({
             {messages.length === 0 ? (
                 <IcebreakerWidget />
             ) : (
-                <div className="flex-1 overflow-y-auto p-5">
+                <div className="flex-1 overflow-y-auto p-4 bg-retro-bg">
                     {messages.map((m, index) => (
                         <div
                             key={m.id}
                             id={`message-${m.id}`}
-                            className={`flex ${getMessageSpacing(index)} ${m.sender_id === userId ? 'justify-end' : 'justify-start'} ${highlightedMessageId === m.id ? 'animate-pulse bg-[#F8E3E6] -mx-2 px-2 rounded-lg' : ''}`}
+                            className={`flex ${getMessageSpacing(index)} ${m.sender_id === userId ? 'justify-end' : 'justify-start'} ${highlightedMessageId === m.id ? 'animate-pulse bg-pixel-yellow/30 -mx-2 px-2 rounded-lg border-2 border-pixel-yellow' : ''}`}
                         >
                             {/* Deleted Message */}
                             {m.isDeleted ? (
                                 <div className="flex items-center justify-center w-full">
-                                    <span className="text-sm text-[#7A6862] italic font-medium">Message deleted</span>
+                                    <span className="text-sm text-cocoa-light italic font-bold">🗑️ Message deleted</span>
                                 </div>
                             ) : editingMessageId === m.id ? (
                                 /* Editing State */
@@ -363,16 +346,16 @@ export default function ChatWindow({
                                     <textarea
                                         value={editContent}
                                         onChange={(e) => setEditContent(e.target.value)}
-                                        className="w-full px-4 py-3 text-sm bg-white border-none rounded-[20px] text-[#3E3229] focus:outline-none focus:ring-2 focus:ring-[#CD6E67] resize-none shadow-sm"
+                                        className="w-full px-4 py-3 text-sm bg-retro-white border-3 border-cocoa rounded-lg text-cocoa focus:outline-none focus:ring-2 focus:ring-pixel-pink resize-none shadow-pixel-inset font-bold"
                                         rows={2}
                                         autoFocus
                                     />
                                     <div className="flex gap-2 justify-end">
-                                        <button onClick={() => { setEditingMessageId(null); setEditContent(''); }} className="px-4 py-2 text-xs font-bold text-[#7A6862] hover:text-[#3E3229] transition-colors">
+                                        <button onClick={() => { setEditingMessageId(null); setEditContent(''); }} className="px-4 py-2 text-xs font-pixel uppercase tracking-wider text-cocoa-light hover:text-cocoa transition-colors">
                                             Cancel
                                         </button>
-                                        <button onClick={handleEditSubmit} className="px-4 py-2 text-xs bg-[#CD6E67] text-white font-bold rounded-full hover:bg-[#B55B55] shadow-sm shadow-[#CD6E67]/30 transition-colors">
-                                            Save
+                                        <button onClick={handleEditSubmit} className="px-4 py-2 text-xs bg-pixel-green border-2 border-cocoa text-cocoa font-pixel uppercase tracking-wider rounded-lg hover:bg-green-400 shadow-pixel-sm transition-colors active:translate-y-0.5 active:shadow-none">
+                                            Save ✓
                                         </button>
                                     </div>
                                 </div>
@@ -381,17 +364,17 @@ export default function ChatWindow({
                                 <div className="flex flex-col max-w-[70%]">
                                     {/* Sender name - show above first message in group for other users */}
                                     {m.sender_id !== userId && isFirstInMessageGroup(index) && (
-                                        <span className="text-xs text-[#7A6862] font-medium mb-1 ml-9">
+                                        <span className="text-xs text-cocoa-light font-bold mb-1 ml-11">
                                             {getSenderName(m.sender_id)}
                                         </span>
                                     )}
 
-                                    <div className={`group flex items-end gap-3 ${m.sender_id === userId ? 'flex-row-reverse' : 'flex-row'}`}>
+                                    <div className={`group flex items-end gap-2 ${m.sender_id === userId ? 'flex-row-reverse' : 'flex-row'}`}>
                                         {/* Avatar - only for other users */}
                                         {m.sender_id !== userId && (
                                             <div className="shrink-0 mb-0.5">
                                                 {shouldShowAvatar(index) ? (
-                                                    <div className="w-9 h-9 rounded-full bg-[#CD6E67] flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-sm">
+                                                    <div className="w-9 h-9 border-2 border-cocoa rounded-lg bg-pixel-purple flex items-center justify-center text-cocoa text-xs font-pixel shadow-pixel-sm">
                                                         {getSenderName(m.sender_id).slice(0, 1).toUpperCase()}
                                                     </div>
                                                 ) : (
@@ -401,21 +384,21 @@ export default function ChatWindow({
                                         )}
 
                                         {/* Message Bubble */}
-                                        <div className={`relative ${getBubbleRadius(m, index)} ${m.sender_id === userId
-                                            ? 'bg-[#CD6E67] text-white shadow-md shadow-[#CD6E67]/30'
-                                            : 'bg-white text-[#3E3229] shadow-sm shadow-[#ECC8CD]'
+                                        <div className={`relative ${getBubbleRadius(m, index)} border-2 border-cocoa ${m.sender_id === userId
+                                            ? 'bg-pixel-pink text-cocoa shadow-pixel-sm'
+                                            : 'bg-retro-white text-cocoa shadow-pixel-sm'
                                             } transition-all duration-200`}>
 
                                             {/* Quoted Reply */}
                                             {m.replyTo && (
-                                                <div className={`mx-2 mt-2 px-3 py-2 rounded-lg text-xs border-l-2 ${m.sender_id === userId
-                                                    ? 'bg-[#B55B55] border-white/50'
-                                                    : 'bg-[#F3DDE0] border-[#CD6E67]'
+                                                <div className={`mx-2 mt-2 px-3 py-2 rounded-md text-xs border-l-3 ${m.sender_id === userId
+                                                    ? 'bg-pixel-pink-dark border-cocoa'
+                                                    : 'bg-retro-bg border-cocoa'
                                                     }`}>
-                                                    <p className="font-semibold mb-0.5 opacity-80">
+                                                    <p className="font-pixel uppercase tracking-wider text-[10px] mb-0.5 opacity-80">
                                                         {m.replyTo.sender_id === userId ? 'You' : getSenderName(m.replyTo.sender_id)}
                                                     </p>
-                                                    <p className="truncate opacity-80">
+                                                    <p className="truncate opacity-80 font-bold">
                                                         {m.replyTo.body?.slice(0, 50)}{m.replyTo.body && m.replyTo.body.length > 50 ? '...' : ''}
                                                     </p>
                                                 </div>
@@ -426,7 +409,7 @@ export default function ChatWindow({
                                                 <img
                                                     src={m.fileUrl}
                                                     alt={m.fileName || 'Image'}
-                                                    className="w-full rounded-t-2xl object-cover max-h-64"
+                                                    className="w-full rounded-t-md object-cover max-h-64 border-b-2 border-cocoa"
                                                 />
                                             )}
 
@@ -442,24 +425,24 @@ export default function ChatWindow({
 
                                             {/* Text body */}
                                             {m.body && !(m.fileUrl && m.body.startsWith('🎤 Voice message')) && (
-                                                <p className="px-4 py-2.5 text-sm break-words whitespace-pre-wrap">{m.body}</p>
+                                                <p className="px-4 py-2.5 text-sm break-words whitespace-pre-wrap font-bold">{m.body}</p>
                                             )}
 
                                             {/* Timestamp tooltip */}
-                                            <span className={`absolute top-1/2 -translate-y-1/2 text-[10px] text-zinc-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ${m.sender_id === userId ? 'right-full mr-2' : 'left-full ml-2'}`}>
+                                            <span className={`absolute top-1/2 -translate-y-1/2 text-[10px] text-cocoa-light font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ${m.sender_id === userId ? 'right-full mr-2' : 'left-full ml-2'}`}>
                                                 {formatMessageTime(m.createdAt)}
                                             </span>
 
                                             {/* Edited indicator */}
                                             {m.isEdited && (
-                                                <span className={`absolute -bottom-4 text-[10px] text-[#7A6862] font-medium ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>edited</span>
+                                                <span className={`absolute -bottom-5 text-[10px] text-cocoa-light font-pixel uppercase tracking-wider ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>edited</span>
                                             )}
 
                                             {/* Reactions */}
                                             {m.reactions && m.reactions.length > 0 && (
                                                 <div className={`absolute -bottom-3 flex gap-0.5 ${m.sender_id === userId ? 'right-2' : 'left-2'}`}>
                                                     {[...new Set(m.reactions.map(r => r.emoji))].slice(0, 3).map((emoji, i) => (
-                                                        <span key={i} className="text-xs bg-white border border-zinc-100 rounded-full px-1 shadow-sm">{emoji}</span>
+                                                        <span key={i} className="text-xs bg-retro-white border-2 border-cocoa rounded-md px-1 shadow-pixel-sm">{emoji}</span>
                                                     ))}
                                                 </div>
                                             )}
@@ -467,11 +450,11 @@ export default function ChatWindow({
                                             {/* Read status */}
                                             {m.sender_id === userId && index === messages.length - 1 && (
                                                 <div className="absolute -bottom-5 right-0 flex items-center gap-1">
-                                                    <span className={m.readAt ? 'text-[#CD6E67]' : 'text-[#7A6862]'}>
+                                                    <span className={m.readAt ? 'text-pixel-green' : 'text-cocoa-light'}>
                                                         {m.readAt ? Icons.doubleCheck : Icons.singleCheck}
                                                     </span>
                                                     {m.readAt && (
-                                                        <span className="text-[10px] text-[#CD6E67] font-medium">Seen</span>
+                                                        <span className="text-[10px] text-pixel-green font-bold">Seen</span>
                                                     )}
                                                 </div>
                                             )}
@@ -481,7 +464,7 @@ export default function ChatWindow({
                                         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={() => onReply(m)}
-                                                className="p-1.5 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
+                                                className="p-1.5 text-cocoa-light hover:text-cocoa hover:bg-pixel-blue border border-transparent hover:border-cocoa rounded-md transition-colors"
                                                 title="Reply"
                                             >
                                                 <Reply className="w-4 h-4" />
@@ -490,17 +473,17 @@ export default function ChatWindow({
                                             <div className="relative">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setOpenEmojiPickerId(openEmojiPickerId === m.id ? null : m.id); }}
-                                                    className="p-1.5 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
+                                                    className="p-1.5 text-cocoa-light hover:text-cocoa hover:bg-pixel-yellow border border-transparent hover:border-cocoa rounded-md transition-colors"
                                                 >
                                                     <Smile className="w-4 h-4" />
                                                 </button>
                                                 {openEmojiPickerId === m.id && (
-                                                    <div className={`absolute bottom-full mb-1 z-50 bg-white rounded-[20px] shadow-lg shadow-[#CD6E67]/20 p-2 flex gap-1 ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>
+                                                    <div className={`absolute bottom-full mb-1 z-50 bg-retro-white border-2 border-cocoa rounded-lg shadow-pixel p-2 flex gap-1 ${m.sender_id === userId ? 'right-0' : 'left-0'}`}>
                                                         {['👍', '❤️', '😂', '😮', '😢'].map(emoji => (
                                                             <button
                                                                 key={emoji}
                                                                 onClick={() => { onReaction(m.id, emoji); setOpenEmojiPickerId(null); }}
-                                                                className="text-sm hover:bg-[#F3DDE0] rounded-full p-1.5 hover:scale-110 transition-transform"
+                                                                className="text-sm hover:bg-pixel-yellow rounded-md p-1.5 hover:scale-110 transition-transform border border-transparent hover:border-cocoa"
                                                             >
                                                                 {emoji}
                                                             </button>
@@ -513,23 +496,23 @@ export default function ChatWindow({
                                                 <div className="relative">
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === m.id ? null : m.id); }}
-                                                        className="p-1.5 text-[#7A6862] hover:text-[#3E3229] hover:bg-[#F3DDE0] rounded-full transition-colors"
+                                                        className="p-1.5 text-cocoa-light hover:text-cocoa hover:bg-retro-bg border border-transparent hover:border-cocoa rounded-md transition-colors"
                                                     >
                                                         <MoreVertical className="w-4 h-4" />
                                                     </button>
                                                     {openMenuId === m.id && (
-                                                        <div className="absolute top-full mt-1 right-0 z-50 bg-white rounded-[20px] shadow-lg shadow-[#CD6E67]/20 overflow-hidden min-w-[100px]">
+                                                        <div className="absolute top-full mt-1 right-0 z-50 bg-retro-white border-2 border-cocoa rounded-lg shadow-pixel overflow-hidden min-w-[100px]">
                                                             <button
                                                                 onClick={() => { setEditingMessageId(m.id); setEditContent(m.body); setOpenMenuId(null); }}
-                                                                className="w-full px-4 py-2.5 text-xs text-left text-[#3E3229] font-medium hover:bg-[#F3DDE0] transition-colors"
+                                                                className="w-full px-4 py-2.5 text-xs text-left text-cocoa font-bold hover:bg-pixel-blue transition-colors"
                                                             >
-                                                                Edit
+                                                                ✏️ Edit
                                                             </button>
                                                             <button
                                                                 onClick={() => { onDeleteMessage(m); setOpenMenuId(null); }}
-                                                                className="w-full px-4 py-2.5 text-xs text-left text-red-500 font-medium hover:bg-red-50 transition-colors"
+                                                                className="w-full px-4 py-2.5 text-xs text-left text-pixel-red font-bold hover:bg-pixel-red/20 transition-colors"
                                                             >
-                                                                Delete
+                                                                🗑️ Delete
                                                             </button>
                                                         </div>
                                                     )}

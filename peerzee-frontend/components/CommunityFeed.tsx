@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Heart, Share2, Plus, X, ImageIcon, Sparkles } from 'lucide-react';
+import { MessageSquare, ThumbsUp, Share2, Plus, X, ImageIcon } from 'lucide-react';
 
 // Types
 interface PostTag {
@@ -95,7 +94,7 @@ function getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-// Components - ToyWorld styled
+// Components
 function CreatePostInput({ onPost }: { onPost: (content: string, tags: PostTag[]) => void }) {
     const [content, setContent] = useState('');
     const [selectedTags, setSelectedTags] = useState<PostTag[]>([]);
@@ -121,145 +120,109 @@ function CreatePostInput({ onPost }: { onPost: (content: string, tags: PostTag[]
     };
 
     return (
-        <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-[30px] border-2 border-[#ECC8CD]/40 p-5 mb-6 shadow-lg shadow-[#CD6E67]/10"
-        >
+        <div className="bg-retro-white rounded-xl border-3 border-cocoa shadow-pixel p-4 mb-6">
             <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="What's on your mind? ✨"
-                className="w-full bg-transparent text-[#3E3229] placeholder-[#7A6862] resize-none outline-none text-[15px] leading-relaxed min-h-[80px] font-medium"
+                placeholder="What's on your mind?"
+                className="w-full bg-retro-paper text-cocoa placeholder-cocoa-light resize-none outline-none text-[15px] leading-relaxed min-h-[80px] rounded-lg p-3 border-2 border-cocoa shadow-pixel-inset font-medium"
                 rows={3}
             />
 
             {/* Selected Tags */}
-            <AnimatePresence>
-                {selectedTags.length > 0 && (
-                    <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="flex flex-wrap gap-2 mt-3 pb-3 border-b-2 border-[#ECC8CD]/30"
-                    >
-                        {selectedTags.map(tag => (
-                            <motion.span
-                                key={tag.id}
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                exit={{ scale: 0 }}
-                                className="inline-flex items-center gap-1 px-3 py-1 bg-[#CD6E67]/10 text-[#CD6E67] text-xs rounded-full font-semibold"
+            {selectedTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3 pb-3 border-b-2 border-cocoa/30">
+                    {selectedTags.map(tag => (
+                        <span
+                            key={tag.id}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-pixel-yellow text-cocoa text-xs rounded-lg border border-cocoa font-bold"
+                        >
+                            #{tag.label}
+                            <button
+                                onClick={() => removeTag(tag.id)}
+                                className="hover:text-pixel-red transition-colors"
                             >
-                                #{tag.label}
-                                <button
-                                    onClick={() => removeTag(tag.id)}
-                                    className="hover:text-[#B85C55] transition-colors"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </motion.span>
-                        ))}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                                <X className="w-3 h-3" />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
 
             {/* Actions */}
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-3">
                 <div className="flex items-center gap-2">
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                    <button
                         onClick={() => setShowTagPicker(!showTagPicker)}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs text-[#7A6862] hover:text-[#CD6E67] bg-[#FDF0F1] hover:bg-[#ECC8CD]/30 rounded-full transition-colors font-semibold"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-cocoa-light hover:text-cocoa hover:bg-pixel-blue/20 rounded-lg border-2 border-transparent hover:border-cocoa font-bold transition-colors"
                     >
                         <Plus className="w-3.5 h-3.5" />
                         Add Topic
-                    </motion.button>
-                    <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="p-2 text-[#7A6862] hover:text-[#CD6E67] bg-[#FDF0F1] hover:bg-[#ECC8CD]/30 rounded-full transition-colors"
-                    >
+                    </button>
+                    <button className="p-1.5 text-cocoa-light hover:text-cocoa hover:bg-pixel-blue/20 rounded-lg border-2 border-transparent hover:border-cocoa transition-colors">
                         <ImageIcon className="w-4 h-4" />
-                    </motion.button>
+                    </button>
                 </div>
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                <button
                     onClick={handlePost}
                     disabled={!content.trim()}
-                    className={`px-6 py-2 text-sm font-bold rounded-full transition-all ${content.trim()
-                        ? 'bg-[#CD6E67] text-white hover:bg-[#B85C55] shadow-md shadow-[#CD6E67]/30'
-                        : 'bg-[#ECC8CD]/30 text-[#7A6862] cursor-not-allowed'
+                    className={`px-4 py-1.5 text-sm font-bold rounded-lg border-2 transition-colors ${content.trim()
+                        ? 'text-cocoa border-cocoa bg-pixel-pink hover:bg-pixel-pink-dark shadow-pixel-sm active:translate-y-0.5 active:shadow-none'
+                        : 'text-cocoa-light border-cocoa-light/50 cursor-not-allowed'
                         }`}
                 >
                     Post
-                </motion.button>
+                </button>
             </div>
 
             {/* Tag Picker Dropdown */}
-            <AnimatePresence>
-                {showTagPicker && (
-                    <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-4 pt-4 border-t-2 border-[#ECC8CD]/30"
-                    >
-                        <p className="text-xs text-[#7A6862] mb-3 font-medium">Select topics</p>
-                        <div className="flex flex-wrap gap-2">
-                            {AVAILABLE_TAGS.map(tag => (
-                                <motion.button
-                                    key={tag.id}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => toggleTag(tag)}
-                                    className={`px-4 py-1.5 text-xs rounded-full border-2 transition-all font-semibold ${selectedTags.find(t => t.id === tag.id)
-                                        ? 'border-[#CD6E67] text-[#CD6E67] bg-[#CD6E67]/10'
-                                        : 'border-[#ECC8CD]/40 text-[#7A6862] hover:border-[#CD6E67]/50 hover:text-[#CD6E67]'
-                                        }`}
-                                >
-                                    {tag.label}
-                                </motion.button>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
+            {showTagPicker && (
+                <div className="mt-3 pt-3 border-t-2 border-cocoa/30">
+                    <p className="text-xs text-cocoa-light mb-2 font-pixel uppercase tracking-wider">Select topics</p>
+                    <div className="flex flex-wrap gap-2">
+                        {AVAILABLE_TAGS.map(tag => (
+                            <button
+                                key={tag.id}
+                                onClick={() => toggleTag(tag)}
+                                className={`px-3 py-1 text-xs rounded-lg border-2 transition-colors font-bold ${selectedTags.find(t => t.id === tag.id)
+                                    ? 'border-cocoa text-cocoa bg-pixel-yellow'
+                                    : 'border-cocoa-light text-cocoa-light hover:border-cocoa hover:text-cocoa hover:bg-pixel-blue/20'
+                                    }`}
+                            >
+                                {tag.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
 
-function FeedItem({ post, onLike, index }: { post: Post; onLike: (postId: string) => void; index: number }) {
+function FeedItem({ post, onLike }: { post: Post; onLike: (postId: string) => void }) {
     return (
-        <motion.article 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-[30px] border-2 border-[#ECC8CD]/40 p-5 mb-4 shadow-lg shadow-[#CD6E67]/10"
-        >
+        <article className="bg-retro-white rounded-xl border-3 border-cocoa shadow-pixel p-4 mb-4">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#CD6E67] to-[#E88B85] flex items-center justify-center text-white text-sm font-bold shadow-md">
+            <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-pixel-pink flex items-center justify-center text-cocoa text-sm font-bold border-2 border-cocoa">
                     {getInitials(post.author.name)}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-[#3E3229] font-nunito font-bold text-sm">{post.author.name}</p>
-                    <p className="text-[#7A6862] text-xs">{formatTimeAgo(post.createdAt)}</p>
+                    <p className="text-cocoa font-bold text-sm">{post.author.name}</p>
+                    <p className="text-cocoa-light text-xs font-medium">{formatTimeAgo(post.createdAt)}</p>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="mb-4">
-                <p className="text-[#3E3229] text-[15px] leading-relaxed whitespace-pre-wrap">
+            <div className="mb-3">
+                <p className="text-cocoa text-[15px] leading-relaxed whitespace-pre-wrap font-medium">
                     {post.content}
                 </p>
             </div>
 
             {/* Image */}
             {post.imageUrl && (
-                <div className="mb-4 rounded-[20px] overflow-hidden border-2 border-[#ECC8CD]/30">
+                <div className="mb-3 rounded-lg overflow-hidden border-2 border-cocoa">
                     <img
                         src={post.imageUrl}
                         alt="Post attachment"
@@ -268,13 +231,13 @@ function FeedItem({ post, onLike, index }: { post: Post; onLike: (postId: string
                 </div>
             )}
 
-            {/* Tags - candy styled */}
+            {/* Tags */}
             {post.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                     {post.tags.map(tag => (
                         <span
                             key={tag.id}
-                            className="px-3 py-1 bg-[#FDF0F1] text-[#CD6E67] text-xs rounded-full font-semibold border border-[#ECC8CD]/30"
+                            className="px-2 py-0.5 bg-pixel-yellow text-cocoa text-xs rounded-lg border border-cocoa font-bold"
                         >
                             #{tag.label}
                         </span>
@@ -283,40 +246,30 @@ function FeedItem({ post, onLike, index }: { post: Post; onLike: (postId: string
             )}
 
             {/* Action Bar */}
-            <div className="flex items-center gap-6 pt-4 border-t-2 border-[#ECC8CD]/30">
-                <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+            <div className="flex items-center gap-6 pt-3 border-t-2 border-cocoa/30">
+                <button
                     onClick={() => onLike(post.id)}
-                    className={`flex items-center gap-1.5 text-sm transition-colors ${post.isLiked
-                        ? 'text-[#CD6E67]'
-                        : 'text-[#7A6862] hover:text-[#CD6E67]'
+                    className={`flex items-center gap-1.5 text-sm transition-colors font-bold ${post.isLiked
+                        ? 'text-pixel-red'
+                        : 'text-cocoa-light hover:text-cocoa'
                         }`}
                 >
-                    <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
-                    <span className="font-semibold">{post.likes}</span>
-                </motion.button>
-                <motion.button 
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="flex items-center gap-1.5 text-sm text-[#7A6862] hover:text-[#3E3229] transition-colors"
-                >
-                    <MessageSquare className="w-5 h-5" />
-                    <span className="font-semibold">{post.comments}</span>
-                </motion.button>
-                <motion.button 
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="flex items-center gap-1.5 text-sm text-[#7A6862] hover:text-[#3E3229] transition-colors"
-                >
-                    <Share2 className="w-5 h-5" />
-                </motion.button>
+                    <ThumbsUp className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} strokeWidth={2.5} />
+                    <span>{post.likes}</span>
+                </button>
+                <button className="flex items-center gap-1.5 text-sm text-cocoa-light hover:text-cocoa transition-colors font-bold">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>{post.comments}</span>
+                </button>
+                <button className="flex items-center gap-1.5 text-sm text-cocoa-light hover:text-cocoa transition-colors font-bold">
+                    <Share2 className="w-4 h-4" />
+                </button>
             </div>
-        </motion.article>
+        </article>
     );
 }
 
-// Main Component - ToyWorld styled
+// Main Component
 export default function CommunityFeed() {
     const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
 
@@ -348,33 +301,28 @@ export default function CommunityFeed() {
     };
 
     return (
-        <div className="min-h-screen bg-[#ECC8CD]">
-            {/* Header - ToyWorld styled */}
-            <header className="sticky top-0 z-10 bg-[#FDF0F1]/95 backdrop-blur-md border-b-4 border-[#ECC8CD]/40 shadow-lg shadow-[#CD6E67]/10">
+        <div className="min-h-screen bg-retro-bg">
+            {/* Header */}
+            <header className="sticky top-0 z-10 bg-retro-white border-b-3 border-cocoa">
                 <div className="max-w-[600px] mx-auto px-4 py-4 flex items-center justify-between">
+                    <h1 className="text-cocoa font-pixel uppercase tracking-widest text-lg">Community</h1>
                     <div className="flex items-center gap-2">
-                        <span className="text-2xl">🧸</span>
-                        <h1 className="text-[#3E3229] text-lg font-nunito font-bold">Community</h1>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <motion.a
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
+                        <a
                             href="/discover"
-                            className="p-2 text-[#7A6862] hover:text-[#CD6E67] bg-white hover:bg-[#FDF0F1] rounded-full transition-colors shadow-sm"
+                            className="p-2 text-cocoa-light hover:text-cocoa hover:bg-pixel-pink/20 rounded-lg border-2 border-transparent hover:border-cocoa transition-colors"
                             title="Discover"
                         >
-                            <Heart className="w-5 h-5" />
-                        </motion.a>
-                        <motion.a
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+                        </a>
+                        <a
                             href="/chat"
-                            className="p-2 text-[#7A6862] hover:text-[#CD6E67] bg-white hover:bg-[#FDF0F1] rounded-full transition-colors shadow-sm"
+                            className="p-2 text-cocoa-light hover:text-cocoa hover:bg-pixel-blue/20 rounded-lg border-2 border-transparent hover:border-cocoa transition-colors"
                             title="Chat"
                         >
                             <MessageSquare className="w-5 h-5" />
-                        </motion.a>
+                        </a>
                     </div>
                 </div>
             </header>
@@ -384,22 +332,16 @@ export default function CommunityFeed() {
                 <CreatePostInput onPost={handlePost} />
 
                 <div className="space-y-0">
-                    {posts.map((post, index) => (
-                        <FeedItem key={post.id} post={post} onLike={handleLike} index={index} />
+                    {posts.map(post => (
+                        <FeedItem key={post.id} post={post} onLike={handleLike} />
                     ))}
                 </div>
 
-                {/* Empty State - ToyWorld styled */}
+                {/* Empty State */}
                 {posts.length === 0 && (
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-center py-12 bg-white rounded-[30px] border-2 border-[#ECC8CD]/40 shadow-lg"
-                    >
-                        <div className="text-5xl mb-4">📝</div>
-                        <p className="text-[#3E3229] font-nunito font-bold text-lg">No posts yet</p>
-                        <p className="text-[#7A6862] text-sm mt-2">Be the first to share! ✨</p>
-                    </motion.div>
+                    <div className="text-center py-12 bg-retro-white rounded-xl border-3 border-cocoa shadow-pixel">
+                        <p className="text-cocoa-light text-sm font-medium">No posts yet. Be the first to share!</p>
+                    </div>
                 )}
             </main>
         </div>

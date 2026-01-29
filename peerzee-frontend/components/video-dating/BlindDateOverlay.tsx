@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, MessageCircle, Eye, RefreshCw, Heart } from 'lucide-react';
+import { Award, MessageSquareText, Eye, RefreshCw, Star } from 'lucide-react';
 import { BlindDateState } from '@/hooks/useVideoDating';
 
 interface BlindDateOverlayProps {
@@ -34,7 +34,7 @@ export function BlindDateOverlay({
                     >
                         <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl p-4 border border-purple-500/30">
                             <div className="flex items-center gap-2 mb-2">
-                                <Sparkles className="w-5 h-5 text-purple-400" />
+                            <Award className="w-5 h-5 text-purple-400" strokeWidth={2.5} />
                                 <span className="text-sm font-medium text-purple-300">AI Host</span>
                             </div>
                             <p className="text-sm text-white/90">{introMessage}</p>
@@ -64,7 +64,7 @@ export function BlindDateOverlay({
                 >
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <MessageCircle className={`w-4 h-4 ${isRescue ? 'text-orange-400' : 'text-blue-400'}`} />
+                            <MessageSquareText className={`w-4 h-4 ${isRescue ? 'text-orange-400' : 'text-blue-400'}`} strokeWidth={2.5} />
                             <span className="text-xs font-medium text-white/70">
                                 Chủ đề #{topicNumber} {isRescue && '💡 Phao cứu sinh!'}
                             </span>
@@ -109,7 +109,7 @@ export function BlindDateOverlay({
                         onClick={onRequestReveal}
                         className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-sm border border-pink-500/30 rounded-xl px-3 py-2 flex items-center gap-2 hover:from-pink-500/30 hover:to-purple-500/30 transition-all"
                     >
-                        <Heart className="w-4 h-4 text-pink-400" />
+                        <Star className="w-4 h-4 text-pink-400" strokeWidth={2.5} />
                         <span className="text-xs text-white/80">Reveal sớm</span>
                     </button>
                 </div>
@@ -126,7 +126,7 @@ export function BlindDateOverlay({
                     >
                         <div className="bg-gradient-to-br from-purple-900/90 to-pink-900/90 rounded-2xl p-6 max-w-xs text-center border border-purple-500/30">
                             <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center mx-auto mb-4">
-                                <Heart className="w-8 h-8 text-white" />
+                                <Star className="w-8 h-8 text-white" strokeWidth={2.5} />
                             </div>
                             <h3 className="text-lg font-semibold text-white mb-2">Đối phương muốn reveal!</h3>
                             <p className="text-sm text-white/70 mb-4">

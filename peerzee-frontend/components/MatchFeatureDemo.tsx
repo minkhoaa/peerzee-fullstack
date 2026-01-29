@@ -11,7 +11,7 @@ import {
 import {
     X,
     Check,
-    Star,
+    Award,
     MapPin,
     Briefcase,
     GraduationCap,
@@ -19,8 +19,8 @@ import {
     ChevronLeft,
     ChevronRight,
     RefreshCw,
-    MessageCircle,
-    Heart,
+    MessageSquareText,
+    ThumbsUp,
 } from 'lucide-react';
 import EngagementModal, { type EngagementTarget } from './EngagementModal';
 
@@ -198,7 +198,7 @@ function CompatibilityRadar({ userChips, percentage }: CompatibilityRadarProps) 
     );
 
     return (
-        <div className="bg-[#262626]/80 backdrop-blur-sm border border-[#2F2F2F] rounded-xl px-4 py-3">
+        <div className="bg-retro-paper border-3 border-cocoa rounded-xl shadow-pixel px-4 py-3">
             <div className="flex items-center gap-3">
                 {/* Progress Circle */}
                 <div className="relative w-12 h-12">
@@ -208,7 +208,7 @@ function CompatibilityRadar({ userChips, percentage }: CompatibilityRadarProps) 
                             cy="18"
                             r="15"
                             fill="none"
-                            stroke="#3A3A3A"
+                            stroke="#D4C4B0"
                             strokeWidth="3"
                         />
                         <circle
@@ -223,30 +223,30 @@ function CompatibilityRadar({ userChips, percentage }: CompatibilityRadarProps) 
                         />
                         <defs>
                             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#ec4899" />
-                                <stop offset="100%" stopColor="#f43f5e" />
+                                <stop offset="0%" stopColor="#FF6B8A" />
+                                <stop offset="100%" stopColor="#FF8FAB" />
                             </linearGradient>
                         </defs>
                     </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-[#E3E3E3]">
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-cocoa">
                         {percentage}%
                     </span>
                 </div>
 
                 {/* Common Interests */}
                 <div className="flex-1 min-w-0">
-                    <p className="text-xs text-[#9B9A97] mb-1">Compatible vibes</p>
+                    <p className="text-xs text-cocoa-light font-pixel uppercase tracking-widest mb-1">Compatible vibes</p>
                     <div className="flex flex-wrap gap-1.5">
                         {commonInterests.slice(0, 3).map((interest, i) => (
                             <span
                                 key={i}
-                                className="px-2 py-0.5 text-xs bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-300 rounded-full border border-pink-500/30"
+                                className="px-2 py-0.5 text-xs bg-pixel-pink text-cocoa rounded-lg border-2 border-cocoa font-bold"
                             >
                                 #{interest}
                             </span>
                         ))}
                         {commonInterests.length > 3 && (
-                            <span className="text-xs text-[#9B9A97]">
+                            <span className="text-xs text-cocoa-light font-bold">
                                 +{commonInterests.length - 3} more
                             </span>
                         )}
@@ -347,7 +347,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.7}
             onDragEnd={isTop ? handleDragEnd : undefined}
-            className={`absolute inset-x-4 top-0 bg-white border-2 border-[#ECC8CD]/40 rounded-[40px] overflow-hidden shadow-xl shadow-[#CD6E67]/15 ${isTop ? 'z-10 cursor-grab active:cursor-grabbing' : 'z-0'
+            className={`absolute inset-x-4 top-0 bg-retro-white border-3 border-cocoa rounded-xl overflow-hidden shadow-pixel ${isTop ? 'z-10 cursor-grab active:cursor-grabbing' : 'z-0'
                 }`}
         >
             {/* Like/Nope Indicators */}
@@ -355,13 +355,13 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                 <>
                     <motion.div
                         style={{ opacity: likeOpacity }}
-                        className="absolute top-8 left-6 z-30 px-4 py-2 border-4 border-green-400 text-green-400 text-2xl font-bold rounded-lg rotate-[-15deg] bg-black/20 backdrop-blur-sm"
+                        className="absolute top-8 left-6 z-30 px-4 py-2 border-4 border-pixel-green text-pixel-green text-2xl font-pixel uppercase tracking-widest rounded-lg rotate-[-15deg] bg-retro-white/80"
                     >
                         LIKE
                     </motion.div>
                     <motion.div
                         style={{ opacity: passOpacity }}
-                        className="absolute top-8 right-6 z-30 px-4 py-2 border-4 border-red-400 text-red-400 text-2xl font-bold rounded-lg rotate-[15deg] bg-black/20 backdrop-blur-sm"
+                        className="absolute top-8 right-6 z-30 px-4 py-2 border-4 border-pixel-red text-pixel-red text-2xl font-pixel uppercase tracking-widest rounded-lg rotate-[15deg] bg-retro-white/80"
                     >
                         NOPE
                     </motion.div>
@@ -371,7 +371,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
             {/* Scrollable Container */}
             <div ref={scrollContainerRef} className="h-[72vh] overflow-y-auto scrollbar-hide">
                 {/* Photo Slider */}
-                <div className="relative aspect-[3/4] w-full bg-[#FDF0F1]">
+                <div className="relative aspect-[3/4] w-full bg-retro-paper">
                     <img
                         src={profile.photos[photoIndex].url}
                         alt={profile.name}
@@ -386,8 +386,8 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                         title="Tap to react to this photo"
                     >
                         <div className="absolute bottom-24 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="p-3 bg-black/50 backdrop-blur-sm rounded-full">
-                                <MessageCircle className="w-5 h-5 text-white" />
+                            <div className="p-3 bg-retro-white/80 border-2 border-cocoa rounded-xl shadow-pixel-sm">
+                                <MessageSquareText className="w-5 h-5 text-cocoa" strokeWidth={2.5} />
                             </div>
                         </div>
                     </button>
@@ -406,7 +406,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                             {profile.photos.map((_, i) => (
                                 <div
                                     key={i}
-                                    className={`h-1 flex-1 rounded-full transition-colors ${i === photoIndex ? 'bg-white' : 'bg-white/40'
+                                    className={`h-1.5 flex-1 rounded-lg border border-cocoa/50 transition-colors ${i === photoIndex ? 'bg-pixel-yellow' : 'bg-retro-white/60'
                                         }`}
                                 />
                             ))}
@@ -419,7 +419,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                             {photoIndex > 0 && (
                                 <button
                                     onClick={prevPhoto}
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/30 backdrop-blur-sm rounded-full text-white/80 hover:text-white transition-colors z-20"
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-retro-white/80 border-2 border-cocoa rounded-lg text-cocoa hover:bg-pixel-yellow transition-colors z-20 shadow-pixel-sm"
                                 >
                                     <ChevronLeft className="w-5 h-5" />
                                 </button>
@@ -427,7 +427,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                             {photoIndex < profile.photos.length - 1 && (
                                 <button
                                     onClick={nextPhoto}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/30 backdrop-blur-sm rounded-full text-white/80 hover:text-white transition-colors z-20"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-retro-white/80 border-2 border-cocoa rounded-lg text-cocoa hover:bg-pixel-yellow transition-colors z-20 shadow-pixel-sm"
                                 >
                                     <ChevronRight className="w-5 h-5" />
                                 </button>
@@ -436,18 +436,18 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                     )}
 
                     {/* Gradient Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#202020] via-[#202020]/90 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-retro-white via-retro-white/90 to-transparent z-10 pointer-events-none" />
 
-                    {/* Name & Basic Info - Magazine Style */}
+                    {/* Name & Basic Info - Retro Pixel Style */}
                     <div className="absolute bottom-4 left-5 right-5 z-20">
                         <div className="flex items-baseline gap-2">
-                            <h2 className="text-3xl font-bold text-[#E3E3E3]" style={{ fontFamily: 'Georgia, serif' }}>
+                            <h2 className="text-3xl font-pixel text-cocoa uppercase tracking-widest">
                                 {profile.name}
                             </h2>
-                            <span className="text-2xl text-[#9B9A97] font-light">{profile.age}</span>
+                            <span className="text-2xl text-cocoa-light font-bold">{profile.age}</span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-[#9B9A97]">
+                        <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-cocoa-light font-bold">
                             <div className="flex items-center gap-1.5">
                                 <MapPin className="w-4 h-4" />
                                 <span>{profile.distance}</span>
@@ -459,7 +459,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                         </div>
 
                         {profile.education && (
-                            <div className="flex items-center gap-1.5 mt-1 text-sm text-[#9B9A97]">
+                            <div className="flex items-center gap-1.5 mt-1 text-sm text-cocoa-light font-bold">
                                 <GraduationCap className="w-4 h-4" />
                                 <span>{profile.education}</span>
                             </div>
@@ -474,7 +474,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
 
                     {/* Interactive Chips/Tags */}
                     <div>
-                        <p className="text-xs text-[#6B6B6B] mb-2 uppercase tracking-wider">Tap to connect</p>
+                        <p className="text-xs text-cocoa-light font-pixel uppercase tracking-widest mb-2">Tap to connect</p>
                         <div className="flex flex-wrap gap-2">
                             {profile.chips.map((chip) => {
                                 const isCommon = CURRENT_USER_INTERESTS.some((i) =>
@@ -485,14 +485,14 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                                     <button
                                         key={chip}
                                         onClick={() => handleChipClick(chip)}
-                                        className={`group px-3 py-1.5 text-sm rounded-full border transition-all hover:scale-105 ${isCommon
-                                                ? 'bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-300 border-pink-500/30 hover:border-pink-400'
-                                                : 'bg-[#2F2F2F] text-[#E3E3E3] border-[#3A3A3A] hover:border-[#4A4A4A]'
+                                        className={`group px-3 py-1.5 text-sm rounded-lg border-2 transition-all hover:scale-105 font-bold ${isCommon
+                                                ? 'bg-pixel-pink text-cocoa border-cocoa hover:shadow-pixel-sm'
+                                                : 'bg-retro-paper text-cocoa border-cocoa hover:bg-pixel-yellow'
                                             }`}
                                     >
                                         <span className="flex items-center gap-1.5">
                                             {chip}
-                                            <Heart className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <ThumbsUp className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} />
                                         </span>
                                     </button>
                                 );
@@ -502,45 +502,45 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
 
                     {/* About Section */}
                     <div>
-                        <h3 className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-2">
+                        <h3 className="text-xs font-pixel text-cocoa-light uppercase tracking-widest mb-2">
                             About Me
                         </h3>
-                        <p className="text-[#E3E3E3] text-sm leading-relaxed">{profile.about}</p>
+                        <p className="text-cocoa text-sm leading-relaxed font-bold">{profile.about}</p>
                     </div>
 
-                    {/* Interactive Prompts - Notion Callout Style */}
+                    {/* Interactive Prompts - Retro Pixel Style */}
                     <div className="space-y-3">
-                        <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">Tap to reply</p>
+                        <p className="text-xs text-cocoa-light font-pixel uppercase tracking-widest">Tap to reply</p>
                         {profile.prompts.map((prompt) => (
                             <button
                                 key={prompt.id}
                                 onClick={() => handlePromptClick(prompt)}
-                                className="w-full text-left bg-[#262626] border border-[#2F2F2F] rounded-xl p-4 flex gap-3 hover:border-[#4A4A4A] hover:bg-[#2A2A2A] transition-all group"
+                                className="w-full text-left bg-retro-paper border-3 border-cocoa rounded-xl p-4 flex gap-3 hover:bg-pixel-yellow hover:shadow-pixel-sm transition-all group"
                             >
                                 <span className="text-2xl flex-shrink-0">{prompt.emoji}</span>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-[#E3E3E3] mb-1">{prompt.question}</p>
-                                    <p className="text-sm text-[#9B9A97] leading-relaxed">{prompt.answer}</p>
+                                    <p className="text-sm font-bold text-cocoa mb-1">{prompt.question}</p>
+                                    <p className="text-sm text-cocoa-light leading-relaxed font-bold">{prompt.answer}</p>
                                 </div>
-                                <MessageCircle className="w-4 h-4 text-[#4A4A4A] group-hover:text-pink-400 transition-colors flex-shrink-0 mt-1" />
+                                <MessageSquareText className="w-4 h-4 text-cocoa-light group-hover:text-pixel-pink transition-colors flex-shrink-0 mt-1" strokeWidth={2.5} />
                             </button>
                         ))}
                     </div>
 
                     {/* Spotify Section */}
                     {profile.spotify && (
-                        <div className="flex items-center gap-3 p-4 bg-[#1DB954]/10 border border-[#1DB954]/20 rounded-xl">
-                            <Music className="w-5 h-5 text-[#1DB954]" />
+                        <div className="flex items-center gap-3 p-4 bg-pixel-green/20 border-3 border-pixel-green rounded-xl shadow-pixel-sm">
+                            <Music className="w-5 h-5 text-pixel-green" />
                             <div>
-                                <p className="text-sm text-[#E3E3E3] font-medium">{profile.spotify.song}</p>
-                                <p className="text-xs text-[#9B9A97]">{profile.spotify.artist}</p>
+                                <p className="text-sm text-cocoa font-bold">{profile.spotify.song}</p>
+                                <p className="text-xs text-cocoa-light font-bold">{profile.spotify.artist}</p>
                             </div>
                         </div>
                     )}
 
                     {/* Instagram */}
                     {profile.instagram && (
-                        <div className="flex items-center gap-2 text-sm text-[#9B9A97]">
+                        <div className="flex items-center gap-2 text-sm text-cocoa-light font-bold">
                             <span className="text-lg">📸</span>
                             <span>{profile.instagram}</span>
                         </div>
@@ -573,7 +573,7 @@ function ActionButtons({ onPass, onLike, onSuperLike, disabled }: ActionButtonsP
                 whileTap={{ scale: 0.95 }}
                 onClick={onPass}
                 disabled={disabled}
-                className="w-16 h-16 rounded-full border-4 border-[#ECC8CD] bg-white flex items-center justify-center text-[#7A6862] hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 shadow-xl shadow-[#CD6E67]/15"
+                className="w-16 h-16 rounded-xl border-3 border-cocoa bg-retro-white flex items-center justify-center text-cocoa hover:bg-pixel-red hover:text-retro-white transition-colors disabled:opacity-40 shadow-pixel active:translate-y-0.5 active:shadow-none"
                 aria-label="Pass"
             >
                 <X className="w-7 h-7" strokeWidth={2.5} />
@@ -585,10 +585,10 @@ function ActionButtons({ onPass, onLike, onSuperLike, disabled }: ActionButtonsP
                     whileTap={{ scale: 0.95 }}
                     onClick={onSuperLike}
                     disabled={disabled}
-                    className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 border-4 border-yellow-300 flex items-center justify-center text-white hover:from-yellow-500 hover:to-orange-500 transition-colors disabled:opacity-40 shadow-xl shadow-yellow-400/30"
+                    className="w-12 h-12 rounded-xl bg-retro-paper border-2 border-cocoa flex items-center justify-center text-cocoa hover:bg-pixel-blue hover:text-retro-white transition-colors disabled:opacity-40 shadow-pixel-sm active:translate-y-0.5 active:shadow-none"
                     aria-label="Super Like"
                 >
-                    <Star className="w-5 h-5" />
+                    <Award className="w-5 h-5" strokeWidth={2.5} />
                 </motion.button>
             )}
 
@@ -597,7 +597,7 @@ function ActionButtons({ onPass, onLike, onSuperLike, disabled }: ActionButtonsP
                 whileTap={{ scale: 0.95 }}
                 onClick={onLike}
                 disabled={disabled}
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#CD6E67] to-[#E88B85] flex items-center justify-center text-white hover:from-[#B85C55] hover:to-[#CD6E67] transition-colors disabled:opacity-40 shadow-xl shadow-[#CD6E67]/40 border-4 border-white/50"
+                className="w-16 h-16 rounded-xl bg-pixel-pink border-3 border-cocoa flex items-center justify-center text-cocoa hover:bg-pixel-green transition-colors disabled:opacity-40 shadow-pixel active:translate-y-0.5 active:shadow-none"
                 aria-label="Like"
             >
                 <Check className="w-7 h-7" strokeWidth={2.5} />
@@ -613,22 +613,20 @@ function ActionButtons({ onPass, onLike, onSuperLike, disabled }: ActionButtonsP
 function EmptyState({ onRefresh }: { onRefresh: () => void }) {
     return (
         <div className="flex flex-col items-center justify-center h-[72vh] px-6 text-center">
-            <div className="bg-white rounded-[40px] p-8 shadow-xl shadow-[#CD6E67]/15 border-2 border-[#ECC8CD]/40">
-                <div className="text-7xl mb-6">🔍</div>
-                <h2 className="text-2xl font-nunito font-bold text-[#3E3229] mb-3">No more profiles</h2>
-                <p className="text-[#7A6862] text-sm mb-8 max-w-xs">
-                    You&apos;ve seen everyone nearby! Check back later for new people. ✨
-                </p>
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={onRefresh}
-                    className="flex items-center gap-2 px-8 py-3 bg-[#CD6E67] text-white font-bold rounded-full hover:bg-[#B85C55] transition-colors shadow-lg shadow-[#CD6E67]/30"
-                >
-                    <RefreshCw className="w-4 h-4" />
-                    Refresh
-                </motion.button>
-            </div>
+            <div className="text-7xl mb-6">🔍</div>
+            <h2 className="text-2xl font-pixel text-cocoa uppercase tracking-widest mb-3">No more profiles</h2>
+            <p className="text-cocoa-light text-sm mb-8 max-w-xs font-bold">
+                You&apos;ve seen everyone nearby! Check back later for new people.
+            </p>
+            <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onRefresh}
+                className="flex items-center gap-2 px-6 py-3 bg-pixel-yellow text-cocoa font-pixel uppercase tracking-widest rounded-lg border-2 border-cocoa shadow-pixel hover:bg-pixel-green transition-colors active:translate-y-0.5 active:shadow-none"
+            >
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+            </motion.button>
         </div>
     );
 }
@@ -702,11 +700,11 @@ export default function MatchFeatureDemo() {
     const isFinished = currentIndex >= profiles.length;
 
     return (
-        <div className="min-h-screen bg-[#ECC8CD] font-[Inter,system-ui,sans-serif]">
+        <div className="min-h-screen bg-retro-paper font-[Inter,system-ui,sans-serif]">
             {/* Header */}
-            <header className="sticky top-0 z-30 bg-[#FDF0F1]/95 backdrop-blur-lg border-b-4 border-[#ECC8CD]/40 shadow-lg shadow-[#CD6E67]/10">
+            <header className="sticky top-0 z-30 bg-retro-white/95 backdrop-blur-lg border-b-3 border-cocoa">
                 <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-center">
-                    <h1 className="text-lg font-semibold text-[#E3E3E3]">Discover</h1>
+                    <h1 className="text-lg font-pixel text-cocoa uppercase tracking-widest">Discover</h1>
                 </div>
             </header>
 
@@ -777,15 +775,15 @@ export default function MatchFeatureDemo() {
             {/* Progress Indicator */}
             {!isFinished && (
                 <div className="fixed bottom-2 left-0 right-0 flex justify-center">
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-[#2F2F2F]/80 backdrop-blur-sm rounded-full">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-retro-white/90 border-2 border-cocoa rounded-lg shadow-pixel-sm">
                         {profiles.map((_, i) => (
                             <div
                                 key={i}
-                                className={`w-1.5 h-1.5 rounded-full transition-colors ${i === currentIndex
-                                        ? 'bg-[#E3E3E3]'
+                                className={`w-2 h-2 rounded-lg transition-colors border border-cocoa/50 ${i === currentIndex
+                                        ? 'bg-pixel-pink'
                                         : i < currentIndex
-                                            ? 'bg-[#9B9A97]'
-                                            : 'bg-[#4A4A4A]'
+                                            ? 'bg-pixel-yellow'
+                                            : 'bg-retro-paper'
                                     }`}
                             />
                         ))}
