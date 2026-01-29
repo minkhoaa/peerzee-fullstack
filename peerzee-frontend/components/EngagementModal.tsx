@@ -83,13 +83,13 @@ export default function EngagementModal({
         switch (target.type) {
             case 'prompt':
                 return [
-                    'Haha, that is so relatable! 😄',
+                    'Haha, that is so relatable!',
                     'I totally agree with this!',
                     'Tell me more about this...',
                 ];
             case 'photo':
                 return [
-                    'Love this vibe! ✨',
+                    'Love this vibe!',
                     'Where was this taken?',
                     'Great photo!',
                 ];
@@ -97,7 +97,7 @@ export default function EngagementModal({
                 return [
                     `I'm into ${target.preview} too!`,
                     'We should connect!',
-                    'Nice taste! 🎯',
+                    'Nice taste!',
                 ];
             default:
                 return [];

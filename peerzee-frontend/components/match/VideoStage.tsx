@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { Video, VideoOff, Mic, MicOff, Loader2, User } from "lucide-react";
+import { Video, VideoOff, Mic, MicOff, Loader2, User, MessageSquareText } from "lucide-react";
 import { VideoDatingState } from "@/hooks/useVideoDating";
 
 interface VideoStageProps {
@@ -246,7 +246,7 @@ function PlaceholderContent({ mode, state, interests }: { mode: "text" | "video"
             ))}
           </div>
         )}
-        <div className="text-4xl">💬</div>
+        <div className="flex justify-center"><MessageSquareText className="w-10 h-10 text-cocoa" strokeWidth={2.5} /></div>
       </div>
     );
   }

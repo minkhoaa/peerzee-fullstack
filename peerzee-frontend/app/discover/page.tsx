@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MessageSquareText, Settings, Star, Video, Search, X, Telescope, MapPin, Users, GraduationCap, ListFilter } from 'lucide-react';
+import { ArrowLeft, MessageSquareText, Settings, Star, Video, Search, X, Telescope, MapPin, Users, GraduationCap, ListFilter, Target, Loader2, User } from 'lucide-react';
 import { ProfileCardStack } from '@/components/discover';
 import ModeSwitcher from '@/components/discover/ModeSwitcher';
 import { LocationRequest } from '@/components/discover/LocationRequest';
@@ -173,7 +173,7 @@ export default function DiscoverPage() {
                         <ArrowLeft className="w-5 h-5" />
                     </button>
 
-                    <h1 className="font-pixel text-2xl text-cocoa uppercase tracking-widest">🔍 DISCOVER</h1>
+                    <h1 className="font-pixel text-2xl text-cocoa uppercase tracking-widest flex items-center gap-2"><Search className="w-5 h-5" strokeWidth={2.5} /> DISCOVER</h1>
 
                     <div className="flex items-center gap-2">
                         <button
@@ -229,7 +229,7 @@ export default function DiscoverPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyPress={handleSearchKeyPress}
-                            placeholder="🎮 Mô tả người bạn muốn tìm..."
+                            placeholder="Mô tả người bạn muốn tìm..."
                             className="w-full pl-12 pr-24 py-4 bg-retro-white border-3 border-cocoa rounded-lg font-body font-bold text-cocoa placeholder:text-cocoa-light shadow-pixel-inset focus:outline-none focus:border-pixel-pink transition-colors"
                         />
                         <button
@@ -240,7 +240,7 @@ export default function DiscoverPage() {
                                 : 'bg-retro-bg border-cocoa-light text-cocoa-light cursor-not-allowed'
                                 }`}
                         >
-                            {isSearching ? '⏳' : '🔍 TÌM'}
+                            {isSearching ? <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2.5} /> : <><Search className="w-4 h-4" strokeWidth={2.5} /> TÌM</>}
                         </button>
                     </div>
 
@@ -262,10 +262,10 @@ export default function DiscoverPage() {
                     {/* Extracted Filters */}
                     {searchFilters && (
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-pixel text-xs text-cocoa uppercase tracking-wider">🤖 AI:</span>
+                            <span className="font-pixel text-xs text-cocoa uppercase tracking-wider">AI:</span>
                             {searchFilters.gender && (
-                                <span className="px-2 py-1 bg-pixel-pink border-2 border-cocoa text-cocoa font-body font-bold text-xs rounded-lg shadow-pixel-sm">
-                                    {searchFilters.gender === 'FEMALE' ? '👩 Nữ' : '👨 Nam'}
+                                <span className="px-2 py-1 bg-pixel-pink border-2 border-cocoa text-cocoa font-body font-bold text-xs rounded-lg shadow-pixel-sm flex items-center gap-1">
+                                    <User className="w-3 h-3" strokeWidth={2.5} /> {searchFilters.gender === 'FEMALE' ? 'Nữ' : 'Nam'}
                                 </span>
                             )}
                             {searchFilters.city && (
@@ -281,8 +281,8 @@ export default function DiscoverPage() {
                                 </span>
                             )}
                             {searchFilters.semantic_text && (
-                                <span className="px-2 py-1 bg-pixel-yellow border-2 border-cocoa text-cocoa font-body font-bold text-xs rounded-lg shadow-pixel-sm truncate max-w-[150px]">
-                                    🔍 {searchFilters.semantic_text}
+                                <span className="px-2 py-1 bg-pixel-yellow border-2 border-cocoa text-cocoa font-body font-bold text-xs rounded-lg shadow-pixel-sm truncate max-w-[150px] flex items-center gap-1">
+                                    <Search className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {searchFilters.semantic_text}
                                 </span>
                             )}
                             <button onClick={clearSearch} className="ml-auto p-1.5 text-cocoa hover:text-pixel-red border-2 border-transparent hover:border-cocoa hover:bg-pixel-red/20 rounded-lg transition-all">
@@ -299,7 +299,7 @@ export default function DiscoverPage() {
                     {/* Results header */}
                     <div className="flex items-center justify-between mb-4 p-3 bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel-sm">
                         <div>
-                            <h3 className="font-pixel text-cocoa uppercase tracking-wider text-sm">🎯 KẾT QUẢ TÌM KIẾM</h3>
+                            <h3 className="font-pixel text-cocoa uppercase tracking-wider text-sm flex items-center gap-1"><Target className="w-4 h-4" strokeWidth={2.5} /> KẾT QUẢ TÌM KIẾM</h3>
                             <p className="font-body text-cocoa-light font-bold text-xs">{searchResults.length} người phù hợp</p>
                         </div>
                         <button
@@ -329,7 +329,7 @@ export default function DiscoverPage() {
                                                 {user.photos?.[0]?.url ? (
                                                     <img src={user.photos[0].url} alt="" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-xl text-cocoa-light">👤</div>
+                                                    <div className="w-full h-full flex items-center justify-center text-cocoa-light"><User className="w-6 h-6" strokeWidth={2.5} /></div>
                                                 )}
                                             </div>
                                             <span className="absolute -top-2 -left-2 w-6 h-6 bg-pixel-pink border-2 border-cocoa rounded-lg flex items-center justify-center font-pixel text-xs text-cocoa shadow-pixel-sm">
@@ -356,7 +356,7 @@ export default function DiscoverPage() {
                                             {/* Match reason - retro style */}
                                             {user.matchReason && (
                                                 <div className="flex items-center gap-1.5 mb-2">
-                                                    <span className="font-body text-xs text-cocoa font-bold bg-pixel-blue px-2 py-0.5 border-2 border-cocoa rounded-lg">💫 {user.matchReason}</span>
+                                                    <span className="font-body text-xs text-cocoa font-bold bg-pixel-blue px-2 py-0.5 border-2 border-cocoa rounded-lg">{user.matchReason}</span>
                                                 </div>
                                             )}
 
@@ -385,7 +385,7 @@ export default function DiscoverPage() {
                                     <div className="mt-3 pt-3 border-t-3 border-dashed border-cocoa/30">
                                         <div className="flex items-center justify-between font-pixel text-[10px] text-cocoa-light uppercase tracking-wider mb-1">
                                             <span>Độ tương thích</span>
-                                            <span>{user.matchScore >= 70 ? '⭐ RẤT CAO' : user.matchScore >= 40 ? '✨ KHÁ CAO' : '💫 TRUNG BÌNH'}</span>
+                                            <span>{user.matchScore >= 70 ? 'RẤT CAO' : user.matchScore >= 40 ? 'KHÁ CAO' : 'TRUNG BÌNH'}</span>
                                         </div>
                                         <div className="h-3 bg-retro-bg border-2 border-cocoa rounded-lg overflow-hidden">
                                             <div
@@ -427,7 +427,7 @@ export default function DiscoverPage() {
                     {hasLocation === true && userCoords && (
                         <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel-sm">
                             <MapPin className="w-4 h-4 text-pixel-pink-dark" />
-                            <span className="font-pixel text-sm text-cocoa uppercase tracking-wider">📍 Tìm kiếm trong bán kính 50km</span>
+                            <span className="font-pixel text-sm text-cocoa uppercase tracking-wider flex items-center gap-1"><MapPin className="w-4 h-4" strokeWidth={2.5} /> Tìm kiếm trong bán kính 50km</span>
                         </div>
                     )}
                 </div>

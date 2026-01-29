@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, Users, BookOpen, HelpCircle, Shield } from 'lucide-react';
+import { TrendingUp, Users, BookOpen, HelpCircle, Shield, User, Bird } from 'lucide-react';
 import type { User as UserType, TrendingTopic } from '@/types/community';
 
 // ============================================
@@ -149,7 +149,7 @@ export function TownCrier({
                     className="w-full h-full flex items-center justify-center"
                     style={{ backgroundColor: COLORS.parchmentDark }}
                   >
-                    👤
+                    <User className="w-4 h-4" strokeWidth={2.5} style={{ color: COLORS.text }} />
                   </div>
                 )}
               </div>
@@ -178,7 +178,7 @@ export function TownCrier({
           className="mt-3 p-2 flex items-center justify-center"
           style={{ backgroundColor: COLORS.parchmentDark }}
         >
-          <span className="text-2xl">🦉</span>
+          <Bird className="w-6 h-6" strokeWidth={2.5} style={{ color: COLORS.wood }} />
         </div>
       </div>
 

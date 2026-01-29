@@ -272,7 +272,7 @@ export default function RPGChatInput({
                 <div className="ai-suggestions-container mb-3 p-3 bg-rpg-blue/30 border-2 border-rpg-brown">
                     <div className="flex items-center gap-2 mb-2">
                         <Wand2 className="w-4 h-4 text-primary" />
-                        <span className="text-xs font-display font-bold text-rpg-brown">✨ AI Suggestions</span>
+                        <span className="text-xs font-display font-bold text-rpg-brown">AI Suggestions</span>
                     </div>
                     
                     {loadingSuggestions ? (

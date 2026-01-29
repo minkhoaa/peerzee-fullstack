@@ -176,7 +176,7 @@ export default function SearchPage() {
                         <div className="flex flex-wrap gap-2">
                             {filters.gender && (
                                 <span className="px-2 py-1 bg-pink-500/20 text-pink-400 text-xs rounded-full">
-                                    {filters.gender === 'FEMALE' ? '👩 Nữ' : '👨 Nam'}
+                                    {filters.gender === 'FEMALE' ? 'Nữ' : 'Nam'}
                                 </span>
                             )}
                             {filters.city && (
@@ -193,8 +193,8 @@ export default function SearchPage() {
                                 </span>
                             )}
                             {filters.semantic_text && (
-                                <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-full">
-                                    🔍 {filters.semantic_text}
+                                <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-full flex items-center gap-1">
+                                    <Search className="w-3 h-3" strokeWidth={2.5} /> {filters.semantic_text}
                                 </span>
                             )}
                         </div>
@@ -243,8 +243,8 @@ export default function SearchPage() {
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-2xl">
-                                            👤
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Users className="w-8 h-8 text-[#9B9A97]" strokeWidth={2.5} />
                                         </div>
                                     )}
                                 </div>
@@ -305,7 +305,7 @@ export default function SearchPage() {
             {/* Empty State */}
             {!isLoading && filters && results.length === 0 && (
                 <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-                    <div className="text-4xl mb-4">🔍</div>
+                    <div className="mb-4 flex justify-center"><Search className="w-12 h-12 text-[#9B9A97]" strokeWidth={2.5} /></div>
                     <h3 className="text-lg font-semibold text-[#E3E3E3] mb-2">
                         Không tìm thấy kết quả
                     </h3>

@@ -21,6 +21,8 @@ import {
     RefreshCw,
     MessageSquareText,
     ThumbsUp,
+    Search,
+    Camera,
 } from 'lucide-react';
 import EngagementModal, { type EngagementTarget } from './EngagementModal';
 
@@ -83,13 +85,13 @@ const MOCK_PROFILES: UserProfile[] = [
         prompts: [
             {
                 id: 'pr1-1',
-                emoji: '🧟',
+                emoji: '',
                 question: 'My zombie apocalypse plan...',
                 answer: 'Find a Starbucks, barricade the doors, and live off espresso until help arrives. Priorities, right?',
             },
             {
                 id: 'pr1-2',
-                emoji: '🚀',
+                emoji: '',
                 question: 'A goal I\'m working towards...',
                 answer: 'Building a design portfolio that makes recruiters say "we need her, not just want her."',
             },
@@ -113,13 +115,13 @@ const MOCK_PROFILES: UserProfile[] = [
         prompts: [
             {
                 id: 'pr2-1',
-                emoji: '💡',
+                emoji: '',
                 question: 'The way to my heart is...',
                 answer: 'A perfectly optimized SQL query. Or tacos. Probably tacos.',
             },
             {
                 id: 'pr2-2',
-                emoji: '🎯',
+                emoji: '',
                 question: 'I\'m looking for someone who...',
                 answer: 'Can explain complex topics simply, laughs at my puns, and doesn\'t mind weekend hiking trips.',
             },
@@ -142,7 +144,7 @@ const MOCK_PROFILES: UserProfile[] = [
         prompts: [
             {
                 id: 'pr3-1',
-                emoji: '🌟',
+                emoji: '',
                 question: 'My simple pleasures...',
                 answer: 'Morning pho, perfectly synced calendars, and that feeling when a feature ships with zero bugs.',
             },
@@ -312,7 +314,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
             type: 'photo',
             contentId: currentPhoto.id,
             preview: `${profile.name}'s photo`,
-            emoji: '📸',
+            emoji: '',
         });
     };
 
@@ -330,7 +332,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
             type: 'vibe',
             contentId: `chip-${chip}`,
             preview: chip,
-            emoji: '✨',
+            emoji: '',
         });
     };
 
@@ -541,7 +543,7 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                     {/* Instagram */}
                     {profile.instagram && (
                         <div className="flex items-center gap-2 text-sm text-cocoa-light font-bold">
-                            <span className="text-lg">📸</span>
+                            <Camera className="w-5 h-5" strokeWidth={2.5} />
                             <span>{profile.instagram}</span>
                         </div>
                     )}
@@ -613,7 +615,7 @@ function ActionButtons({ onPass, onLike, onSuperLike, disabled }: ActionButtonsP
 function EmptyState({ onRefresh }: { onRefresh: () => void }) {
     return (
         <div className="flex flex-col items-center justify-center h-[72vh] px-6 text-center">
-            <div className="text-7xl mb-6">🔍</div>
+            <div className="mb-6"><Search className="w-16 h-16 text-cocoa" strokeWidth={2.5} /></div>
             <h2 className="text-2xl font-pixel text-cocoa uppercase tracking-widest mb-3">No more profiles</h2>
             <p className="text-cocoa-light text-sm mb-8 max-w-xs font-bold">
                 You&apos;ve seen everyone nearby! Check back later for new people.
@@ -668,7 +670,7 @@ export default function MatchFeatureDemo() {
                 setCurrentIndex((prev) => prev + 1);
                 setExitDirection(null);
             }, 200);
-            console.log(`${direction === 'right' ? '❤️ Liked' : '❌ Passed'}: ${currentProfile?.name}`);
+            console.log(`${direction === 'right' ? '[LIKED]' : '[PASSED]'}: ${currentProfile?.name}`);
         },
         [currentProfile]
     );
@@ -679,7 +681,7 @@ export default function MatchFeatureDemo() {
 
     const handleEngagementSend = useCallback(
         (message: string) => {
-            console.log(`💬 Like with message to ${currentProfile?.name}:`, message);
+            console.log(`[MESSAGE] Like with message to ${currentProfile?.name}:`, message);
             console.log('Target:', engagementModal.target);
             // In real app, call API here
             handleSwipe('right');
@@ -688,7 +690,7 @@ export default function MatchFeatureDemo() {
     );
 
     const handleSuperLike = useCallback(() => {
-        console.log(`⭐ Super Liked: ${currentProfile?.name}`);
+        console.log(`[SUPER LIKED]: ${currentProfile?.name}`);
         handleSwipe('right');
     }, [currentProfile, handleSwipe]);
 

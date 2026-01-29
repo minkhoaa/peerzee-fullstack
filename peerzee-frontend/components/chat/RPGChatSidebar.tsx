@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { SquarePen, Search, Sun, Moon, LogOut, User } from 'lucide-react';
+import { SquarePen, Search, Sun, Moon, LogOut, User, MessageSquareText } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface Conversation {
@@ -111,7 +111,7 @@ export default function RPGChatSidebar({
             {/* Window Title Bar */}
             <div className="bg-rpg-brown px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <span className="font-display font-bold text-white text-sm">💬 MESSAGES</span>
+                    <span className="font-display font-bold text-white text-sm flex items-center gap-1.5"><MessageSquareText className="w-4 h-4" strokeWidth={2.5} /> MESSAGES</span>
                     <span className={clsx(
                         'w-2 h-2',
                         isConnected ? 'bg-green-400' : 'bg-red-400'
@@ -202,7 +202,7 @@ export default function RPGChatSidebar({
                             <Search className="w-7 h-7 text-rpg-brown" />
                         </div>
                         <p className="text-rpg-brown/70 text-sm text-center font-display font-medium">
-                            {searchQuery ? '🔍 No players found' : '🎮 No conversations yet'}
+                            {searchQuery ? 'No players found' : 'No conversations yet'}
                         </p>
                     </div>
                 ) : (
@@ -289,7 +289,7 @@ export default function RPGChatSidebar({
             {/* Footer */}
             <div className="p-2 bg-rpg-blue/30 border-t-2 border-rpg-brown/20">
                 <p className="text-[10px] text-rpg-brown/50 font-display text-center">
-                    🎮 {conversations.length} conversations • {onlineUsers.size} online
+                    {conversations.length} conversations • {onlineUsers.size} online
                 </p>
             </div>
         </div>

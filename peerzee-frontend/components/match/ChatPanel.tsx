@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
+import { Send, MessageSquareText, Search, Clock } from "lucide-react";
 import { VideoDatingState } from "@/hooks/useVideoDating";
 
 interface Message {
@@ -46,8 +46,14 @@ export function ChatPanel({ state, matchInfo, interests, messages, onSendMessage
     <div className="flex-[1] h-full bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel flex flex-col overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b-3 border-cocoa bg-pixel-blue/30">
-        <h2 className="text-cocoa text-base font-pixel uppercase tracking-widest mb-2">
-          {isConnected ? "💬 Chatting with Stranger" : state === 'searching' ? "🔍 Finding a match..." : "⏳ Waiting..."}
+        <h2 className="text-cocoa text-base font-pixel uppercase tracking-widest mb-2 flex items-center gap-2">
+          {isConnected ? (
+            <><MessageSquareText className="w-4 h-4" strokeWidth={2.5} /> Chatting with Stranger</>
+          ) : state === 'searching' ? (
+            <><Search className="w-4 h-4" strokeWidth={2.5} /> Finding a match...</>
+          ) : (
+            <><Clock className="w-4 h-4" strokeWidth={2.5} /> Waiting...</>
+          )}
         </h2>
         {interests.length > 0 && (
           <div className="flex flex-wrap gap-1.5">

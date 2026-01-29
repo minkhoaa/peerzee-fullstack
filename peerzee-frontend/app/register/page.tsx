@@ -7,6 +7,7 @@ import { authApi } from "@/lib/api";
 import { AxiosError } from "axios";
 import { motion } from "framer-motion";
 import AuthCard from "@/components/auth/AuthCard";
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import type { RegisterDto } from "@/types";
 
 const SocialIcons = {
@@ -93,7 +94,7 @@ export default function RegisterPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 p-4 bg-pixel-red/20 border-3 border-pixel-red text-cocoa rounded-lg shadow-pixel-sm flex items-center gap-3"
         >
-          <span className="text-xl">⚠️</span>
+          <span><AlertTriangle className="w-5 h-5" strokeWidth={2.5} /></span>
           <span className="font-body font-bold text-sm">{error}</span>
         </motion.div>
       )}
@@ -103,7 +104,7 @@ export default function RegisterPage() {
         {/* Email Input */}
         <div className="flex flex-col gap-2">
           <label className="font-pixel text-cocoa uppercase tracking-wider text-sm ml-1">
-            📧 EMAIL
+            EMAIL
           </label>
           <input
             type="email"
@@ -119,7 +120,7 @@ export default function RegisterPage() {
         {/* Display Name */}
         <div className="flex flex-col gap-2">
           <label className="font-pixel text-cocoa uppercase tracking-wider text-sm ml-1">
-            👤 CHARACTER NAME
+            CHARACTER NAME
           </label>
           <input
             type="text"
@@ -134,7 +135,7 @@ export default function RegisterPage() {
         {/* Password Input */}
         <div className="flex flex-col gap-2">
           <label className="font-pixel text-cocoa uppercase tracking-wider text-sm ml-1">
-            🔑 PASSWORD
+            PASSWORD
           </label>
           <input
             type="password"
@@ -150,7 +151,7 @@ export default function RegisterPage() {
         {/* Confirm Password */}
         <div className="flex flex-col gap-2">
           <label className="font-pixel text-cocoa uppercase tracking-wider text-sm ml-1">
-            🔐 CONFIRM PASSWORD
+            CONFIRM PASSWORD
           </label>
           <input
             type="password"
@@ -172,12 +173,12 @@ export default function RegisterPage() {
         >
           {loading ? (
             <>
-              <span className="animate-pixel-bounce">⏳</span>
+              <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2.5} />
               CREATING...
             </>
           ) : (
             <>
-              <span>✨</span> CREATE CHARACTER
+              CREATE CHARACTER
             </>
           )}
         </motion.button>

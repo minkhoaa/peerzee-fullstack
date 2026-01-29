@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { ImageIcon, X, Loader2, Film, Send, Hash } from 'lucide-react';
+import { ImageIcon, X, Loader2, Film, Send, Hash, FileText } from 'lucide-react';
 import type { CreatePostPayload } from '@/types/community';
 
 // ============================================
@@ -37,7 +37,7 @@ interface CreatePostProps {
 export default function CreatePost({ 
   onSubmit, 
   isSubmitting = false,
-  placeholder = "What's on your mind, adventurer? ✨"
+  placeholder = "What's on your mind, adventurer?"
 }: CreatePostProps) {
   const [content, setContent] = useState('');
   const [files, setFiles] = useState<FilePreview[]>([]);
@@ -45,6 +45,8 @@ export default function CreatePost({
   const [tagInput, setTagInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const defaultPlaceholder = "What's on your mind, adventurer?";
+  const actualPlaceholder = placeholder || defaultPlaceholder;
 
   // Dropzone configuration
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -144,10 +146,10 @@ export default function CreatePost({
         style={{ backgroundColor: '#FFF9F5' }}
       >
         <h3 
-          className="font-pixel text-lg uppercase tracking-wide"
+          className="font-pixel text-lg uppercase tracking-wide flex items-center gap-2"
           style={{ color: COLORS.text }}
         >
-          📝 POST QUEST
+          <FileText className="w-5 h-5" strokeWidth={2.5} /> POST QUEST
         </h3>
       </div>
 

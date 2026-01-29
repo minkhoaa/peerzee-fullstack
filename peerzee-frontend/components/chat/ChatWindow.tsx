@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { Phone, Video, MoreHorizontal, Search, X, Reply, Smile, MoreVertical, Wand2 } from 'lucide-react';
+import { Phone, Video, MoreHorizontal, Search, X, Reply, Smile, MoreVertical, Wand2, Pencil, Trash2, Snowflake } from 'lucide-react';
 import AudioMessage from './AudioMessage';
 
 interface Message {
@@ -221,7 +221,6 @@ export default function ChatWindow({
                     </p>
                     {isAiGenerated && (
                         <div className="flex items-center justify-center gap-1 text-xs text-pixel-purple font-pixel uppercase tracking-wider mb-2">
-                            <span>✨</span>
                             <span>AI-Generated</span>
                         </div>
                     )}
@@ -236,7 +235,7 @@ export default function ChatWindow({
                             onSendIcebreaker(icebreakerText);
                         }}
                     >
-                        Send ✨
+                        Send
                     </button>
                 </div>
             </div>
@@ -276,7 +275,7 @@ export default function ChatWindow({
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                                placeholder="🔍 Search messages..."
+                                placeholder="Search messages..."
                                 className="px-4 py-2 text-sm bg-retro-white border-2 border-cocoa rounded-lg text-cocoa placeholder-cocoa-light focus:outline-none focus:ring-2 focus:ring-pixel-pink shadow-pixel-inset w-48 font-bold"
                                 autoFocus
                             />
@@ -338,7 +337,7 @@ export default function ChatWindow({
                             {/* Deleted Message */}
                             {m.isDeleted ? (
                                 <div className="flex items-center justify-center w-full">
-                                    <span className="text-sm text-cocoa-light italic font-bold">🗑️ Message deleted</span>
+                                    <span className="text-sm text-cocoa-light italic font-bold flex items-center gap-1"><Trash2 className="w-4 h-4" strokeWidth={2.5} /> Message deleted</span>
                                 </div>
                             ) : editingMessageId === m.id ? (
                                 /* Editing State */
@@ -504,15 +503,15 @@ export default function ChatWindow({
                                                         <div className="absolute top-full mt-1 right-0 z-50 bg-retro-white border-2 border-cocoa rounded-lg shadow-pixel overflow-hidden min-w-[100px]">
                                                             <button
                                                                 onClick={() => { setEditingMessageId(m.id); setEditContent(m.body); setOpenMenuId(null); }}
-                                                                className="w-full px-4 py-2.5 text-xs text-left text-cocoa font-bold hover:bg-pixel-blue transition-colors"
+                                                                className="w-full px-4 py-2.5 text-xs text-left text-cocoa font-bold hover:bg-pixel-blue transition-colors flex items-center gap-1"
                                                             >
-                                                                ✏️ Edit
+                                                                <Pencil className="w-3 h-3" strokeWidth={2.5} /> Edit
                                                             </button>
                                                             <button
                                                                 onClick={() => { onDeleteMessage(m); setOpenMenuId(null); }}
-                                                                className="w-full px-4 py-2.5 text-xs text-left text-pixel-red font-bold hover:bg-pixel-red/20 transition-colors"
+                                                                className="w-full px-4 py-2.5 text-xs text-left text-pixel-red font-bold hover:bg-pixel-red/20 transition-colors flex items-center gap-1"
                                                             >
-                                                                🗑️ Delete
+                                                                <Trash2 className="w-3 h-3" strokeWidth={2.5} /> Delete
                                                             </button>
                                                         </div>
                                                     )}

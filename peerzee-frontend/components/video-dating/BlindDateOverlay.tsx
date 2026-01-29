@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Award, MessageSquareText, Eye, RefreshCw, Star } from 'lucide-react';
+import { Award, MessageSquareText, Eye, RefreshCw, Star, PartyPopper } from 'lucide-react';
 import { BlindDateState } from '@/hooks/useVideoDating';
 
 interface BlindDateOverlayProps {
@@ -66,7 +66,7 @@ export function BlindDateOverlay({
                         <div className="flex items-center gap-2">
                             <MessageSquareText className={`w-4 h-4 ${isRescue ? 'text-orange-400' : 'text-blue-400'}`} strokeWidth={2.5} />
                             <span className="text-xs font-medium text-white/70">
-                                Chủ đề #{topicNumber} {isRescue && '💡 Phao cứu sinh!'}
+                                Chủ đề #{topicNumber} {isRescue && 'Phao cứu sinh!'}
                             </span>
                         </div>
                         <button
@@ -143,7 +143,7 @@ export function BlindDateOverlay({
                                     onClick={onAcceptReveal}
                                     className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm font-medium hover:opacity-90 transition-opacity"
                                 >
-                                    Đồng ý! 💕
+                                    Đồng ý!
                                 </button>
                             </div>
                         </div>
@@ -167,7 +167,9 @@ export function BlindDateOverlay({
                             transition={{ duration: 0.5, times: [0, 0.7, 1] }}
                             className="text-center"
                         >
-                            <span className="text-6xl">🎉</span>
+                            <div className="w-16 h-16 mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center">
+                                <PartyPopper className="w-10 h-10 text-white" strokeWidth={2.5} />
+                            </div>
                             <p className="text-white font-bold text-lg mt-2 drop-shadow-lg">Đã reveal!</p>
                         </motion.div>
                     </motion.div>

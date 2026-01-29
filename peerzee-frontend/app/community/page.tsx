@@ -74,7 +74,7 @@ const MOCK_POSTS: Post[] = [
   },
   {
     id: '4',
-    content: 'New batch of healing potions ready! Come by the shop before they sell out. 10% discount for guild members! 🧪✨',
+    content: 'New batch of healing potions ready! Come by the shop before they sell out. 10% discount for guild members!',
     author: MOCK_USERS[5],
     createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
     stats: { likes: 67, comments: 18, shares: 5 },

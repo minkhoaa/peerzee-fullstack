@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { MapPin, Briefcase, GraduationCap, Music, Instagram } from 'lucide-react';
+import { MapPin, Briefcase, GraduationCap, Music, Instagram, MessageSquareText } from 'lucide-react';
 import type { DiscoverUser } from '@/hooks/useDiscover';
 import ProfilePropertiesGrid from './ProfilePropertiesGrid';
 
@@ -138,7 +138,11 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                                 className="w-full text-left p-4 bg-retro-paper border-2 border-cocoa rounded-xl shadow-pixel-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
                             >
                                 <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-lg">{prompt.emoji || '💬'}</span>
+                                    {prompt.emoji ? (
+                                        <span className="text-lg">{prompt.emoji}</span>
+                                    ) : (
+                                        <MessageSquareText className="w-4 h-4 text-cocoa" strokeWidth={2.5} />
+                                    )}
                                     <span className="text-xs font-pixel uppercase tracking-widest text-cocoa-light">
                                         {prompt.question}
                                     </span>

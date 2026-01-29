@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, MessageSquare, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Heart, MessageSquare, MoreHorizontal, Trash2, User } from 'lucide-react';
 import type { Post } from '@/types/community';
 import { PushPin } from '@/components/village';
 
@@ -95,10 +95,10 @@ export function NoteCard({
                 />
               ) : (
                 <div
-                  className="w-full h-full flex items-center justify-center text-lg"
+                  className="w-full h-full flex items-center justify-center"
                   style={{ backgroundColor: COLORS.parchmentDark, color: COLORS.text }}
                 >
-                  👤
+                  <User className="w-5 h-5" strokeWidth={2.5} />
                 </div>
               )}
             </div>

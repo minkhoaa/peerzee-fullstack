@@ -9,7 +9,8 @@ import {
   AlertTriangle,
   Loader2,
   Check,
-  Zap
+  Zap,
+  Target
 } from 'lucide-react';
 import { useQuestData } from '@/hooks/useQuestData';
 import type { Quest, QuestStatus } from '@/types/quest';
@@ -134,7 +135,7 @@ export default function QuestBoard() {
             className="text-xs font-bold"
             style={{ color: COLORS.textMuted }}
           >
-            Quests reset daily at midnight ✨
+            Quests reset daily at midnight
           </p>
         </div>
       )}
@@ -173,7 +174,7 @@ function QuestItem({ quest, isClaiming, onClaim }: QuestItemProps) {
           borderColor: COLORS.border 
         }}
       >
-        {quest.icon || '⚔️'}
+        {quest.icon || <Swords className="w-6 h-6 text-cocoa" strokeWidth={2.5} />}
       </div>
 
       {/* Info */}
@@ -411,7 +412,7 @@ function EmptyState() {
           borderColor: COLORS.border 
         }}
       >
-        🎯
+        <Target className="w-8 h-8 text-cocoa" strokeWidth={2.5} />
       </div>
       <h3 
         className="font-pixel text-lg uppercase mb-1"

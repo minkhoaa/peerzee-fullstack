@@ -213,13 +213,13 @@ export default function CommunityFeedNotion() {
 
                     {posts.length === 0 && (
                         <div className="text-center py-12 bg-retro-white border-3 border-cocoa rounded-xl p-8 shadow-pixel">
-                            <p className="text-cocoa font-bold text-sm">No posts yet. Be the first! 🎉</p>
+                            <p className="text-cocoa font-bold text-sm">No posts yet. Be the first!</p>
                         </div>
                     )}
 
                     {!hasNextPage && posts.length > 0 && (
                         <div className="text-center py-8">
-                            <p className="text-cocoa-light text-xs font-bold">You've reached the end ✨</p>
+                            <p className="text-cocoa-light text-xs font-bold">You've reached the end</p>
                         </div>
                     )}
                 </>

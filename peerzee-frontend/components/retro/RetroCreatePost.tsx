@@ -99,7 +99,7 @@ export default function RetroCreatePost({
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="What's on your mind, player? ✨"
+                            placeholder="What's on your mind, player?"
                             rows={3}
                             className={clsx(
                                 'w-full px-4 py-3 resize-none',

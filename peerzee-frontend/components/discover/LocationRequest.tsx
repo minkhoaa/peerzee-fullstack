@@ -152,7 +152,7 @@ export function LocationRequest({ onLocationUpdate, onLocationGranted, currentLo
                     <MapPin className="w-6 h-6 text-cocoa" />
                 </div>
                 <div className="text-left flex-1">
-                    <p className="text-cocoa font-pixel uppercase tracking-widest text-lg">📍 Bật Định Vị</p>
+                    <p className="text-cocoa font-pixel uppercase tracking-widest text-lg">Bật Định Vị</p>
                     <p className="text-cocoa-light text-sm font-bold">
                         Tìm người dùng gần bạn, xem khoảng cách
                     </p>

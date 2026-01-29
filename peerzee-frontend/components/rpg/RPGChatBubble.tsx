@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { clsx } from 'clsx';
+import { Swords } from 'lucide-react';
 
 interface RPGChatBubbleProps {
     message: string;
@@ -44,8 +45,8 @@ export default function RPGChatBubble({
     if (isDeleted) {
         return (
             <div className="flex items-center justify-center py-2">
-                <span className="text-sm text-rpg-brown/60 italic font-display">
-                    ⚔️ Message deleted
+                <span className="text-sm text-rpg-brown/60 italic font-display flex items-center gap-1">
+                    <Swords className="w-4 h-4" strokeWidth={2.5} /> Message deleted
                 </span>
             </div>
         );

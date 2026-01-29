@@ -1,3 +1,5 @@
+import { Monitor } from 'lucide-react';
+
 export default function AuthCard({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full bg-retro-bg flex items-center justify-center p-4">
@@ -27,7 +29,7 @@ export default function AuthCard({ children }: { children: React.ReactNode }) {
             {/* Pixel Heart Logo */}
             <div className="mb-8 flex justify-center">
               <div className="w-32 h-32 bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel flex items-center justify-center">
-                <span className="text-6xl">💕</span>
+                <Monitor className="w-16 h-16 text-cocoa" strokeWidth={2.5} />
               </div>
             </div>
 
@@ -35,7 +37,7 @@ export default function AuthCard({ children }: { children: React.ReactNode }) {
               PEERZEE
             </h1>
             <p className="font-body text-cocoa font-bold text-lg max-w-md mx-auto">
-              🎮 Press START to find your Player 2!
+              Press START to find your Player 2!
             </p>
             
             {/* Pixel Decorative Line */}

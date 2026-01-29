@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Plus, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Loader2, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Default cozy placeholders from Unsplash
@@ -189,9 +189,9 @@ export default function ProfilePhotos({
                 <motion.p
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center text-sm text-cocoa-light mt-6 font-medium"
+                    className="text-center text-sm text-cocoa-light mt-6 font-medium flex items-center justify-center gap-1"
                 >
-                    💡 Nhấn "Chỉnh sửa" để thêm ảnh của bạn!
+                    <Lightbulb className="w-4 h-4" strokeWidth={2.5} /> Nhấn "Chỉnh sửa" để thêm ảnh của bạn!
                 </motion.p>
             )}
         </div>

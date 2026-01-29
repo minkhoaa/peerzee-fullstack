@@ -21,6 +21,12 @@ interface NavItem {
   label: string;
 }
 
+interface GlobalHeaderProps {
+  title?: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+}
+
 // Formal Icon System: strokeWidth={2.5} for thick Retro look
 const navItems: NavItem[] = [
   { href: "/discover", icon: <Globe size={20} strokeWidth={2.5} />, label: "Discover" },
@@ -32,7 +38,7 @@ const navItems: NavItem[] = [
   { href: "/profile", icon: <IdCard size={20} strokeWidth={2.5} />, label: "Profile" },
 ];
 
-export default function GlobalHeader() {
+export default function GlobalHeader({ title, subtitle, action }: GlobalHeaderProps) {
   const pathname = usePathname();
 
   return (

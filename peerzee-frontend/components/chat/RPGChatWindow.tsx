@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { Phone, Video, MoreHorizontal, Search, X, Reply, Smile, MoreVertical, Wand2 } from 'lucide-react';
+import { Phone, Video, MoreHorizontal, Search, X, Reply, Smile, MoreVertical, Wand2, Pencil, Trash2, Swords } from 'lucide-react';
 import { RPGHeader, RPGChatBubble, RPGButton } from '@/components/rpg';
 import AudioMessage from './AudioMessage';
 
@@ -168,14 +168,13 @@ export default function RPGChatWindow({
                         <Wand2 className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-rpg-brown font-display font-bold text-xl mb-3">
-                        ⚔️ Break the ice!
+                        Break the ice!
                     </h3>
                     <p className="text-rpg-brown/70 text-sm font-display mb-4">
                         Start your quest with {conversation.name || 'this player'}
                     </p>
                     {isAiGenerated && (
                         <div className="flex items-center justify-center gap-1 text-xs text-primary font-display font-bold mb-3">
-                            <span>✨</span>
                             <span>AI-crafted for you</span>
                         </div>
                     )}
@@ -189,7 +188,7 @@ export default function RPGChatWindow({
                         onClick={() => onSendIcebreaker(icebreakerText)}
                         className="w-full"
                     >
-                        🗡️ Send this message
+                        Send this message
                     </RPGButton>
                 </div>
             </div>
@@ -269,8 +268,8 @@ export default function RPGChatWindow({
                             if (m.isDeleted) {
                                 return (
                                     <div key={m.id} className="flex items-center justify-center py-2">
-                                        <span className="text-sm text-rpg-brown/60 italic font-display">
-                                            ⚔️ Message deleted
+                                        <span className="text-sm text-rpg-brown/60 italic font-display flex items-center gap-1">
+                                            <Swords className="w-4 h-4" strokeWidth={2.5} /> Message deleted
                                         </span>
                                     </div>
                                 );
@@ -431,15 +430,15 @@ export default function RPGChatWindow({
                                                         <div className="absolute top-full mt-1 right-0 z-50 bg-white border-2 border-rpg-brown shadow-pixel overflow-hidden min-w-[100px]">
                                                             <button
                                                                 onClick={() => { setEditingMessageId(m.id); setEditContent(m.body); setOpenMenuId(null); }}
-                                                                className="w-full px-4 py-2.5 text-xs text-left text-rpg-brown font-display font-medium hover:bg-rpg-blue transition-colors"
+                                                                className="w-full px-4 py-2.5 text-xs text-left text-rpg-brown font-display font-medium hover:bg-rpg-blue transition-colors flex items-center gap-1"
                                                             >
-                                                                ✏️ Edit
+                                                                <Pencil className="w-3 h-3" strokeWidth={2.5} /> Edit
                                                             </button>
                                                             <button
                                                                 onClick={() => { onDeleteMessage(m); setOpenMenuId(null); }}
-                                                                className="w-full px-4 py-2.5 text-xs text-left text-red-500 font-display font-medium hover:bg-red-50 transition-colors"
+                                                                className="w-full px-4 py-2.5 text-xs text-left text-red-500 font-display font-medium hover:bg-red-50 transition-colors flex items-center gap-1"
                                                             >
-                                                                🗑️ Delete
+                                                                <Trash2 className="w-3 h-3" strokeWidth={2.5} /> Delete
                                                             </button>
                                                         </div>
                                                     )}

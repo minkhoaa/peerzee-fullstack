@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Image, Smile, Send, Loader2 } from 'lucide-react';
+import { Image, Smile, Send, Loader2, User, PenLine } from 'lucide-react';
 
 // ============================================
 // VILLAGE THEME COLORS
@@ -61,7 +61,7 @@ export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps
         className="font-pixel text-lg mb-3 flex items-center gap-2"
         style={{ color: COLORS.text }}
       >
-        ✏️ Write a Note
+        <PenLine className="w-5 h-5" strokeWidth={2.5} /> Write a Note
       </h3>
 
       {/* Input Area */}
@@ -74,7 +74,7 @@ export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps
           {userAvatar ? (
             <img src={userAvatar} alt="You" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-lg">👤</div>
+            <div className="w-full h-full flex items-center justify-center"><User className="w-5 h-5" strokeWidth={2.5} style={{ color: COLORS.text }} /></div>
           )}
         </div>
 

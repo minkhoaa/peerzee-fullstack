@@ -11,10 +11,10 @@ interface ModeSwitcherProps {
     isLoading?: boolean;
 }
 
-const modes: { id: IntentMode; label: string; icon: React.ElementType; activeColor: string; emoji: string }[] = [
-    { id: 'DATE', label: 'DATE', icon: Star, activeColor: 'bg-pixel-pink', emoji: '💕' },
-    { id: 'STUDY', label: 'STUDY', icon: BookOpen, activeColor: 'bg-pixel-blue', emoji: '📚' },
-    { id: 'FRIEND', label: 'FRIENDS', icon: Users, activeColor: 'bg-pixel-green', emoji: '🤝' },
+const modes: { id: IntentMode; label: string; icon: React.ElementType; activeColor: string }[] = [
+    { id: 'DATE', label: 'DATE', icon: Star, activeColor: 'bg-pixel-pink' },
+    { id: 'STUDY', label: 'STUDY', icon: BookOpen, activeColor: 'bg-pixel-blue' },
+    { id: 'FRIEND', label: 'FRIENDS', icon: Users, activeColor: 'bg-pixel-green' },
 ];
 
 /**
@@ -42,7 +42,7 @@ export default function ModeSwitcher({ currentMode, onModeChange, isLoading }: M
                             ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:translate-y-0.5 active:shadow-none'}
                         `}
                     >
-                        <span className="text-base">{mode.emoji}</span>
+                        <Icon className="w-4 h-4" strokeWidth={2.5} />
                         <span>{mode.label}</span>
                     </button>
                 );

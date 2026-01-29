@@ -8,6 +8,7 @@ import { useTheme } from "@/lib/theme";
 import api, { userApi, chatApi } from "@/lib/api";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import CallModal from "@/components/AudioCallModal";
+import { MessageSquareText, Loader2 } from "lucide-react";
 
 // Import refactored components
 import ChatSidebar from "@/components/chat/ChatSidebar";
@@ -627,7 +628,7 @@ export default function ChatPage() {
             <div className="min-h-screen flex items-center justify-center bg-retro-bg">
                 <div className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-8 flex flex-col items-center gap-4">
                     <div className="w-16 h-16 border-3 border-cocoa rounded-xl bg-pixel-pink flex items-center justify-center shadow-pixel-sm animate-pixelBounce">
-                        <span className="text-2xl">💬</span>
+                        <MessageSquareText className="w-8 h-8 text-cocoa" strokeWidth={2.5} />
                     </div>
                     <span className="font-pixel text-cocoa uppercase tracking-widest">Loading...</span>
                 </div>
@@ -700,7 +701,7 @@ export default function ChatPage() {
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="w-24 h-24 border-3 border-cocoa rounded-xl bg-pixel-blue flex items-center justify-center mb-5 shadow-pixel">
-                            <span className="text-4xl">💬</span>
+                            <MessageSquareText className="w-12 h-12 text-cocoa" strokeWidth={2.5} />
                         </div>
                         <h3 className="font-pixel text-cocoa text-xl uppercase tracking-widest mb-2">NO CHAT SELECTED</h3>
                         <p className="text-cocoa-light font-bold">Select a conversation to start chatting</p>
@@ -713,7 +714,7 @@ export default function ChatPage() {
                 <div className="fixed inset-0 bg-cocoa/50 flex items-center justify-center z-50">
                     <div className="bg-retro-paper border-3 border-cocoa rounded-xl shadow-pixel-lg p-6 w-96">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-pixel text-cocoa text-xl uppercase tracking-widest">✨ New Chat</h3>
+                            <h3 className="font-pixel text-cocoa text-xl uppercase tracking-widest">New Chat</h3>
                             <button
                                 onClick={() => setShowModal(false)}
                                 className="w-10 h-10 border-2 border-cocoa rounded-lg bg-pixel-red text-white hover:bg-red-500 transition-colors flex items-center justify-center"
@@ -727,7 +728,7 @@ export default function ChatPage() {
                         <input
                             value={newConvName}
                             onChange={(e) => setNewConvName(e.target.value)}
-                            placeholder="💬 Conversation name"
+                            placeholder="Conversation name"
                             className="w-full px-4 py-3 text-sm bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel-inset text-cocoa placeholder-cocoa-light focus:outline-none focus:ring-2 focus:ring-pixel-pink mb-3 font-bold"
                         />
 
@@ -735,7 +736,7 @@ export default function ChatPage() {
                             <input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="🔍 Search by email..."
+                                placeholder="Search by email..."
                                 className="w-full px-4 py-3 text-sm bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel-inset text-cocoa placeholder-cocoa-light focus:outline-none focus:ring-2 focus:ring-pixel-pink font-bold"
                             />
                             {searchResults.length > 0 && (
@@ -759,8 +760,8 @@ export default function ChatPage() {
                                 </div>
                             )}
                             {searching && (
-                                <div className="absolute top-full left-0 right-0 mt-2 px-4 py-3 text-xs text-cocoa-light bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel font-bold">
-                                    🔄 Searching...
+                                <div className="absolute top-full left-0 right-0 mt-2 px-4 py-3 text-xs text-cocoa-light bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel font-bold flex items-center gap-2">
+                                    <Loader2 className="w-3 h-3 animate-spin" strokeWidth={2.5} /> Searching...
                                 </div>
                             )}
                         </div>
@@ -783,7 +784,7 @@ export default function ChatPage() {
                                 onClick={handleCreateConversation}
                                 className="flex-1 py-3 text-sm font-pixel uppercase tracking-wider bg-pixel-pink border-3 border-cocoa text-cocoa rounded-lg hover:bg-pixel-pink-dark shadow-pixel-sm transition-all active:translate-y-0.5 active:shadow-none"
                             >
-                                Create ✨
+                                Create
                             </button>
                         </div>
                     </div>

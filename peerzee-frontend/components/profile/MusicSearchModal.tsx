@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Search, Loader2, Play, Pause, Award, Music } from 'lucide-react';
+import { X, Search, Loader2, Play, Pause, Award, Music, Lightbulb } from 'lucide-react';
 import { profileApi } from '@/lib/api';
 
 interface MusicTrack {
@@ -365,7 +365,7 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
                             <div className="w-20 h-20 mx-auto mb-6 rounded-xl bg-pixel-green/30 border-2 border-cocoa flex items-center justify-center">
                                 <Music className="w-10 h-10 text-pixel-green" />
                             </div>
-                            <p className="text-cocoa font-pixel uppercase tracking-widest text-lg">🎵 Tìm vibe của bạn</p>
+                            <p className="text-cocoa font-pixel uppercase tracking-widest text-lg">Tìm vibe của bạn</p>
                             <p className="text-cocoa-light text-sm mt-2 max-w-xs mx-auto font-medium">
                                 Tìm bài hát yêu thích và để AI phân tích vibe âm nhạc của bạn
                             </p>
@@ -386,8 +386,8 @@ export function MusicSearchModal({ isOpen, onClose, onMusicSet }: MusicSearchMod
 
                 {/* Footer */}
                 <div className="p-3 border-t-2 border-cocoa bg-retro-paper flex-shrink-0">
-                    <p className="text-cocoa-light text-xs text-center font-medium">
-                        💡 AI sẽ nghe preview bài hát để phân tích &ldquo;Vibe&rdquo; của bạn
+                    <p className="text-cocoa-light text-xs text-center font-medium flex items-center justify-center gap-1">
+                        <Lightbulb className="w-4 h-4" strokeWidth={2.5} /> AI sẽ nghe preview bài hát để phân tích &ldquo;Vibe&rdquo; của bạn
                     </p>
                 </div>
             </div>

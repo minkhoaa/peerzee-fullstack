@@ -63,7 +63,7 @@ export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
             <Search className="w-8 h-8 text-cocoa" strokeWidth={2.5} />
           </div>
           <h1 className="font-pixel text-cocoa text-2xl uppercase tracking-widest mb-1">
-            🎮 Arcade Match
+            Arcade Match
           </h1>
           <p className="text-cocoa-light text-sm font-bold">
             Choose how you want to connect with strangers
@@ -72,7 +72,7 @@ export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
 
         {/* Intent Mode Selection */}
         <div className="mb-4">
-          <label className="font-pixel text-cocoa uppercase tracking-wider mb-2 block text-sm">🎯 Looking for</label>
+          <label className="font-pixel text-cocoa uppercase tracking-wider mb-2 block text-sm">Looking for</label>
           <div className="grid grid-cols-3 gap-2">
             {intentModes.map((mode) => {
               const Icon = mode.icon;
@@ -96,7 +96,7 @@ export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
 
         {/* Gender Preference */}
         <div className="mb-4">
-          <label className="font-pixel text-cocoa uppercase tracking-wider mb-2 block text-sm">👤 Match with</label>
+          <label className="font-pixel text-cocoa uppercase tracking-wider mb-2 block text-sm">Match with</label>
           <div className="flex gap-2">
             {genderOptions.map((opt) => (
               <button
@@ -146,7 +146,7 @@ export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
         {/* Interests Input */}
         <div className="mb-4">
           <label className="font-pixel text-cocoa uppercase tracking-wider mb-2 block text-sm">
-            💬 What do you want to talk about? (Optional)
+            What do you want to talk about? (Optional)
           </label>
           <div className="flex gap-2 mb-3">
             <input

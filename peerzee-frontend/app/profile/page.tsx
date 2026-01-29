@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, X, Plus, Trash2, Loader2, MapPin, Ruler, Music, Play, Pause } from 'lucide-react';
+import { Camera, X, Plus, Trash2, Loader2, MapPin, Ruler, Music, Play, Pause, Frown, FileText, Image, User, Briefcase, Tag, PenLine, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { profileApi } from '@/lib/api';
 import { searchLocations } from '@/lib/vietnam-locations';
@@ -193,7 +193,9 @@ export default function MyProfilePage() {
         return (
             <div className="min-h-screen bg-retro-bg flex items-center justify-center">
                 <div className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-8 text-center">
-                    <div className="text-4xl mb-4 animate-pixel-bounce">⏳</div>
+                    <div className="mb-4 flex justify-center">
+                        <Loader2 className="w-10 h-10 text-cocoa animate-spin" strokeWidth={2.5} />
+                    </div>
                     <p className="font-pixel text-cocoa uppercase tracking-widest">LOADING...</p>
                 </div>
             </div>
@@ -204,7 +206,9 @@ export default function MyProfilePage() {
         return (
             <div className="min-h-screen bg-retro-bg flex flex-col items-center justify-center gap-4">
                 <div className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-8 text-center">
-                    <div className="text-4xl mb-4">😢</div>
+                    <div className="w-16 h-16 mx-auto mb-4 bg-pixel-red/20 border-3 border-cocoa rounded-xl flex items-center justify-center">
+                        <Frown className="w-8 h-8 text-cocoa" strokeWidth={2.5} />
+                    </div>
                     <p className="font-pixel text-cocoa uppercase tracking-widest mb-4">PROFILE NOT FOUND</p>
                     <button 
                         onClick={() => router.push('/discover')} 
@@ -292,8 +296,8 @@ export default function MyProfilePage() {
                                     </button>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-body font-bold text-cocoa truncate text-sm">
-                                        🎵 {musicData.song}
+                                    <p className="font-body font-bold text-cocoa truncate text-sm flex items-center gap-1">
+                                        <Music className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {musicData.song}
                                     </p>
                                     <p className="font-body text-cocoa-light text-xs truncate font-bold">
                                         {musicData.artist}
@@ -320,7 +324,7 @@ export default function MyProfilePage() {
                         transition={{ delay: 0.2 }}
                         className="bg-retro-white p-6 border-3 border-cocoa rounded-xl shadow-pixel col-span-1 md:col-span-2 flex flex-wrap gap-3 items-center"
                     >
-                        <span className="font-pixel text-pixel-pink-dark uppercase tracking-wider mr-2">🏷️ LOVES:</span>
+                        <span className="font-pixel text-pixel-pink-dark uppercase tracking-wider mr-2 flex items-center gap-1"><Tag className="w-4 h-4" strokeWidth={2.5} /> LOVES:</span>
                         {profile.tags && profile.tags.length > 0 ? (
                             profile.tags.map((tag, i) => (
                                 <motion.span
@@ -353,7 +357,7 @@ export default function MyProfilePage() {
                                         : 'bg-transparent border-transparent text-cocoa-light hover:border-cocoa hover:bg-retro-bg'
                                 } active:translate-y-0.5 active:shadow-none`}
                             >
-                                📸 PHOTOS
+                                <Image className="w-4 h-4 inline-block mr-1" strokeWidth={2.5} /> PHOTOS
                             </button>
                             <button
                                 onClick={() => setActiveTab('posts')}
@@ -363,7 +367,7 @@ export default function MyProfilePage() {
                                         : 'bg-transparent border-transparent text-cocoa-light hover:border-cocoa hover:bg-retro-bg'
                                 } active:translate-y-0.5 active:shadow-none`}
                             >
-                                📝 POSTS
+                                <FileText className="w-4 h-4 inline-block mr-1" strokeWidth={2.5} /> POSTS
                             </button>
                         </div>
                     </div>
@@ -385,7 +389,7 @@ export default function MyProfilePage() {
                                             : 'bg-retro-white text-cocoa hover:bg-pixel-blue hover:shadow-pixel-sm'
                                     } active:translate-y-0.5 active:shadow-none`}
                                 >
-                                    {isEditingPhotos ? '✓ DONE' : '✏️ EDIT'}
+                                    {isEditingPhotos ? '✓ DONE' : <><PenLine className="w-4 h-4 inline" strokeWidth={2.5} /> EDIT</>}
                                 </button>
                             </div>
 
@@ -407,7 +411,9 @@ export default function MyProfilePage() {
                             animate={{ opacity: 1 }}
                             className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-12 text-center"
                         >
-                            <div className="text-6xl mb-4">📝</div>
+                            <div className="w-16 h-16 mx-auto mb-4 bg-pixel-blue/20 border-3 border-cocoa rounded-xl flex items-center justify-center">
+                                <FileText className="w-8 h-8 text-cocoa" strokeWidth={2.5} />
+                            </div>
                             <p className="font-pixel text-cocoa uppercase tracking-widest">NO POSTS YET</p>
                             <p className="font-body text-cocoa-light font-bold text-sm mt-2">Coming soon!</p>
                         </motion.div>
@@ -424,7 +430,7 @@ export default function MyProfilePage() {
                         className="bg-retro-paper border-3 border-cocoa rounded-xl shadow-pixel-lg w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto retro-scrollbar"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="font-pixel text-2xl text-cocoa uppercase tracking-widest">✏️ EDIT PROFILE</h3>
+                            <h3 className="font-pixel text-2xl text-cocoa uppercase tracking-widest flex items-center gap-2"><PenLine className="w-5 h-5" strokeWidth={2.5} /> EDIT PROFILE</h3>
                             <button
                                 onClick={() => setShowEditModal(false)}
                                 className="w-10 h-10 rounded-lg bg-pixel-red border-3 border-cocoa text-white flex items-center justify-center shadow-pixel-sm hover:translate-y-[-2px] active:translate-y-0.5 active:shadow-none transition-all"
@@ -434,7 +440,7 @@ export default function MyProfilePage() {
                         </div>
                         <div className="space-y-5">
                             <div>
-                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1">👤 DISPLAY NAME</label>
+                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1 flex items-center gap-1"><User className="w-3 h-3" strokeWidth={2.5} /> DISPLAY NAME</label>
                                 <input
                                     type="text"
                                     value={editForm.display_name}
@@ -443,7 +449,7 @@ export default function MyProfilePage() {
                                 />
                             </div>
                             <div>
-                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1">📝 BIO</label>
+                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1 flex items-center gap-1"><FileText className="w-3 h-3" strokeWidth={2.5} /> BIO</label>
                                 <textarea
                                     value={editForm.bio}
                                     onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
@@ -452,7 +458,7 @@ export default function MyProfilePage() {
                                 />
                             </div>
                             <div className="relative">
-                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1">📍 LOCATION</label>
+                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1 flex items-center gap-1"><MapPin className="w-3 h-3" strokeWidth={2.5} /> LOCATION</label>
                                 <div className="relative">
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cocoa-light" />
                                     <input
@@ -481,16 +487,16 @@ export default function MyProfilePage() {
                                                     setEditForm({ ...editForm, location: loc });
                                                     setShowLocationDropdown(false);
                                                 }}
-                                                className="w-full px-5 py-3 text-left font-body font-bold text-cocoa hover:bg-pixel-blue transition-colors border-b border-cocoa/20 last:border-b-0"
+                                                className="w-full px-5 py-3 text-left font-body font-bold text-cocoa hover:bg-pixel-blue transition-colors border-b border-cocoa/20 last:border-b-0 flex items-center gap-2"
                                             >
-                                                📍 {loc}
+                                                <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {loc}
                                             </button>
                                         ))}
                                     </div>
                                 )}
                             </div>
                             <div>
-                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1">💼 OCCUPATION</label>
+                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1 flex items-center gap-1"><Briefcase className="w-3 h-3" strokeWidth={2.5} /> OCCUPATION</label>
                                 <input
                                     type="text"
                                     value={editForm.occupation}
@@ -502,7 +508,7 @@ export default function MyProfilePage() {
                             {/* Height & Zodiac - Retro Style */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1">📏 HEIGHT</label>
+                                    <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1 flex items-center gap-1"><Ruler className="w-3 h-3" strokeWidth={2.5} /> HEIGHT</label>
                                     <div className="relative">
                                         <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cocoa-light" />
                                         <input
@@ -515,7 +521,7 @@ export default function MyProfilePage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1">⭐ ZODIAC</label>
+                                    <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1 flex items-center gap-1"><Star className="w-3 h-3" strokeWidth={2.5} /> ZODIAC</label>
                                     <select
                                         value={editForm.zodiac}
                                         onChange={(e) => setEditForm({ ...editForm, zodiac: e.target.value })}
@@ -533,7 +539,7 @@ export default function MyProfilePage() {
 
                             {/* Tags */}
                             <div>
-                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1">🏷️ INTERESTS</label>
+                                <label className="font-pixel text-sm text-cocoa uppercase tracking-wider mb-2 block ml-1 flex items-center gap-1"><Tag className="w-3 h-3" strokeWidth={2.5} /> INTERESTS</label>
                                 <TagSelector
                                     selectedTags={editForm.tags}
                                     onChange={(tags) => setEditForm({ ...editForm, tags })}
@@ -553,7 +559,7 @@ export default function MyProfilePage() {
                                 disabled={saving}
                                 className="flex-1 py-3 bg-pixel-green text-cocoa font-pixel uppercase tracking-wider rounded-lg border-3 border-cocoa shadow-pixel hover:bg-pixel-pink hover:translate-y-[-2px] hover:shadow-pixel-lg active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                             >
-                                {saving && <span className="animate-pixel-bounce">⏳</span>}
+                                {saving && <Loader2 className="w-4 h-4 animate-spin inline" strokeWidth={2.5} />}
                                 ✓ SAVE
                             </button>
                         </div>

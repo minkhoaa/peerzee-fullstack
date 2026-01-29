@@ -47,7 +47,7 @@ export function TagSelector({ selectedTags, onChange, maxTags = 5 }: TagSelector
 
             {/* Counter */}
             <p className="text-sm font-bold text-cocoa-light">
-                ⭐ Đã chọn {selectedTags.length}/{maxTags} tags
+                Đã chọn {selectedTags.length}/{maxTags} tags
             </p>
 
             {/* Category tabs */}

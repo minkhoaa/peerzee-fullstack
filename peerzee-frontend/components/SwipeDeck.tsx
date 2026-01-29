@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
-import { X, Check, Award, Loader2 } from 'lucide-react';
+import { X, Check, Award, Loader2, Search, RefreshCw, Heart } from 'lucide-react';
 import RichProfileCard, { type UserProfile } from './RichProfileCard';
 
 interface SwipeDeckProps {
@@ -93,7 +93,9 @@ export default function SwipeDeck({
         return (
             <div className="flex flex-col items-center justify-center h-[75vh] px-6">
                 <div className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-8 text-center">
-                    <div className="text-6xl mb-6">🔍</div>
+                    <div className="w-20 h-20 bg-pixel-blue border-3 border-cocoa rounded-xl flex items-center justify-center mx-auto mb-6 shadow-pixel-sm">
+                        <Search className="w-10 h-10 text-cocoa" strokeWidth={2.5} />
+                    </div>
                     <h2 className="font-pixel text-2xl text-cocoa uppercase tracking-widest mb-2">
                         NO MORE PLAYERS
                     </h2>
@@ -103,9 +105,9 @@ export default function SwipeDeck({
                     {onEmpty && (
                         <button
                             onClick={onEmpty}
-                            className="px-6 py-3 bg-pixel-pink text-cocoa font-pixel uppercase tracking-widest rounded-lg border-3 border-cocoa shadow-pixel hover:bg-pixel-pink-dark hover:translate-y-[-2px] hover:shadow-pixel-lg active:translate-y-1 active:shadow-none transition-all"
+                            className="px-6 py-3 bg-pixel-pink text-cocoa font-pixel uppercase tracking-widest rounded-lg border-3 border-cocoa shadow-pixel hover:bg-pixel-pink-dark hover:translate-y-[-2px] hover:shadow-pixel-lg active:translate-y-1 active:shadow-none transition-all flex items-center gap-2 mx-auto"
                         >
-                            🔄 REFRESH
+                            <RefreshCw className="w-4 h-4" strokeWidth={2.5} /> REFRESH
                         </button>
                     )}
                 </div>
@@ -118,7 +120,9 @@ export default function SwipeDeck({
         return (
             <div className="flex flex-col items-center justify-center h-[75vh]">
                 <div className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel p-8 text-center">
-                    <div className="text-4xl mb-4 animate-pixel-bounce">⏳</div>
+                    <div className="w-16 h-16 bg-pixel-yellow border-3 border-cocoa rounded-xl flex items-center justify-center mx-auto mb-4 shadow-pixel-sm">
+                        <Loader2 className="w-8 h-8 text-cocoa animate-spin" strokeWidth={2.5} />
+                    </div>
                     <p className="font-pixel text-cocoa uppercase tracking-widest">LOADING...</p>
                     <p className="font-body text-cocoa-light font-bold text-sm mt-2">Finding people near you</p>
                 </div>
@@ -161,9 +165,9 @@ export default function SwipeDeck({
                             {/* Like Indicator - Retro Style */}
                             <motion.div
                                 style={{ opacity: likeOpacity }}
-                                className="absolute top-8 left-8 z-20 bg-pixel-green border-3 border-cocoa text-cocoa px-4 py-2 rounded-lg font-pixel text-xl uppercase tracking-widest shadow-pixel rotate-[-15deg]"
+                                className="absolute top-8 left-8 z-20 bg-pixel-green border-3 border-cocoa text-cocoa px-4 py-2 rounded-lg font-pixel text-xl uppercase tracking-widest shadow-pixel rotate-[-15deg] flex items-center gap-2"
                             >
-                                ❤️ LIKE
+                                <Heart className="w-5 h-5" strokeWidth={2.5} /> LIKE
                             </motion.div>
 
                             {/* Pass Indicator - Retro Style */}

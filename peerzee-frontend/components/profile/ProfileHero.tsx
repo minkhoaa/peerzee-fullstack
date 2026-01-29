@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, PenLine } from "lucide-react";
 
 interface ProfileHeroProps {
   coverPhoto?: string;
@@ -47,7 +47,7 @@ export function ProfileHero({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pixel-blue to-pixel-pink">
-            <div className="text-cocoa/30 text-6xl">🎮</div>
+            <div className="text-cocoa/30 text-6xl font-pixel">P</div>
           </div>
         )}
         
@@ -57,7 +57,7 @@ export function ProfileHero({
           className="absolute bottom-4 right-4 w-12 h-12 bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel-sm flex items-center justify-center text-cocoa hover:bg-pixel-pink hover:translate-y-[-2px] active:translate-y-0.5 active:shadow-none transition-all"
         >
           {uploading ? (
-            <span className="animate-pixel-bounce text-xl">⏳</span>
+            <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2.5} />
           ) : (
             <Camera className="w-5 h-5" />
           )}
@@ -88,7 +88,7 @@ export function ProfileHero({
           onClick={onEditClick}
           className="mb-2 bg-pixel-pink text-cocoa px-6 py-2 rounded-lg border-3 border-cocoa font-pixel uppercase tracking-widest shadow-pixel-sm hover:bg-pixel-pink-dark hover:translate-y-[-2px] active:translate-y-0.5 active:shadow-none transition-all text-sm flex items-center gap-2"
         >
-          ✏️ EDIT
+          <PenLine className="w-4 h-4" strokeWidth={2.5} /> EDIT
         </motion.button>
       </div>
 

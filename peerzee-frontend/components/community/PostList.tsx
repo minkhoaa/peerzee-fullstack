@@ -111,7 +111,7 @@ export default function PostList({
             className="font-pixel text-sm"
             style={{ color: COLORS.textMuted }}
           >
-            ✨ YOU'VE REACHED THE END ✨
+            YOU'VE REACHED THE END
           </p>
           <p 
             className="text-xs mt-1"

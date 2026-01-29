@@ -97,7 +97,7 @@ export function VibeVinyl({ music, size = 'md', showDescription = true, classNam
                                 <Plus className="w-1/2 h-1/2 text-cocoa-light group-hover:text-pixel-green transition-colors" />
                             </div>
                         </div>
-                        <p className={`text-cocoa font-bold ${config.text}`}>🎵 Add your Anthem</p>
+                        <p className={`text-cocoa font-bold ${config.text}`}>Add your Anthem</p>
                         <p className="text-cocoa-light text-xs mt-1 font-medium">Chọn bài hát đại diện cho bạn</p>
                     </div>
                 </button>

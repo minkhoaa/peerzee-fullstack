@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api";
 import { AxiosError } from "axios";
 import { motion } from "framer-motion";
+import { AlertTriangle, Loader2, Mail, KeyRound } from "lucide-react";
 import AuthCard from "@/components/auth/AuthCard";
 import type { LoginDto } from "@/types";
 
@@ -65,7 +66,7 @@ export default function LoginPage() {
       {/* Header */}
       <div className="mb-8">
         <h2 className="font-pixel text-3xl text-cocoa uppercase tracking-widest mb-2">
-          🎮 SIGN IN
+          SIGN IN
         </h2>
         <p className="font-body text-cocoa-light font-bold">
           Welcome back, Player 1!
@@ -79,7 +80,7 @@ export default function LoginPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 p-4 bg-pixel-red/20 border-3 border-pixel-red text-cocoa rounded-lg shadow-pixel-sm flex items-center gap-3"
         >
-          <span className="text-xl">⚠️</span>
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" strokeWidth={2.5} />
           <span className="font-body font-bold text-sm">{error}</span>
         </motion.div>
       )}
@@ -88,8 +89,8 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Email Input */}
         <div className="flex flex-col gap-2">
-          <label className="font-pixel text-cocoa uppercase tracking-wider text-sm ml-1">
-            📧 EMAIL
+          <label className="font-pixel text-cocoa uppercase tracking-wider text-sm ml-1 flex items-center gap-1.5">
+            <Mail className="w-4 h-4" strokeWidth={2.5} /> EMAIL
           </label>
           <input
             type="email"
@@ -105,8 +106,8 @@ export default function LoginPage() {
         {/* Password Input */}
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center ml-1 mr-1">
-            <label className="font-pixel text-cocoa uppercase tracking-wider text-sm">
-              🔑 PASSWORD
+            <label className="font-pixel text-cocoa uppercase tracking-wider text-sm flex items-center gap-1.5">
+              <KeyRound className="w-4 h-4" strokeWidth={2.5} /> PASSWORD
             </label>
             <a href="#" className="font-pixel text-xs text-pixel-pink-dark hover:text-pixel-pink uppercase tracking-wider">
               Forgot?
@@ -132,7 +133,7 @@ export default function LoginPage() {
         >
           {loading ? (
             <>
-              <span className="animate-pixel-bounce">⏳</span>
+              <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2.5} />
               LOADING...
             </>
           ) : (

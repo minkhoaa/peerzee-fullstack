@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Paperclip, Mic, Wand2, ArrowUp, X, MicOff, Loader2 } from 'lucide-react';
+import { Paperclip, Mic, Wand2, ArrowUp, X, MicOff, Loader2, MessageSquareText, RefreshCw } from 'lucide-react';
 import { chatApi } from '@/lib/api';
 
 interface Message {
@@ -237,7 +237,7 @@ export default function ChatInput({
                     {previewUrl && (
                         <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-lg border-2 border-cocoa" />
                     )}
-                    <span className="text-sm text-cocoa font-bold flex-1 truncate">📎 {selectedFile.name}</span>
+                    <span className="text-sm text-cocoa font-bold flex-1 truncate flex items-center gap-1"><Paperclip className="w-4 h-4 inline" strokeWidth={2.5} />{selectedFile.name}</span>
                     <button
                         onClick={onClearFile}
                         className="p-2 text-cocoa-light hover:text-pixel-red hover:bg-pixel-red/20 border-2 border-transparent hover:border-pixel-red rounded-lg transition-colors"
@@ -342,7 +342,7 @@ export default function ChatInput({
                                     <div className="px-4 py-3 border-b-2 border-cocoa flex items-center justify-between bg-pixel-purple/20">
                                         <div className="flex items-center gap-2">
                                             <Wand2 className="w-4 h-4 text-pixel-purple" />
-                                            <span className="text-sm font-pixel uppercase tracking-wider text-cocoa">AI Magic ✨</span>
+                                            <span className="text-sm font-pixel uppercase tracking-wider text-cocoa">AI Magic</span>
                                         </div>
                                         <button
                                             type="button"
@@ -366,9 +366,9 @@ export default function ChatInput({
                                                 <button
                                                     type="button"
                                                     onClick={fetchSuggestions}
-                                                    className="mt-2 text-xs text-pixel-purple hover:text-purple-600 font-pixel uppercase tracking-wider"
+                                                    className="mt-2 text-xs text-pixel-purple hover:text-purple-600 font-pixel uppercase tracking-wider flex items-center gap-1 mx-auto"
                                                 >
-                                                    🔄 Thử lại
+                                                    <RefreshCw className="w-3 h-3" strokeWidth={2.5} /> Thử lại
                                                 </button>
                                             </div>
                                         ) : suggestions.length > 0 ? (
@@ -381,7 +381,7 @@ export default function ChatInput({
                                                         className="w-full px-4 py-3 text-left text-sm text-cocoa hover:bg-pixel-blue border-2 border-transparent hover:border-cocoa rounded-lg transition-colors group font-bold"
                                                     >
                                                         <span className="inline-flex items-center gap-2">
-                                                            <span className="text-pixel-pink">💬</span>
+                                                            <MessageSquareText className="w-4 h-4 text-pixel-pink" strokeWidth={2.5} />
                                                             <span className="line-clamp-2">{suggestion}</span>
                                                         </span>
                                                     </button>
@@ -389,7 +389,7 @@ export default function ChatInput({
                                             </div>
                                         ) : (
                                             <div className="py-4 text-center text-sm text-cocoa-light font-bold">
-                                                ✨ Bấm để tạo gợi ý
+                                                Bấm để tạo gợi ý
                                             </div>
                                         )}
                                     </div>
@@ -397,7 +397,7 @@ export default function ChatInput({
                                     {/* Footer */}
                                     <div className="px-4 py-3 border-t-2 border-cocoa bg-retro-bg">
                                         <p className="text-xs text-cocoa-light text-center font-bold">
-                                            ✨ Gợi ý dựa trên lịch sử chat & profile đối phương
+                                            Gợi ý dựa trên lịch sử chat & profile đối phương
                                         </p>
                                     </div>
                                 </div>

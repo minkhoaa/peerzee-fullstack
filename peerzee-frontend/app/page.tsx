@@ -180,17 +180,17 @@ export default function Home() {
               <div className="p-5 space-y-3 bg-retro-paper min-h-[180px]">
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8 }} className="flex justify-start">
                   <div className="bg-retro-white border-2 border-cocoa px-4 py-2.5 rounded-xl rounded-tl-sm max-w-xs shadow-pixel-sm">
-                    <p className="text-sm font-bold">Hey! Have you tried Peerzee yet? 👋</p>
+                    <p className="text-sm font-bold">Hey! Have you tried Peerzee yet?</p>
                   </div>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.0 }} className="flex justify-end">
                   <div className="bg-pixel-pink border-2 border-cocoa px-4 py-2.5 rounded-xl rounded-tr-sm max-w-xs shadow-pixel-sm">
-                    <p className="text-sm font-bold text-cocoa">Just signed up! The UI is so clean ✨</p>
+                    <p className="text-sm font-bold text-cocoa">Just signed up! The UI is so clean!</p>
                   </div>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.2 }} className="flex justify-start">
                   <div className="bg-retro-white border-2 border-cocoa px-4 py-2.5 rounded-xl rounded-tl-sm max-w-xs shadow-pixel-sm">
-                    <p className="text-sm font-bold">Right? Real-time messaging is super smooth! 🚀</p>
+                    <p className="text-sm font-bold">Right? Real-time messaging is super smooth!</p>
                   </div>
                 </motion.div>
               </div>
@@ -280,7 +280,7 @@ export default function Home() {
             {testimonials.map((t, i) => (
               <motion.div key={i} variants={fadeInUp}
                 className="p-5 bg-retro-white rounded-xl border-3 border-cocoa shadow-pixel">
-                <div className="text-3xl mb-3">💬</div>
+                <div className="mb-3">{Icons.quote}</div>
                 <p className="text-cocoa font-bold mt-3 mb-5">&quot;{t.content}&quot;</p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-pixel-blue border-2 border-cocoa flex items-center justify-center font-pixel text-sm">

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { PenLine, Search, Sun, Moon, LogOut, IdCard, Wifi, WifiOff } from 'lucide-react';
+import { PenLine, Search, Sun, Moon, LogOut, IdCard, Wifi, WifiOff, Heart, Users, Video } from 'lucide-react';
 
 interface Conversation {
     id: string;
@@ -110,7 +110,7 @@ export default function ChatSidebar({
                 {/* Title Row */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <h1 className="font-pixel text-cocoa text-xl uppercase tracking-widest">💬 Messages</h1>
+                        <h1 className="font-pixel text-cocoa text-xl uppercase tracking-widest">Messages</h1>
                         <span className={`w-3 h-3 border-2 border-cocoa rounded transition-colors ${isConnected ? 'bg-pixel-green' : 'bg-cocoa-light'}`} />
                     </div>
                     <button
@@ -129,7 +129,7 @@ export default function ChatSidebar({
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="🔍 Search messages..."
+                        placeholder="Search messages..."
                         className="w-full bg-retro-white border-3 border-cocoa text-cocoa placeholder-cocoa-light rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pixel-pink shadow-pixel-inset font-bold"
                     />
                 </div>
@@ -192,7 +192,7 @@ export default function ChatSidebar({
                             <Search className="w-7 h-7 text-cocoa" />
                         </div>
                         <p className="text-cocoa-light text-sm text-center font-bold">
-                            {searchQuery ? '🔍 No conversations found' : '💬 No conversations yet'}
+                            {searchQuery ? 'No conversations found' : 'No conversations yet'}
                         </p>
                     </div>
                 ) : (
@@ -271,7 +271,7 @@ export default function ChatSidebar({
                         className="flex-1 py-2.5 text-xs font-pixel uppercase tracking-wider text-cocoa bg-retro-white hover:bg-pixel-pink border-2 border-cocoa rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-pixel-sm active:translate-y-0.5 active:shadow-none"
                         title="Discover"
                     >
-                        <span>💕</span>
+                        <Heart className="w-4 h-4" strokeWidth={2.5} />
                         Discover
                     </Link>
                     <Link
@@ -279,7 +279,7 @@ export default function ChatSidebar({
                         className="flex-1 py-2.5 text-xs font-pixel uppercase tracking-wider text-cocoa bg-retro-white hover:bg-pixel-blue border-2 border-cocoa rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-pixel-sm active:translate-y-0.5 active:shadow-none"
                         title="Community"
                     >
-                        <span>👥</span>
+                        <Users className="w-4 h-4" strokeWidth={2.5} />
                         Community
                     </Link>
                     <Link
@@ -287,7 +287,7 @@ export default function ChatSidebar({
                         className="flex-1 py-2.5 text-xs font-pixel uppercase tracking-wider text-cocoa bg-pixel-green border-2 border-cocoa rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-pixel-sm hover:bg-green-400 active:translate-y-0.5 active:shadow-none"
                         title="Video Dating"
                     >
-                        <span>🎥</span>
+                        <Video className="w-4 h-4" strokeWidth={2.5} />
                         Video
                     </Link>
                 </div>
