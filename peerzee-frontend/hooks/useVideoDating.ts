@@ -43,6 +43,8 @@ export function useVideoDating() {
     ],
   };
 
+  const currentSessionIdRef = useRef<string | null>(null);
+
   const cleanup = useCallback((cleanupStream = true) => {
     peerConnectionRef.current?.close();
     peerConnectionRef.current = null;
@@ -55,6 +57,8 @@ export function useVideoDating() {
     setRemoteStream(null);
     setRemoteHasVideo(false);
     setMatchInfo(null);
+    setBlindDate(null); // Clear blind date state
+    currentSessionIdRef.current = null;
     if (cleanupStream) {
       setLocalStream(null);
     }
@@ -70,6 +74,9 @@ export function useVideoDating() {
     // Debug connection state
     pc.onconnectionstatechange = () => {
       console.log('[WebRTC] Connection state:', pc.connectionState);
+      if (pc.connectionState === 'connected') {
+        setState('connected');
+      }
     };
 
     pc.oniceconnectionstatechange = () => {
@@ -132,6 +139,8 @@ export function useVideoDating() {
         console.log('[WebRTC] Remote audio track received, enabled:', event.track.enabled);
       }
 
+      // Important: Use a new MediaStream to ensure React detects the state change
+      setRemoteStream(new MediaStream(remoteStreamRef.current.getTracks()));
       setState('connected');
     };
 
@@ -163,6 +172,40 @@ export function useVideoDating() {
     }
 
     return pc;
+  }, []);
+
+  // 📡 Signal Buffering: Store signals if pc is not ready
+  const signalBufferRef = useRef<{ sessionId: string; type: 'offer' | 'answer' | 'ice'; data: any }[]>([]);
+
+  const processBufferedSignals = useCallback((sessionId: string) => {
+    const pc = peerConnectionRef.current;
+    if (!pc) return;
+
+    console.log(`[WebRTC] Processing ${signalBufferRef.current.length} buffered signals for ${sessionId}`);
+
+    // Process only signals for this session
+    const signals = signalBufferRef.current.filter(s => s.sessionId === sessionId);
+    signalBufferRef.current = signalBufferRef.current.filter(s => s.sessionId !== sessionId);
+
+    signals.forEach(async signal => {
+      try {
+        if (signal.type === 'offer') {
+          console.log('[WebRTC] Processing buffered offer');
+          await pc.setRemoteDescription(signal.data.offer);
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socketRef.current?.emit('call:answer', { sessionId, answer });
+        } else if (signal.type === 'answer') {
+          console.log('[WebRTC] Processing buffered answer');
+          await pc.setRemoteDescription(signal.data.answer);
+        } else if (signal.type === 'ice') {
+          console.log('[WebRTC] Processing buffered ICE candidate');
+          await pc.addIceCandidate(signal.data.candidate);
+        }
+      } catch (err) {
+        console.error(`[WebRTC] Failed to process buffered signal (${signal.type}):`, err);
+      }
+    });
   }, []);
 
   const connect = useCallback(() => {
@@ -215,7 +258,10 @@ export function useVideoDating() {
 
     socket.on('match:found', (data: MatchInfo & { blindDate?: { introMessage: string; initialTopic: string; blurLevel: number } }) => {
       setMatchInfo(data);
+      currentSessionIdRef.current = data.sessionId;
       setState('matched');
+      // Initialize remoteStream immediately so UI can switch from placeholder if needed
+      setRemoteStream(new MediaStream());
 
       // 🎬 AI DATING HOST: Initialize blind date state
       if (data.blindDate) {
@@ -231,6 +277,9 @@ export function useVideoDating() {
 
       // Media already acquired in joinQueue, just setup peer connection
       setupPeerConnection(socket, data.sessionId, data.isInitiator);
+
+      // Process any signals that arrived before match:found
+      setTimeout(() => processBufferedSignals(data.sessionId), 100);
     });
 
     // 🎬 AI DATING HOST: Blur update event
@@ -253,7 +302,17 @@ export function useVideoDating() {
       setBlindDate(prev => prev ? { ...prev, revealRequested: true } : prev);
     });
 
+    // 🎬 AI DATING HOST: Content updated (personalized intro/topic)
+    socket.on('blind:content_updated', (data: { introMessage: string; currentTopic: string }) => {
+      setBlindDate(prev => prev ? {
+        ...prev,
+        introMessage: data.introMessage,
+        currentTopic: data.currentTopic,
+      } : prev);
+    });
+
     socket.on('call:offer', async (data: { sessionId: string; offer: RTCSessionDescriptionInit }) => {
+      console.log('[WebRTC] Received offer for', data.sessionId);
       const pc = peerConnectionRef.current;
       if (pc) {
         await pc.setRemoteDescription(data.offer);
@@ -263,20 +322,34 @@ export function useVideoDating() {
           sessionId: data.sessionId,
           answer,
         });
+      } else {
+        console.log('[WebRTC] PC not ready, buffering offer');
+        signalBufferRef.current.push({ sessionId: data.sessionId, type: 'offer', data });
       }
     });
 
-    socket.on('call:answer', async (data: { answer: RTCSessionDescriptionInit }) => {
+    socket.on('call:answer', async (data: { sessionId: string; answer: RTCSessionDescriptionInit }) => {
+      console.log('[WebRTC] Received answer for session');
       const pc = peerConnectionRef.current;
       if (pc) {
         await pc.setRemoteDescription(data.answer);
+      } else {
+        console.log('[WebRTC] PC not ready, buffering answer');
+        // Use ref to get latest sessionId even in stale closure
+        const currentSessionId = data.sessionId || currentSessionIdRef.current;
+        if (currentSessionId) {
+          signalBufferRef.current.push({ sessionId: currentSessionId, type: 'answer', data });
+        }
       }
     });
 
-    socket.on('call:ice-candidate', async (data: { candidate: RTCIceCandidateInit }) => {
+    socket.on('call:ice-candidate', async (data: { sessionId: string; candidate: RTCIceCandidateInit }) => {
       const pc = peerConnectionRef.current;
       if (pc) {
         await pc.addIceCandidate(data.candidate);
+      } else {
+        console.log('[WebRTC] PC not ready, buffering ICE candidate');
+        signalBufferRef.current.push({ sessionId: data.sessionId, type: 'ice', data });
       }
     });
 
@@ -308,7 +381,9 @@ export function useVideoDating() {
 
       localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints);
       setLocalStream(localStreamRef.current); // Trigger re-render
-      setWithVideo(enableVideo);
+
+      const hasVideo = localStreamRef.current.getVideoTracks().length > 0;
+      setWithVideo(hasVideo);
       setState('searching');
       socketRef.current.emit('queue:join', { intentMode, genderPreference, matchingType, query });
     } catch (err: unknown) {
@@ -344,20 +419,29 @@ export function useVideoDating() {
     if (!socketRef.current) return;
 
     try {
+      // First set state so UI responds
+      setState('searching');
+      setWithVideo(enableVideo);
+
       const constraints: MediaStreamConstraints = {
         audio: true,
         video: enableVideo,
       };
 
-      localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints);
-      setLocalStream(localStreamRef.current);
-      setWithVideo(enableVideo);
-      setState('searching'); // Show "Joining room..." state
+      try {
+        localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints);
+        setLocalStream(localStreamRef.current);
+      } catch (mediaErr) {
+        console.warn('Failed to get media for room join, joining without media:', mediaErr);
+        setError('Media access failed. You can still join but others won\'t hear/see you.');
+      }
+
       socketRef.current.emit('room:join', { roomId });
     } catch (err: unknown) {
-      console.error('Error accessing media devices for room join:', err);
+      console.error('Error in joinRoom:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Media access failed: ${errorMessage}`);
+      setError(`Failed to join room: ${errorMessage}`);
+      setState('idle');
     }
   }, []);
 

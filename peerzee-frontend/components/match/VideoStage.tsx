@@ -84,20 +84,20 @@ export function VideoStage({
           <>
             {/* Remote Video (Stranger) */}
             <div className="absolute inset-0">
-              {remoteStream ? (
+              {(remoteStream && (remoteStream.getVideoTracks().length > 0 || remoteStream.getAudioTracks().length > 0)) || state === 'connected' ? (
                 <>
                   <video
                     ref={remoteVideoRef}
                     autoPlay
                     playsInline
-                    className={`w-full h-full object-cover ${!remoteHasVideo ? 'opacity-0' : ''}`}
+                    className={`w-full h-full object-cover ${(remoteStream?.getVideoTracks()?.length ?? 0) === 0 || !remoteHasVideo ? 'opacity-0' : ''}`}
                     style={{
                       // Blind Date: Dynamic blur effect
                       filter: blindDate ? `blur(${blindDate.blurLevel}px)` : 'none',
                       transition: 'filter 1s ease-out',
                     }}
                   />
-                  {!remoteHasVideo && (
+                  {((remoteStream?.getVideoTracks()?.length ?? 0) === 0 || !remoteHasVideo) && (
                     <div className="absolute inset-0 bg-retro-bg flex flex-col items-center justify-center">
                       <div className="w-20 h-20 border-3 border-cocoa rounded-xl bg-pixel-purple flex items-center justify-center mb-3 shadow-pixel-sm">
                         <User className="w-10 h-10 text-cocoa" />
@@ -117,12 +117,12 @@ export function VideoStage({
                   {state === 'connected' && (
                     <div className="absolute top-3 left-3 px-3 py-1.5 bg-pixel-green border-2 border-cocoa rounded-lg text-xs text-cocoa font-pixel uppercase tracking-wider flex items-center gap-1.5 shadow-pixel-sm">
                       <span className="w-2 h-2 rounded bg-cocoa animate-pulse" />
-                      Connected
+                      Connected {(remoteStream?.getVideoTracks()?.length ?? 0) === 0 ? '(Audio Only)' : ''}
                     </div>
                   )}
                 </>
               ) : (
-                <SearchingPlaceholder isSearching={isSearching} interests={interests} />
+                <SearchingPlaceholder isSearching={isSearching} interests={interests} state={state} />
               )}
             </div>
 
@@ -166,8 +166,8 @@ export function VideoStage({
             <button
               onClick={onToggleMute}
               className={`p-3 rounded-lg border-2 border-cocoa transition-all shadow-pixel-sm active:translate-y-0.5 active:shadow-none ${isMuted
-                  ? 'bg-pixel-red text-white'
-                  : 'bg-retro-white text-cocoa hover:bg-pixel-blue'
+                ? 'bg-pixel-red text-white'
+                : 'bg-retro-white text-cocoa hover:bg-pixel-blue'
                 }`}
               title={isMuted ? "Unmute" : "Mute"}
             >
@@ -178,13 +178,14 @@ export function VideoStage({
             {mode === "video" && (
               <button
                 onClick={onToggleCamera}
-                className={`p-3 rounded-lg border-2 border-cocoa transition-all shadow-pixel-sm active:translate-y-0.5 active:shadow-none ${isCameraOff
-                    ? 'bg-pixel-red text-white'
-                    : 'bg-retro-white text-cocoa hover:bg-pixel-blue'
-                  }`}
-                title={isCameraOff ? "Turn on camera" : "Turn off camera"}
+                disabled={!withVideo}
+                className={`p-3 rounded-lg border-2 border-cocoa transition-all shadow-pixel-sm active:translate-y-0.5 active:shadow-none ${isCameraOff || !withVideo
+                  ? 'bg-pixel-red text-white'
+                  : 'bg-retro-white text-cocoa hover:bg-pixel-blue'
+                  } ${!withVideo ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={!withVideo ? "No camera detected" : (isCameraOff ? "Turn on camera" : "Turn off camera")}
               >
-                {isCameraOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+                {isCameraOff || !withVideo ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
               </button>
             )}
 
@@ -222,7 +223,7 @@ export function VideoStage({
   );
 }
 
-function SearchingPlaceholder({ isSearching, interests }: { isSearching: boolean; interests: string[] }) {
+function SearchingPlaceholder({ isSearching, interests, state }: { isSearching: boolean; interests: string[]; state?: VideoDatingState }) {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-6 p-8">
       {/* Animated Icon */}
@@ -236,7 +237,7 @@ function SearchingPlaceholder({ isSearching, interests }: { isSearching: boolean
       {/* Status Text */}
       <div className="text-center">
         <h3 className="text-cocoa text-xl font-pixel uppercase tracking-widest mb-2">
-          {isSearching ? "Looking for a friend..." : "Ready to connect"}
+          {state === 'matched' ? "Connecting..." : state === 'connected' ? "Starting conversation..." : isSearching ? "Looking for a friend..." : "Ready to connect"}
         </h3>
         {interests.length > 0 && (
           <div className="flex flex-wrap gap-2 justify-center mt-4">
@@ -288,5 +289,5 @@ function PlaceholderContent({ mode, state, interests }: { mode: "text" | "video"
     );
   }
 
-  return <SearchingPlaceholder isSearching={isSearching} interests={interests} />;
+  return <SearchingPlaceholder isSearching={isSearching} interests={interests} state={state} />;
 }

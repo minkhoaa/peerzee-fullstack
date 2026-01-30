@@ -55,17 +55,8 @@ export default function MatchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-join room if session param exists
-  useEffect(() => {
-    // We wait for socket to be initialized and connected (state becomes 'idle' after connect)
-    if (sessionFromUrl && socket && state === 'idle') {
-      console.log('🚀 Auto-joining specific room from URL:', sessionFromUrl);
-      const targetMode = modeFromUrl || 'video';
-      setMode(targetMode); // Crucial for UI to switch from ModeSelector to VideoStage
-      joinRoom(sessionFromUrl, targetMode === 'video');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionFromUrl, socket, state]);
+  // We no longer auto-join because we need user gesture for media access
+  // The ModeSelector will now show a specialized button if sessionRoomId is present
 
   // Listen for incoming chat messages
   useEffect(() => {
@@ -95,7 +86,11 @@ export default function MatchPage() {
     setIsCameraOff(!enableCamera);
 
     // Use the selected intentMode, genderPref, matchingType, and optional query
-    joinQueue(intentMode, genderPref, enableCamera, matchingType, searchQuery);
+    if (sessionFromUrl) {
+      joinRoom(sessionFromUrl, selectedMode === "video");
+    } else {
+      joinQueue(intentMode, genderPref, enableCamera, matchingType, searchQuery);
+    }
 
     setMessages([{
       sender: "system",
@@ -179,7 +174,7 @@ export default function MatchPage() {
 
   // Show mode selector if not started or in idle state
   if (!mode || state === 'idle') {
-    return <ModeSelector onStart={handleStart} queueSize={queueSize} error={error} />;
+    return <ModeSelector onStart={handleStart} queueSize={queueSize} error={error} sessionRoomId={sessionFromUrl} />;
   }
 
   return (
