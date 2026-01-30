@@ -3,6 +3,39 @@ import type { LoginDto, LoginResponse, RegisterDto, RegisterResponse, UpdateUser
 import type { Conversation as ConversationType } from "@/types/conversation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+
+// Base URL for static assets (uploads) - strips /api suffix
+const getBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+        // Client-side: use relative URL or full URL
+        const apiUrl = API_URL;
+        if (apiUrl.startsWith('/')) {
+            return ''; // Relative, use same origin
+        }
+        // Full URL like http://localhost:9000/api -> http://localhost:9000
+        return apiUrl.replace(/\/api$/, '');
+    }
+    return '';
+};
+
+/**
+ * Convert relative upload URL to full URL
+ * e.g., /uploads/photos/xxx.jpg -> http://localhost:9000/uploads/photos/xxx.jpg
+ */
+export const getAssetUrl = (url: string | undefined | null): string => {
+    if (!url) return '';
+    // If already a full URL (http/https or data URL), return as-is
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+        return url;
+    }
+    // For relative URLs starting with /uploads, prepend base URL
+    if (url.startsWith('/uploads')) {
+        const baseUrl = getBaseUrl();
+        return `${baseUrl}${url}`;
+    }
+    return url;
+};
+
 const api = axios.create({
     baseURL: API_URL,
     headers: {
@@ -346,3 +379,97 @@ export const conversationApi = {
     deleteConversation: (conversationId: string) =>
         api.delete(`/conversations/${conversationId}`),
 };
+
+// 🎮 AI Dungeon Master Types
+
+// 🔮 Oracle - Compatibility Analysis
+export interface CompatibilityResult {
+    score: number;
+    analysis: string;
+    common_ground: string[];
+    combo_breakers: string[];
+    oracle_verdict: string;
+}
+
+// 🎭 Bard - Icebreaker Options
+export interface IcebreakerOptions {
+    options: string[];
+    target_highlight: string;
+}
+
+// 📜 Scribe - Bio Rewrite
+export interface ScribeResult {
+    rpg_bio: string;
+    character_class: string;
+    power_level: number;
+}
+
+export interface ProfileForAI {
+    bio?: string;
+    tags?: string[];
+    interests?: string[];
+    occupation?: string;
+    display_name?: string;
+    intentMode?: string;
+}
+
+// 🎮 AI Dungeon Master API
+export const aiApi = {
+    /**
+     * 🔮 THE ORACLE: Analyze compatibility between two profiles
+     * Returns Synergy Score, Common Ground, Combo Breakers
+     */
+    analyzeCompatibility: (userProfile: ProfileForAI, targetProfile: ProfileForAI) =>
+        api.post<CompatibilityResult>('/ai/analyze-compatibility', { userProfile, targetProfile }),
+
+    /**
+     * 🎭 THE BARD: Generate 3 icebreaker options
+     * Returns Casual/Funny, Deep/Thoughtful, Direct/Bold options
+     */
+    generateIcebreaker: (targetProfile: ProfileForAI) =>
+        api.post<IcebreakerOptions>('/ai/generate-icebreaker', { targetProfile }),
+
+    /**
+     * 📜 THE SCRIBE: Rewrite bio in RPG style
+     * Transforms plain bio into epic character description
+     */
+    rewriteBio: (rawBio: string) =>
+        api.post<ScribeResult>('/ai/rewrite-bio', { rawBio }),
+};
+
+// 🎮 RAG Matchmaker Agent Types
+export interface AgentMatchResult {
+    ok: boolean;
+    query: string;
+    steps: string[];
+    filters: {
+        gender: string | null;
+        location: string | null;
+        semantic_topic: string;
+    };
+    candidateCount: number;
+    match: {
+        profile: {
+            id: string;
+            display_name: string;
+            bio?: string;
+            occupation?: string;
+            tags?: string[];
+            matchScore?: number;
+        };
+        reasoning: string;
+    } | null;
+    error?: string;
+}
+
+// 🎮 RAG Matchmaker Agent API
+export const agentApi = {
+    /**
+     * 🤖 Run the RAG Matchmaker Agent
+     * Input: Natural language query
+     * Output: Best match with AI-generated reasoning
+     */
+    match: (query: string) =>
+        api.post<AgentMatchResult>('/agents/match', { query }),
+};
+

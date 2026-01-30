@@ -803,6 +803,221 @@ Return ONLY raw JSON, no markdown formatting.`;
             }
         }
     }
+
+    /**
+     * 🔮 THE ORACLE: Analyze compatibility between two users
+     * Returns Synergy Score, Combo Breakers (conflicts), and Critical Hits (common ground)
+     * Used for smart matching with RPG persona
+     */
+    async analyzeCompatibility(
+        userProfile: { interests?: string[]; bio?: string; occupation?: string; intentMode?: string; tags?: string[] },
+        targetProfile: { interests?: string[]; bio?: string; occupation?: string; intentMode?: string; tags?: string[] },
+    ): Promise<CompatibilityResult> {
+        try {
+            const model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+            const formatProfile = (p: typeof userProfile, name: string) => {
+                const parts: string[] = [];
+                if (p.bio) parts.push(`Bio: "${p.bio}"`);
+                if (p.interests?.length) parts.push(`Interests: ${p.interests.join(', ')}`);
+                if (p.tags?.length) parts.push(`Tags: ${p.tags.join(', ')}`);
+                if (p.occupation) parts.push(`Occupation: ${p.occupation}`);
+                if (p.intentMode) parts.push(`Looking for: ${p.intentMode}`);
+                return parts.length > 0 ? parts.join('. ') : 'No info provided';
+            };
+
+            const prompt = `You are THE ORACLE of Peerzee - an ancient, wise entity who sees the threads of destiny between souls.
+
+Compare these two adventurers:
+
+🎮 Player A: ${formatProfile(userProfile, 'A')}
+
+🎮 Player B: ${formatProfile(targetProfile, 'B')}
+
+Your sacred duty:
+1. Calculate a "Synergy Score" (0-100%) based on their compatibility
+2. Identify "Combo Breakers" 💥 - Conflicting traits that could cause friction
+3. Identify "Critical Hits" ⚔️ - Common grounds that create strong bonds
+
+Speak in the voice of a mystical oracle from an RPG game. Be wise, slightly mysterious, but helpful.
+
+Return ONLY this JSON (no markdown):
+{
+  "score": <number 0-100>,
+  "analysis": "<Vietnamese oracle-style analysis, 2-3 sentences, mystical but readable>",
+  "common_ground": ["<shared trait 1>", "<shared trait 2>", ...],
+  "combo_breakers": ["<conflict 1>", "<conflict 2>", ...],
+  "oracle_verdict": "<A short, memorable Vietnamese phrase summarizing the match, like a fortune cookie>"
+}`;
+
+            const result = await model.generateContent(prompt);
+            let responseText = result.response.text().trim();
+
+            // Clean up markdown if present
+            if (responseText.startsWith('```')) {
+                responseText = responseText.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+            }
+
+            const analysis = JSON.parse(responseText);
+
+            this.logger.log(`Oracle analyzed compatibility: ${analysis.score}%`);
+
+            return {
+                score: Math.min(100, Math.max(0, analysis.score || 50)),
+                analysis: analysis.analysis || 'Số mệnh của hai bạn đang được viết lên các vì sao...',
+                common_ground: Array.isArray(analysis.common_ground) ? analysis.common_ground : [],
+                combo_breakers: Array.isArray(analysis.combo_breakers) ? analysis.combo_breakers : [],
+                oracle_verdict: analysis.oracle_verdict || 'Hãy để thời gian trả lời...',
+            };
+        } catch (error) {
+            this.logger.error('Oracle failed to analyze compatibility', error);
+            return {
+                score: 50,
+                analysis: 'Làn sương mù che phủ tầm nhìn của Oracle. Hãy thử lại sau...',
+                common_ground: [],
+                combo_breakers: [],
+                oracle_verdict: 'Số phận chưa rõ ràng',
+            };
+        }
+    }
+
+    /**
+     * 🎭 THE BARD: Generate 3 contextual icebreaker options
+     * Returns Casual/Funny, Deep/Thoughtful, Direct/Bold options
+     * RPG tavern style - like dialogue choices in Skyrim/Fallout
+     */
+    async generateIcebreakerOptions(
+        targetProfile: { bio?: string; tags?: string[]; occupation?: string; display_name?: string; interests?: string[] },
+    ): Promise<IcebreakerOptions> {
+        try {
+            const model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+            const profileInfo = [
+                targetProfile.display_name ? `Name: ${targetProfile.display_name}` : '',
+                targetProfile.bio ? `Bio: "${targetProfile.bio}"` : '',
+                targetProfile.occupation ? `Job: ${targetProfile.occupation}` : '',
+                targetProfile.tags?.length ? `Interests: ${targetProfile.tags.join(', ')}` : '',
+                targetProfile.interests?.length ? `Hobbies: ${targetProfile.interests.join(', ')}` : '',
+            ].filter(Boolean).join('\n');
+
+            const prompt = `You are THE BARD - a charming storyteller in a retro RPG tavern called "Peerzee Inn".
+
+A brave adventurer wants to approach this fellow traveler:
+${profileInfo || 'A mysterious stranger with unknown background'}
+
+Generate 3 opening lines as dialogue choices (like in Skyrim/Fallout/Mass Effect):
+
+🎮 Option 1 - CASUAL/FUNNY (8-bit humor, light-hearted, gaming references welcome)
+🎮 Option 2 - DEEP/THOUGHTFUL (Lore-related, philosophical, shows genuine interest)
+🎮 Option 3 - DIRECT/BOLD (PVP challenge style, confident, slightly flirty)
+
+Rules:
+- Each line MUST be under 20 words
+- Write in Vietnamese
+- Reference their specific interests/bio when possible
+- Make each option distinctly different in tone
+- Sound natural, not robotic
+
+Return ONLY this JSON (no markdown):
+{
+  "options": [
+    "<casual/funny option>",
+    "<deep/thoughtful option>",
+    "<direct/bold option>"
+  ],
+  "target_highlight": "<What aspect of their profile inspired these? 1 sentence Vietnamese>"
+}`;
+
+            const result = await model.generateContent(prompt);
+            let responseText = result.response.text().trim();
+
+            if (responseText.startsWith('```')) {
+                responseText = responseText.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+            }
+
+            const response = JSON.parse(responseText);
+
+            this.logger.log(`Bard generated ${response.options?.length || 0} icebreaker options`);
+
+            return {
+                options: Array.isArray(response.options) ? response.options.slice(0, 3) : [
+                    'Yo! Mình thấy bạn có vẻ thú vị, làm quen nhé?',
+                    'Profile của bạn khiến mình tò mò, kể thêm về bản thân được không?',
+                    'Hmm, có vẻ như ta là đối thủ xứng tầm. Thử xem ai hay hơn?',
+                ],
+                target_highlight: response.target_highlight || 'Dựa trên profile của người ấy',
+            };
+        } catch (error) {
+            this.logger.error('Bard failed to generate icebreakers', error);
+            return {
+                options: [
+                    'Hey! Mình thấy bạn có gu rất đặc biệt, làm quen nhé? 🎮',
+                    'Bio của bạn khiến mình suy nghĩ... Kể thêm về bản thân được không?',
+                    'Có vẻ như chúng ta sẽ có cuộc trò chuyện thú vị đây!',
+                ],
+                target_highlight: 'Bard đang nghỉ ngơi, đây là gợi ý mặc định',
+            };
+        }
+    }
+
+    /**
+     * 📜 THE SCRIBE: Rewrite boring bio into RPG Character Description
+     * Transforms plain text into epic character sheets with Class, Stats, Inventory, Quest
+     */
+    async rewriteBioRPG(rawBio: string): Promise<ScribeResult> {
+        try {
+            const model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+            const prompt = `You are THE SCRIBE - the legendary writer of Peerzee Kingdom who transforms mundane life stories into EPIC character descriptions.
+
+Original bio: "${rawBio}"
+
+Your quest: Rewrite this bio as an RPG Character Sheet description!
+
+Rules:
+- Use terms like: Class, Level, Stats, Skills, Inventory, Quest, Abilities, Passive Skills
+- Keep it CUTE, fun, and readable (not cringe)
+- Write in Vietnamese
+- Maximum 50 words
+- Make them sound like a lovable game character
+- Include at least one emoji that fits their "class"
+
+Examples:
+- "Mình là dev" → "⚔️ Lvl 25 Code Warrior | Passive: Debug mọi lúc mọi nơi | Quest: Tìm người yêu không bug"
+- "Thích mèo và đọc sách" → "📚 Lvl 18 Cat Mage | Inventory: 3 mèo + 100 cuốn sách | Skill: Nhớ plot twist cực đỉnh"
+
+Return ONLY this JSON (no markdown):
+{
+  "rpg_bio": "<the rewritten bio in RPG style>",
+  "character_class": "<their detected class in English, e.g. 'Code Wizard', 'Cat Mage', 'Gym Warrior'>",
+  "power_level": <estimated level 1-99 based on how interesting the bio is>
+}`;
+
+            const result = await model.generateContent(prompt);
+            let responseText = result.response.text().trim();
+
+            if (responseText.startsWith('```')) {
+                responseText = responseText.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+            }
+
+            const response = JSON.parse(responseText);
+
+            this.logger.log(`Scribe rewrote bio as ${response.character_class}`);
+
+            return {
+                rpg_bio: response.rpg_bio || `⚔️ Mysterious Adventurer | Bio đang được viết lại...`,
+                character_class: response.character_class || 'Unknown Class',
+                power_level: Math.min(99, Math.max(1, response.power_level || 20)),
+            };
+        } catch (error) {
+            this.logger.error('Scribe failed to rewrite bio', error);
+            return {
+                rpg_bio: '🎮 Mysterious Adventurer | Skills: Đang cập nhật... | Quest: Tìm kiếm tri kỷ',
+                character_class: 'Mysterious Adventurer',
+                power_level: 20,
+            };
+        }
+    }
 }
 
 // Spotify Audio Features interface (matching SpotifyService)
@@ -845,4 +1060,26 @@ export interface SearchFilters {
     city: string | null;
     intent: 'FRIEND' | 'DATE' | 'STUDY' | null;
     semantic_text: string;
+}
+
+// 🔮 Oracle Compatibility Result interface
+export interface CompatibilityResult {
+    score: number;
+    analysis: string;
+    common_ground: string[];
+    combo_breakers: string[];
+    oracle_verdict: string;
+}
+
+// 🎭 Bard Icebreaker Options interface
+export interface IcebreakerOptions {
+    options: string[];
+    target_highlight: string;
+}
+
+// 📜 Scribe Bio Rewrite Result interface
+export interface ScribeResult {
+    rpg_bio: string;
+    character_class: string;
+    power_level: number;
 }

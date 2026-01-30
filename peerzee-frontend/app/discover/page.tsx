@@ -2,13 +2,13 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MessageSquareText, Settings, Star, Video, Search, X, Telescope, MapPin, Users, GraduationCap, ListFilter, Target, Loader2, User } from 'lucide-react';
-import { ProfileCardStack } from '@/components/discover';
+import { ArrowLeft, MessageSquareText, Settings, Star, Video, Search, X, Telescope, MapPin, Users, GraduationCap, ListFilter, Target, Loader2, User, Bot } from 'lucide-react';
+import { ProfileCardStack, AgentSearch } from '@/components/discover';
 import ModeSwitcher from '@/components/discover/ModeSwitcher';
 import { LocationRequest } from '@/components/discover/LocationRequest';
 import { useDiscover } from '@/hooks/useDiscover';
 import { useMatchContext } from '@/components/MatchProvider';
-import api, { discoverApi, swipeApi, userApi, SearchResult, SearchResponse } from '@/lib/api';
+import api, { discoverApi, swipeApi, userApi, SearchResult, SearchResponse, getAssetUrl } from '@/lib/api';
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 
@@ -42,6 +42,9 @@ export default function DiscoverPage() {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [searchFilters, setSearchFilters] = useState<SearchResponse['filters'] | null>(null);
     const [isSearching, setIsSearching] = useState(false);
+
+    // RAG Agent state
+    const [showAgent, setShowAgent] = useState(false);
 
     // Sample queries for inspiration
     const sampleQueries = [
@@ -166,7 +169,7 @@ export default function DiscoverPage() {
             {/* Header - Wooden Beam Style */}
             <header className="sticky top-0 z-30 bg-wood-dark border-b-4 border-wood-shadow shadow-wood relative">
                 {/* Wood grain texture overlay */}
-                <div 
+                <div
                     className="absolute inset-0 opacity-10 pointer-events-none"
                     style={{
                         backgroundImage: `repeating-linear-gradient(
@@ -209,6 +212,13 @@ export default function DiscoverPage() {
                             <Video className="w-5 h-5" />
                         </button>
                         <button
+                            onClick={() => setShowAgent(!showAgent)}
+                            className={`p-2 border-2 transition-all active:translate-y-0.5 active:shadow-none ${showAgent ? 'text-parchment bg-pixel-green border-wood-shadow shadow-pixel-sm' : 'text-parchment bg-wood-medium border-wood-shadow hover:bg-wood-light'}`}
+                            title="🤖 RAG Agent"
+                        >
+                            <Bot className="w-5 h-5" strokeWidth={2.5} />
+                        </button>
+                        <button
                             onClick={() => setShowSearch(!showSearch)}
                             className={`p-2 border-2 transition-all active:translate-y-0.5 active:shadow-none ${showSearch ? 'text-parchment bg-pixel-orange border-wood-shadow shadow-pixel-sm' : 'text-parchment bg-wood-medium border-wood-shadow hover:bg-wood-light'}`}
                             title="AI Search"
@@ -235,8 +245,18 @@ export default function DiscoverPage() {
                 </div>
             </header>
 
+            {/* RAG Agent Panel */}
+            {showAgent && (
+                <div className="max-w-lg mx-auto px-4 py-4">
+                    <AgentSearch
+                        onMatchClick={(userId) => router.push(`/profile/${userId}`)}
+                        onClose={() => setShowAgent(false)}
+                    />
+                </div>
+            )}
+
             {/* AI Search Panel */}
-            {showSearch && (
+            {showSearch && !showAgent && (
                 <div className="max-w-4xl mx-auto px-4 py-4 bg-retro-paper border-b-3 border-cocoa">
                     {/* Search Input */}
                     <div className="relative mb-3">
@@ -344,7 +364,7 @@ export default function DiscoverPage() {
                                         <div className="relative shrink-0">
                                             <div className="w-14 h-14 rounded-lg overflow-hidden bg-retro-bg border-3 border-cocoa">
                                                 {user.photos?.[0]?.url ? (
-                                                    <img src={user.photos[0].url} alt="" className="w-full h-full object-cover" />
+                                                    <img src={getAssetUrl(user.photos[0].url)} alt="" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-cocoa-light"><User className="w-6 h-6" strokeWidth={2.5} /></div>
                                                 )}

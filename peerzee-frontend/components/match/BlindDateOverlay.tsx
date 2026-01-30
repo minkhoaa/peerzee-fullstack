@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Award, MessageSquareText, Eye, RefreshCw, Star, PartyPopper } from 'lucide-react';
+import { Award, MessageSquareText, Eye, RefreshCw, Star, PartyPopper, Sparkles } from 'lucide-react';
 import { BlindDateState } from '@/hooks/useVideoDating';
 
 interface BlindDateOverlayProps {
@@ -19,6 +19,32 @@ export function BlindDateOverlay({
     onAcceptReveal,
 }: BlindDateOverlayProps) {
     const { introMessage, currentTopic, blurLevel, topicNumber, isRescue, revealRequested } = blindDate;
+    const [showCelebration, setShowCelebration] = React.useState(false);
+    const [hasRevealed, setHasRevealed] = React.useState(false);
+
+    // Detect when reveal happens (blur goes from >0 to 0)
+    React.useEffect(() => {
+        if (blurLevel === 0 && !hasRevealed) {
+            // Mark as revealed to prevent re-triggering
+            setHasRevealed(true);
+
+            // Show celebration
+            setShowCelebration(true);
+
+            // Hide after 1.5s
+            const timer = setTimeout(() => {
+                setShowCelebration(false);
+            }, 1500);
+
+            return () => clearTimeout(timer);
+        }
+
+        // Reset if blur goes back up
+        if (blurLevel > 0 && hasRevealed) {
+            setHasRevealed(false);
+            setShowCelebration(false);
+        }
+    }, [blurLevel, hasRevealed]);
 
     return (
         <>
@@ -34,7 +60,7 @@ export function BlindDateOverlay({
                     >
                         <div className="bg-retro-white border-3 border-cocoa rounded-xl p-4 shadow-pixel">
                             <div className="flex items-center gap-2 mb-2">
-                            <Award className="w-5 h-5 text-pixel-pink" strokeWidth={2.5} />
+                                <Award className="w-5 h-5 text-pixel-pink" strokeWidth={2.5} />
                                 <span className="text-sm font-pixel font-medium text-cocoa">AI Host</span>
                             </div>
                             <p className="text-sm text-cocoa">{introMessage}</p>
@@ -61,7 +87,7 @@ export function BlindDateOverlay({
                         <div className="flex items-center gap-2">
                             <MessageSquareText className={`w-4 h-4 ${isRescue ? 'text-pixel-yellow' : 'text-pixel-blue'}`} strokeWidth={2.5} />
                             <span className="text-xs font-pixel font-medium text-cocoa-light">
-                                Chủ đề #{topicNumber} {isRescue && 'Phao cứu sinh!'}
+                                Chủ đề #{topicNumber} {isRescue && '(Phao cứu sinh!)'}
                             </span>
                         </div>
                         <button
@@ -129,7 +155,7 @@ export function BlindDateOverlay({
                             </p>
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => {/* Just close, don't accept */}}
+                                    onClick={() => {/* Just close, don't accept */ }}
                                     className="flex-1 py-2.5 rounded-xl bg-cocoa/10 border-3 border-cocoa text-cocoa-light text-sm hover:bg-cocoa/20 transition-colors"
                                 >
                                     Từ từ đã
@@ -146,28 +172,74 @@ export function BlindDateOverlay({
                 )}
             </AnimatePresence>
 
-            {/* Full Reveal Celebration */}
+            {/* Full Reveal Celebration - Fireworks from both sides */}
             <AnimatePresence>
-                {blurLevel === 0 && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
-                    >
+                {showCelebration && (
+                    <>
+                        {/* Left side fireworks */}
+                        {[...Array(6)].map((_, i) => (
+                            <motion.div
+                                key={`left-${i}`}
+                                initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
+                                animate={{
+                                    opacity: [0, 1, 1, 0],
+                                    x: Math.random() * 150 + 50,
+                                    y: -(Math.random() * 200 + 100),
+                                    scale: [0, 1.5, 1, 0],
+                                    rotate: Math.random() * 360
+                                }}
+                                transition={{
+                                    duration: 1.2,
+                                    delay: i * 0.1,
+                                    ease: 'easeOut'
+                                }}
+                                className="absolute bottom-0 left-8 z-30 pointer-events-none"
+                            >
+                                <Sparkles
+                                    className="w-6 h-6 text-pixel-yellow"
+                                    strokeWidth={2.5}
+                                    fill="currentColor"
+                                />
+                            </motion.div>
+                        ))}
+
+                        {/* Right side fireworks */}
+                        {[...Array(6)].map((_, i) => (
+                            <motion.div
+                                key={`right-${i}`}
+                                initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
+                                animate={{
+                                    opacity: [0, 1, 1, 0],
+                                    x: -(Math.random() * 150 + 50),
+                                    y: -(Math.random() * 200 + 100),
+                                    scale: [0, 1.5, 1, 0],
+                                    rotate: Math.random() * 360
+                                }}
+                                transition={{
+                                    duration: 1.2,
+                                    delay: i * 0.1,
+                                    ease: 'easeOut'
+                                }}
+                                className="absolute bottom-0 right-8 z-30 pointer-events-none"
+                            >
+                                <Sparkles
+                                    className="w-6 h-6 text-pixel-pink"
+                                    strokeWidth={2.5}
+                                    fill="currentColor"
+                                />
+                            </motion.div>
+                        ))}
+
+                        {/* Center text notification - smaller and at top */}
                         <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: [0, 1.2, 1] }}
-                            transition={{ duration: 0.5, times: [0, 0.7, 1] }}
-                            className="text-center"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: [0, 1, 1, 0], y: 0 }}
+                            transition={{ duration: 1.5 }}
+                            className="absolute top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
                         >
-                            <div className="w-16 h-16 mx-auto mb-2 bg-pixel-yellow border-3 border-cocoa rounded-full flex items-center justify-center shadow-pixel">
-                                <PartyPopper className="w-10 h-10 text-cocoa" strokeWidth={2.5} />
-                            </div>
-                            <p className="text-cocoa font-pixel font-bold text-lg mt-2 drop-shadow-lg">Đã reveal!</p>
+                            <p className="text-cocoa font-pixel font-bold text-base bg-pixel-yellow border-2 border-cocoa px-4 py-2 rounded-lg shadow-pixel">Đã reveal!</p>
                         </motion.div>
-                    </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </>

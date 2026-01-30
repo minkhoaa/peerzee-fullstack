@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Search, Award, MapPin, Users, GraduationCap, Star, Filter, X } from 'lucide-react';
-import { discoverApi, SearchResponse, SearchResult } from '@/lib/api';
+import { discoverApi, SearchResponse, SearchResult, getAssetUrl } from '@/lib/api';
 import { LocationButton } from '@/components/discover/LocationButton';
 
 /**
@@ -258,7 +258,7 @@ export default function SearchPage() {
                                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-cocoa/10 border-3 border-cocoa flex-shrink-0">
                                     {user.photos?.[0]?.url ? (
                                         <img
-                                            src={user.photos[0].url}
+                                            src={getAssetUrl(user.photos[0].url)}
                                             alt={user.display_name}
                                             className="w-full h-full object-cover"
                                         />

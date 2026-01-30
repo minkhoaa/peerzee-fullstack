@@ -149,7 +149,7 @@ export class VideoDatingService {
     /**
      * Fallback simple matching when embeddings not available
      */
-    private findSimpleMatch(userId: string): QueueEntry | null {
+    findSimpleMatch(userId: string): QueueEntry | null {
         const currentUser = this.queue.get(userId);
         if (!currentUser) return null;
 

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { JwtModule } from '@nestjs/jwt';
 import { SocialPost, SocialComment, SocialLike, SocialVote } from './entities';
@@ -6,6 +6,7 @@ import { User } from '../user/entities/user.entity';
 import { CommunityService } from './community.service';
 import { CommunityController } from './community.controller';
 import { UploadService } from './upload.service';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { UploadService } from './upload.service';
                 signOptions: { expiresIn: '7d' },
             }),
         }),
+        forwardRef(() => NotificationModule),
     ],
     controllers: [CommunityController],
     providers: [CommunityService, UploadService],

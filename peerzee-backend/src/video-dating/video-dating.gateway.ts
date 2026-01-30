@@ -17,6 +17,7 @@ import { VideoDatingService } from './video-dating.service';
 import { JoinQueueDto } from './dto/join-queue.dto';
 import { AiService } from '../ai/ai.service';
 import { UserProfile } from '../user/entities/user-profile.entity';
+import { MatchWorkflow } from '../agents/workflow';
 
 @WebSocketGateway({
     namespace: '/socket/video-dating',
@@ -47,6 +48,7 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         private readonly jwtService: JwtService,
         private readonly videoDatingService: VideoDatingService,
         private readonly aiService: AiService,
+        private readonly matchWorkflow: MatchWorkflow,
         @InjectRepository(UserProfile)
         private readonly profileRepo: EntityRepository<UserProfile>,
         private readonly em: EntityManager,
@@ -279,17 +281,68 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
             joinedAt: new Date(),
         });
 
-        this.logger.log(`User ${userId} joined queue (intentMode=${dto.intentMode}, hasEmbedding=${!!embedding})`);
+        this.logger.log(`User ${userId} joined queue (intentMode=${dto.intentMode}, matchingType=${dto.matchingType || 'semantic'}, hasEmbedding=${!!embedding}, query=${dto.query || 'none'})`);
+
+        // 🤖 RAG AGENT SEARCH: If query provided, run RAG workflow
+        if (dto.query && dto.query.trim()) {
+            this.logger.log(`🎯 RAG Agent Search: "${dto.query}"`);
+            try {
+                const ragResult = await this.matchWorkflow.runWorkflow(dto.query, userId);
+
+                if (ragResult.finalMatch) {
+                    const targetUserId = ragResult.finalMatch.profile.id;
+                    this.logger.log(`✅ RAG found match: ${targetUserId}`);
+
+                    // Check if target user is in queue
+                    const targetInQueue = this.videoDatingService.getQueueEntry(targetUserId);
+
+                    if (targetInQueue) {
+                        this.logger.log(`🎉 Target user ${targetUserId} is in queue! Creating session...`);
+                        // Add current user to queue first
+                        this.videoDatingService.addToQueue({
+                            userId,
+                            socketId: client.id,
+                            intentMode: dto.intentMode,
+                            genderPreference: dto.genderPreference || 'all',
+                            gender: profile?.gender,
+                            displayName: profile?.display_name,
+                            embedding,
+                            bio: profile?.bio,
+                            tags: profile?.tags,
+                            age: profile?.age,
+                            latitude: profile?.latitude,
+                            longitude: profile?.longitude,
+                            joinedAt: new Date(),
+                        });
+
+                        // Match with target user
+                        await this.createVideoSession(userId, client.id, targetInQueue.userId, targetInQueue.socketId, dto.intentMode);
+                        this.broadcastQueueSize();
+                        return { ok: true, matched: true };
+                    } else {
+                        this.logger.log(`⏳ Target user ${targetUserId} not in queue, falling back to regular matching`);
+                    }
+                } else {
+                    this.logger.warn('RAG agent found no match, falling back to regular matching');
+                }
+            } catch (error) {
+                this.logger.error('RAG agent search failed, falling back to regular matching:', error);
+            }
+        }
 
         // Broadcast updated queue size to all connected clients
         this.broadcastQueueSize();
 
-        // Try to find AI-powered match
-        this.logger.debug(`🤖 Attempting AI match for user ${userId}...`);
-        const match = this.videoDatingService.findMatch(userId);
+        // Try to find match based on matching type
+        const useSemantic = dto.matchingType !== 'normal';
+        this.logger.debug(`🤖 Attempting ${useSemantic ? 'AI semantic' : 'simple'} match for user ${userId}...`);
+
+        const match = useSemantic
+            ? this.videoDatingService.findMatch(userId)
+            : this.videoDatingService.findSimpleMatch(userId);
 
         if (match) {
-            this.logger.log(`Match found! Creating session between ${userId} and ${match.userId}`);
+            this.logger.log(`Match found! Creating session between ${userId} and ${match.userId} (${useSemantic ? 'semantic' : 'normal'})`);
             await this.createVideoSession(userId, client.id, match.userId, match.socketId, dto.intentMode);
             // Broadcast again after match (queue size decreased)
             this.broadcastQueueSize();
@@ -298,6 +351,79 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         }
 
         return { ok: true, inQueue: true };
+    }
+
+    @SubscribeMessage('room:join')
+    async handleJoinRoom(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { roomId: string, intentMode?: string },
+    ) {
+        const userId = client.data.userId;
+        if (!userId) return { ok: false, error: 'Not authenticated' };
+
+        const { roomId, intentMode = 'DATE' } = data;
+        this.logger.log(`📥 User ${userId} joining specific room: ${roomId}`);
+
+        // Track users waiting for this specific room
+        let session = this.activeSessions.get(roomId);
+
+        if (!session) {
+            // First user to arrive
+            this.activeSessions.set(roomId, {
+                user1: client.id,
+                user1Id: userId,
+                user2: '',
+                user2Id: '',
+            });
+            this.userSessions.set(userId, roomId);
+            this.logger.log(`⏳ User ${userId} waiting for partner in room ${roomId}`);
+            return { ok: true, waiting: true };
+        } else if (session.user1Id !== userId && !session.user2Id) {
+            // Second user arrives
+            session.user2 = client.id;
+            session.user2Id = userId;
+            this.userSessions.set(userId, roomId);
+
+            this.logger.log(`🎉 Room ${roomId} complete: ${session.user1Id} <-> ${session.user2Id}`);
+
+            // Initialize blind session state
+            const defaultIntro = 'Chào mừng đến với Peerzee! Agent đã kết nối hai bạn! 👋';
+            const defaultTopic = 'Hãy bắt đầu bằng việc chào hỏi nhau nhé! 😊';
+
+            this.videoDatingService.initBlindSession(
+                roomId,
+                session.user1Id,
+                session.user2Id,
+                defaultIntro,
+                defaultTopic,
+            );
+
+            const matchPayload = {
+                sessionId: roomId,
+                blindDate: {
+                    introMessage: defaultIntro,
+                    initialTopic: defaultTopic,
+                    blurLevel: 20,
+                },
+            };
+
+            // Emit match:found to both
+            this.server.to(session.user1).emit('match:found', {
+                ...matchPayload,
+                partnerId: session.user2Id,
+                isInitiator: true,
+            });
+
+            this.server.to(session.user2).emit('match:found', {
+                ...matchPayload,
+                partnerId: session.user1Id,
+                isInitiator: false,
+            });
+
+            return { ok: true, matched: true };
+        }
+
+        return { ok: false, error: 'Room already full or already joined' };
     }
 
     @SubscribeMessage('queue:leave')
@@ -598,7 +724,7 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
     ) {
         const userId = client.data.userId;
         this.logger.debug(`[CHAT] Received message from user ${userId}: "${data.message}"`);
-        
+
         if (!userId) {
             this.logger.error('[CHAT] User not authenticated');
             return { ok: false, error: 'Not authenticated' };
@@ -619,7 +745,7 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         // Determine partner socket
         const partnerSocketId = session.user1Id === userId ? session.user2 : session.user1;
         const partnerId = session.user1Id === userId ? session.user2Id : session.user1Id;
-        
+
         this.logger.log(`[CHAT] Forwarding message from ${userId} to partner ${partnerId} (socket: ${partnerSocketId})`);
 
         // Broadcast message to partner

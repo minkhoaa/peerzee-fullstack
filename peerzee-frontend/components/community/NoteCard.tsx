@@ -1,33 +1,46 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, MessageSquare, MoreHorizontal, Trash2, User } from 'lucide-react';
-import type { Post } from '@/types/community';
+import { Heart, MessageSquare, MoreHorizontal, Trash2, User, Send, X } from 'lucide-react';
+import type { Post, Comment } from '@/types/community';
 import { PushPin } from '@/components/village';
 
 // Pin colors for variety
 const PIN_COLORS: Array<'pink' | 'red' | 'blue' | 'yellow' | 'green'> = ['red', 'blue', 'yellow', 'green', 'pink'];
+
+// Mock comments for demo
+const MOCK_COMMENTS: Comment[] = [
+  { id: '1', content: 'This is so exciting! Can\'t wait! 🎉', author: { id: '201', username: 'VillagerAlex', avatarUrl: 'https://i.pravatar.cc/150?img=3', level: 5 }, createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), likes: 3, isLiked: false },
+  { id: '2', content: 'Count me in!', author: { id: '202', username: 'FarmerBen', avatarUrl: 'https://i.pravatar.cc/150?img=7', level: 8 }, createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(), likes: 1, isLiked: true },
+];
 
 interface NoteCardProps {
   post: Post;
   currentUserId?: string;
   onLike?: (postId: string) => void;
   onDelete?: (postId: string) => void;
+  onComment?: (postId: string, content: string) => void;
   pinColor?: 'pink' | 'red' | 'blue' | 'yellow' | 'green';
 }
 
 /**
  * NoteCard - A pinned note on the bulletin board
- * Fresh Sage & Cool Taupe palette
+ * Fresh Sage & Cool Taupe palette with working Like & Comment
  */
 export function NoteCard({ 
   post, 
   currentUserId, 
   onLike, 
   onDelete,
+  onComment,
   pinColor = 'red' 
 }: NoteCardProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
+  const [isLikeAnimating, setIsLikeAnimating] = useState(false);
+  
   const isOwner = currentUserId === post.author.id;
 
   // Random slight rotation for natural look
@@ -47,6 +60,31 @@ export function NoteCard({
     if (diffMins < 60) return `${diffMins} min ago`;
     if (diffHours < 24) return `${diffHours} hours ago`;
     return `${diffDays} days ago`;
+  };
+
+  // Handle like with animation
+  const handleLikeClick = () => {
+    setIsLikeAnimating(true);
+    onLike?.(post.id);
+    setTimeout(() => setIsLikeAnimating(false), 300);
+  };
+
+  // Handle comment submit
+  const handleCommentSubmit = () => {
+    if (!newComment.trim()) return;
+    
+    const comment: Comment = {
+      id: `comment-${Date.now()}`,
+      content: newComment,
+      author: { id: currentUserId || 'guest', username: 'You', avatarUrl: '', level: 1 },
+      createdAt: new Date().toISOString(),
+      likes: 0,
+      isLiked: false,
+    };
+    
+    setComments(prev => [comment, ...prev]);
+    setNewComment('');
+    onComment?.(post.id, newComment);
   };
 
   return (
@@ -146,21 +184,26 @@ export function NoteCard({
         {/* Actions Footer */}
         <div className="flex items-center gap-4 pt-3 border-t border-dashed border-cocoa">
           <button
-            onClick={() => onLike?.(post.id)}
-            className={`flex items-center gap-1 transition-colors hover:scale-105 ${
-              post.isLiked ? 'text-pixel-red' : 'text-cocoa-light'
-            }`}
+            onClick={handleLikeClick}
+            className={`flex items-center gap-1 transition-all hover:scale-105 active:scale-95 ${
+              post.isLiked ? 'text-pixel-red' : 'text-cocoa-light hover:text-pixel-red'
+            } ${isLikeAnimating ? 'scale-125' : ''}`}
           >
             <Heart
-              className="w-4 h-4"
+              className={`w-4 h-4 transition-transform ${isLikeAnimating ? 'animate-pulse' : ''}`}
               fill={post.isLiked ? 'currentColor' : 'none'}
               strokeWidth={2.5}
             />
             <span className="text-sm font-body font-bold">{post.stats.likes}</span>
           </button>
-          <button className="flex items-center gap-1 transition-colors hover:scale-105 text-cocoa-light">
+          <button 
+            onClick={() => setShowComments(!showComments)}
+            className={`flex items-center gap-1 transition-colors hover:scale-105 ${
+              showComments ? 'text-pixel-blue' : 'text-cocoa-light hover:text-pixel-blue'
+            }`}
+          >
             <MessageSquare className="w-4 h-4" strokeWidth={2.5} />
-            <span className="text-sm font-body font-bold">{post.stats.comments}</span>
+            <span className="text-sm font-body font-bold">{post.stats.comments + comments.length - MOCK_COMMENTS.length}</span>
           </button>
           {post.stats.likes > 50 && (
             <span className="ml-auto text-xs font-pixel text-pixel-pink font-bold">
@@ -168,6 +211,59 @@ export function NoteCard({
             </span>
           )}
         </div>
+
+        {/* Comments Section */}
+        {showComments && (
+          <div className="mt-3 pt-3 border-t border-dashed border-cocoa">
+            {/* Comment Input */}
+            <div className="flex gap-2 mb-3">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit()}
+                placeholder="Write a comment..."
+                className="flex-1 px-3 py-2 text-sm bg-retro-white border-2 border-cocoa rounded font-body font-bold text-cocoa placeholder:text-cocoa-light focus:outline-none focus:border-pixel-pink"
+              />
+              <button
+                onClick={handleCommentSubmit}
+                disabled={!newComment.trim()}
+                className="px-3 py-2 bg-pixel-pink border-2 border-cocoa text-cocoa rounded shadow-pixel-sm hover:bg-pixel-pink-dark disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none transition-all"
+              >
+                <Send className="w-4 h-4" strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Comments List */}
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {comments.map((comment) => (
+                <div key={comment.id} className="flex gap-2 p-2 bg-retro-white/50 border border-cocoa/30 rounded">
+                  <div className="w-6 h-6 border border-cocoa rounded overflow-hidden flex-shrink-0">
+                    {comment.author.avatarUrl ? (
+                      <img src={comment.author.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-cocoa/10 flex items-center justify-center">
+                        <User className="w-3 h-3 text-cocoa" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-pixel text-cocoa font-bold">{comment.author.username}</span>
+                      <span className="text-xs text-cocoa-light font-body">{formatTimeAgo(comment.createdAt)}</span>
+                    </div>
+                    <p className="text-xs font-body text-cocoa mt-0.5">{comment.content}</p>
+                  </div>
+                </div>
+              ))}
+              {comments.length === 0 && (
+                <p className="text-center text-xs text-cocoa-light font-body py-4">
+                  No comments yet. Be the first to comment!
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

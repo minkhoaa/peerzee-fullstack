@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
 import { ChatController } from './chat.controller';
@@ -16,6 +16,7 @@ import { UploadController } from './upload.controller';
 import { UserModule } from '../user/user.module';
 import { UserProfile } from '../user/entities/user-profile.entity';
 import { AiModule } from '../ai/ai.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AiModule } from '../ai/ai.module';
     JwtModule.register({}),
     UserModule,
     AiModule,
+    forwardRef(() => NotificationModule),
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',

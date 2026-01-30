@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import { MapPin, Briefcase, GraduationCap, Music, Instagram, MessageSquareText } from 'lucide-react';
 import type { DiscoverUser } from '@/hooks/useDiscover';
 import ProfilePropertiesGrid from './ProfilePropertiesGrid';
+import { getAssetUrl } from '@/lib/api';
 
 interface ProfileCardProps {
     user: DiscoverUser;
@@ -18,8 +19,8 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
     const cardRef = useRef<HTMLDivElement>(null);
 
     // Get cover photo or fallback
-    const coverPhoto = user.photos?.find((p) => p.isCover)?.url
-        || user.photos?.[0]?.url
+    const coverPhoto = getAssetUrl(user.photos?.find((p) => p.isCover)?.url)
+        || getAssetUrl(user.photos?.[0]?.url)
         || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
 
     return (
@@ -45,7 +46,7 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                 <div className="flex items-end gap-4 mb-4">
                     <div className="w-20 h-20 rounded-xl overflow-hidden border-3 border-cocoa bg-pixel-pink shadow-pixel flex-shrink-0">
                         <img
-                            src={user.photos?.[1]?.url || coverPhoto}
+                            src={getAssetUrl(user.photos?.[1]?.url) || coverPhoto}
                             alt={user.display_name}
                             className="w-full h-full object-cover"
                         />

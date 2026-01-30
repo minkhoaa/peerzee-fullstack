@@ -23,11 +23,11 @@ export class NotificationController {
     @ApiQuery({ name: 'cursor', required: false, description: 'Cursor for pagination (ISO date string)' })
     @ApiQuery({ name: 'limit', required: false, description: 'Number of items to fetch (default: 20)' })
     async getNotifications(
-        @Req() req: { user: { sub: string } },
+        @Req() req: any,
         @Query('cursor') cursor?: string,
         @Query('limit') limit?: string,
     ) {
-        const userId = req.user.sub;
+        const userId = req.user.user_id;
         const parsedLimit = limit ? parseInt(limit, 10) : 20;
 
         return this.notificationService.getNotifications(userId, cursor, parsedLimit);
@@ -35,8 +35,8 @@ export class NotificationController {
 
     @Get('unread-count')
     @ApiOperation({ summary: 'Get unread notification count' })
-    async getUnreadCount(@Req() req: { user: { sub: string } }) {
-        const userId = req.user.sub;
+    async getUnreadCount(@Req() req: any) {
+        const userId = req.user.user_id;
         const count = await this.notificationService.getUnreadCount(userId);
         return { count };
     }
@@ -44,10 +44,10 @@ export class NotificationController {
     @Patch(':id/read')
     @ApiOperation({ summary: 'Mark a specific notification as read' })
     async markAsRead(
-        @Req() req: { user: { sub: string } },
+        @Req() req: any,
         @Param('id') notificationId: string,
     ) {
-        const userId = req.user.sub;
+        const userId = req.user.user_id;
         const notification = await this.notificationService.markAsRead(notificationId, userId);
 
         if (!notification) {
@@ -59,8 +59,8 @@ export class NotificationController {
 
     @Patch('read-all')
     @ApiOperation({ summary: 'Mark all notifications as read' })
-    async markAllAsRead(@Req() req: { user: { sub: string } }) {
-        const userId = req.user.sub;
+    async markAllAsRead(@Req() req: any) {
+        const userId = req.user.user_id;
         const count = await this.notificationService.markAllAsRead(userId);
 
         return { ok: true, count };

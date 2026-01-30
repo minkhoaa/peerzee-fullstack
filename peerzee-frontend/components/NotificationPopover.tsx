@@ -113,33 +113,33 @@ export default function NotificationPopover() {
 
     return (
         <div ref={popoverRef} className="relative">
-            {/* Bell Button */}
+            {/* Bell Button - Wood Theme Style */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 text-cocoa hover:bg-pixel-yellow/30 border-2 border-transparent hover:border-cocoa rounded-lg transition-colors"
+                className="relative p-2 bg-wood-medium border-2 border-wood-shadow shadow-pixel-sm hover:bg-wood-light transition-colors active:translate-y-0.5 active:shadow-none"
                 title="Notifications"
             >
-                <Bell className="w-5 h-5" />
+                <Bell className="w-[18px] h-[18px] text-parchment" strokeWidth={2.5} />
 
                 {/* Unread Badge */}
                 {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-pixel text-retro-white bg-pixel-red border border-cocoa rounded-md">
-                        {unreadCount > 99 ? '99+' : unreadCount}
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-pixel-red border-2 border-wood-shadow rounded-full flex items-center justify-center">
+                        <span className="font-pixel text-xs text-white">{unreadCount > 99 ? '99' : unreadCount}</span>
                     </span>
                 )}
             </button>
 
             {/* Dropdown Popover */}
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-[340px] max-h-[460px] bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel overflow-hidden overflow-x-hidden z-50">
+                <div className="absolute right-0 top-full mt-2 w-[340px] max-h-[460px] bg-parchment border-3 border-wood-shadow rounded-lg shadow-pixel overflow-hidden overflow-x-hidden z-[100]">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b-3 border-cocoa bg-pixel-yellow/20">
-                        <h3 className="text-sm font-pixel uppercase tracking-widest text-cocoa">Notifications</h3>
+                    <div className="flex items-center justify-between px-4 py-3 border-b-3 border-wood-shadow bg-wood-medium">
+                        <h3 className="text-sm font-pixel uppercase tracking-widest text-parchment">Notifications</h3>
                         <div className="flex items-center gap-2">
                             {unreadCount > 0 && (
                                 <button
                                     onClick={markAllAsRead}
-                                    className="flex items-center gap-1 px-2 py-1 text-xs text-cocoa-light hover:text-cocoa hover:bg-pixel-blue/30 rounded-md border border-transparent hover:border-cocoa transition-colors font-bold"
+                                    className="flex items-center gap-1 px-2 py-1 text-xs text-parchment/70 hover:text-parchment hover:bg-wood-light rounded-md transition-colors font-bold"
                                 >
                                     <CheckCheck className="w-3 h-3" />
                                     Mark all
@@ -147,7 +147,7 @@ export default function NotificationPopover() {
                             )}
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-1 text-cocoa-light hover:text-cocoa hover:bg-pixel-red/20 rounded-md transition-colors"
+                                className="p-1 text-parchment/70 hover:text-parchment hover:bg-pixel-red/50 rounded-md transition-colors"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -155,10 +155,10 @@ export default function NotificationPopover() {
                     </div>
 
                     {/* Notification List */}
-                    <div className="overflow-y-auto max-h-[360px] bg-retro-paper">
+                    <div className="overflow-y-auto max-h-[360px] bg-parchment">
                         {isLoading ? (
                             <div className="flex items-center justify-center py-12">
-                                <div className="w-6 h-6 border-3 border-pixel-pink border-t-transparent rounded-lg animate-spin" />
+                                <div className="w-6 h-6 border-3 border-pixel-orange border-t-transparent rounded-lg animate-spin" />
                             </div>
                         ) : notifications.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-cocoa-light">
@@ -171,11 +171,11 @@ export default function NotificationPopover() {
                                     <button
                                         key={notification.id}
                                         onClick={() => handleNotificationClick(notification)}
-                                        className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-pixel-blue/20 transition-colors border-b border-cocoa/20 ${!notification.isRead ? 'bg-pixel-yellow/10' : ''
+                                        className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-wood-light/30 transition-colors border-b border-wood-shadow/20 ${!notification.isRead ? 'bg-pixel-yellow/20' : ''
                                             }`}
                                     >
                                         {/* Icon */}
-                                        <div className="flex-shrink-0 mt-0.5 p-1.5 rounded-lg bg-retro-white border border-cocoa">
+                                        <div className="flex-shrink-0 mt-0.5 p-1.5 rounded-lg bg-white border border-wood-shadow">
                                             {getIcon(notification.type)}
                                         </div>
 

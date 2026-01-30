@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   Star, 
   MessageSquareText, 
@@ -10,9 +10,9 @@ import {
   Search,
   LogOut,
   Users,
-  Bell,
   Scroll
 } from "lucide-react";
+import NotificationPopover from "@/components/NotificationPopover";
 
 interface NavItem {
   href: string;
@@ -39,6 +39,14 @@ const navItems: NavItem[] = [
 
 export default function GlobalHeader({ title, subtitle, action }: GlobalHeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userId');
+    router.push('/login');
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-wood-dark border-b-4 border-wood-shadow shadow-wood">
@@ -103,16 +111,14 @@ export default function GlobalHeader({ title, subtitle, action }: GlobalHeaderPr
 
           {/* User Actions */}
           <div className="flex items-center gap-2">
-            {/* Notification Bell */}
-            <button className="relative p-2 bg-wood-medium border-2 border-wood-shadow shadow-pixel-sm hover:bg-wood-light transition-colors active:translate-y-0.5 active:shadow-none">
-              <Bell size={18} strokeWidth={2.5} className="text-parchment" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-pixel-red border-2 border-wood-shadow rounded-full flex items-center justify-center">
-                <span className="font-pixel text-xs text-white">3</span>
-              </span>
-            </button>
+            {/* Notification Bell with Popover */}
+            <NotificationPopover />
 
             {/* Logout */}
-            <button className="p-2 bg-wood-medium border-2 border-wood-shadow shadow-pixel-sm hover:bg-pixel-red transition-colors active:translate-y-0.5 active:shadow-none">
+            <button 
+              onClick={handleLogout}
+              className="p-2 bg-wood-medium border-2 border-wood-shadow shadow-pixel-sm hover:bg-pixel-red transition-colors active:translate-y-0.5 active:shadow-none"
+            >
               <LogOut size={18} strokeWidth={2.5} className="text-parchment" />
             </button>
           </div>

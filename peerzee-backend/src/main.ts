@@ -10,7 +10,9 @@ import { seedIceBreakers } from './seeds/ice-breakers.seed';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  
+  // Serve uploaded files - path relative to project root /app/uploads
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
   });
   // Global validation pipe

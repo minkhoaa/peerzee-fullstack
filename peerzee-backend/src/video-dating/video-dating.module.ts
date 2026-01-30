@@ -6,12 +6,14 @@ import { VideoDatingService } from './video-dating.service';
 import { VideoDatingGateway } from './video-dating.gateway';
 import { AiModule } from '../ai/ai.module';
 import { UserProfile } from '../user/entities/user-profile.entity';
+import { AgentsModule } from '../agents/agents.module';
 
 @Module({
     imports: [
         MikroOrmModule.forFeature([VideoSession, UserProfile]),
         JwtModule.register({}),
         AiModule, // 🎬 AI Dating Host integration
+        AgentsModule, // 🤖 RAG Matchmaker Agent
     ],
     providers: [VideoDatingService, VideoDatingGateway],
     exports: [VideoDatingService],

@@ -290,7 +290,13 @@ export function useVideoDating() {
   }, [cleanup, setupPeerConnection]);
 
   // Request media BEFORE joining queue (on user click - has user gesture)
-  const joinQueue = useCallback(async (intentMode: 'DATE' | 'STUDY' | 'FRIEND', genderPreference: 'male' | 'female' | 'all' = 'all', enableVideo: boolean = true) => {
+  const joinQueue = useCallback(async (
+    intentMode: 'DATE' | 'STUDY' | 'FRIEND',
+    genderPreference: 'male' | 'female' | 'all' = 'all',
+    enableVideo: boolean = true,
+    matchingType: 'normal' | 'semantic' = 'semantic',
+    query?: string
+  ) => {
     if (!socketRef.current) return;
 
     try {
@@ -304,7 +310,7 @@ export function useVideoDating() {
       setLocalStream(localStreamRef.current); // Trigger re-render
       setWithVideo(enableVideo);
       setState('searching');
-      socketRef.current.emit('queue:join', { intentMode, genderPreference });
+      socketRef.current.emit('queue:join', { intentMode, genderPreference, matchingType, query });
     } catch (err: unknown) {
       console.error('Error accessing media devices:', err);
 
@@ -316,7 +322,7 @@ export function useVideoDating() {
           setLocalStream(localStreamRef.current); // Trigger re-render
           setWithVideo(false);
           setState('searching');
-          socketRef.current?.emit('queue:join', { intentMode, genderPreference });
+          socketRef.current?.emit('queue:join', { intentMode, genderPreference, matchingType, query });
           setError('Camera unavailable - joined with audio only');
           return;
         } catch {
@@ -331,6 +337,27 @@ export function useVideoDating() {
       } else {
         setError('Failed to access microphone. Please check your device settings.');
       }
+    }
+  }, []);
+
+  const joinRoom = useCallback(async (roomId: string, enableVideo: boolean = true) => {
+    if (!socketRef.current) return;
+
+    try {
+      const constraints: MediaStreamConstraints = {
+        audio: true,
+        video: enableVideo,
+      };
+
+      localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints);
+      setLocalStream(localStreamRef.current);
+      setWithVideo(enableVideo);
+      setState('searching'); // Show "Joining room..." state
+      socketRef.current.emit('room:join', { roomId });
+    } catch (err: unknown) {
+      console.error('Error accessing media devices for room join:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Media access failed: ${errorMessage}`);
     }
   }, []);
 
@@ -436,5 +463,6 @@ export function useVideoDating() {
     endCall,
     reportPartner,
     localStreamRef,
+    joinRoom,
   };
 }

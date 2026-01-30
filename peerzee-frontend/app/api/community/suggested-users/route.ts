@@ -9,7 +9,7 @@ const mockUsers = [
     avatar: 'https://i.pravatar.cc/150?img=9',
     age: 24,
     location: 'Hà Nội',
-    bio: 'Travel enthusiast | Coffee addict ☕✈️',
+    bio: 'Travel enthusiast | Coffee addict',
     interests: ['Travel', 'Photography', 'Coffee'],
     mutualFriends: 5
   },
@@ -20,7 +20,7 @@ const mockUsers = [
     avatar: 'https://i.pravatar.cc/150?img=14',
     age: 27,
     location: 'TP.HCM',
-    bio: 'Music lover | Guitar player 🎸',
+    bio: 'Music lover | Guitar player',
     interests: ['Music', 'Guitar', 'Rock'],
     mutualFriends: 3
   },
@@ -31,7 +31,7 @@ const mockUsers = [
     avatar: 'https://i.pravatar.cc/150?img=16',
     age: 25,
     location: 'Đà Nẵng',
-    bio: 'Foodie | Love to cook 🍜',
+    bio: 'Foodie | Love to cook',
     interests: ['Food', 'Cooking', 'Baking'],
     mutualFriends: 8
   },
@@ -42,7 +42,7 @@ const mockUsers = [
     avatar: 'https://i.pravatar.cc/150?img=11',
     age: 28,
     location: 'Hà Nội',
-    bio: 'Tech geek | Startup founder 💻',
+    bio: 'Tech geek | Startup founder',
     interests: ['Tech', 'Startup', 'AI'],
     mutualFriends: 12
   },
@@ -53,7 +53,7 @@ const mockUsers = [
     avatar: 'https://i.pravatar.cc/150?img=24',
     age: 23,
     location: 'Hải Phòng',
-    bio: 'Artist | Designer 🎨',
+    bio: 'Artist | Designer',
     interests: ['Art', 'Design', 'Drawing'],
     mutualFriends: 6
   }

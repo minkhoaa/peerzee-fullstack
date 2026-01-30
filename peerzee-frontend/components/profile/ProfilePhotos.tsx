@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { Plus, Trash2, Loader2, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getAssetUrl } from '@/lib/api';
 
 // Default cozy placeholders from Unsplash
 const DEFAULT_PHOTOS = [
@@ -12,7 +13,7 @@ const DEFAULT_PHOTOS = [
 ];
 
 interface ProfilePhotosProps {
-    photos: Array<{ id: string; url: string; order?: number }>;
+    photos: Array<{ id: string; url: string; order?: number; isCover?: boolean }>;
     isOwnProfile: boolean;
     isEditing: boolean;
     onUpload: (file: File) => Promise<void>;
@@ -106,7 +107,7 @@ export default function ProfilePhotos({
                         >
                             {/* Image */}
                             <img
-                                src={imageErrors.has(photo.id) ? getFallbackImage(index) : photo.url}
+                                src={imageErrors.has(photo.id) ? getFallbackImage(index) : getAssetUrl(photo.url)}
                                 alt={`Photo ${index + 1}`}
                                 className="w-full h-full object-cover"
                                 onError={() => handleImageError(photo.id)}

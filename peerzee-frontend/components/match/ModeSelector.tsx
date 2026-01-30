@@ -1,23 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { Video, MessageSquareText, Search, X, Users, Star, BookOpen, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Video, MessageSquareText, Search, X, Users, Star, BookOpen, UserPlus, Dices, Bot, Sparkles, BrainCircuit } from "lucide-react";
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 type GenderPref = 'male' | 'female' | 'all';
 
 interface ModeSelectorProps {
-  onStart: (mode: "text" | "video", interests: string[], intentMode: IntentMode, genderPref: GenderPref) => void;
+  onStart: (mode: "text" | "video", interests: string[], intentMode: IntentMode, genderPref: GenderPref, matchingType: 'normal' | 'semantic', searchQuery?: string) => void;
   queueSize: number;
   error: string | null;
 }
 
 export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
+  const router = useRouter();
   const [selectedMode, setSelectedMode] = useState<"text" | "video" | null>(null);
   const [intentMode, setIntentMode] = useState<IntentMode>('DATE');
   const [genderPref, setGenderPref] = useState<GenderPref>('all');
   const [interestInput, setInterestInput] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
+  const [matchingType, setMatchingType] = useState<'normal' | 'semantic'>('normal');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const sampleQueries = [
+    'Bạn nữ thích café Hà Nội',
+    'Anh dev thích code',
+    'Bạn học AI Sài Gòn',
+    'Người thích du lịch',
+  ];
 
   const suggestedInterests = [
     "Music", "Programming", "Movies", "Gaming", "Art", "Travel",
@@ -50,7 +61,13 @@ export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
 
   const handleStart = () => {
     if (selectedMode) {
-      onStart(selectedMode, interests, intentMode, genderPref);
+      // Redirect to AI Console for semantic matching
+      if (matchingType === 'semantic') {
+        router.push('/match/agent');
+        return;
+      }
+
+      onStart(selectedMode, interests, intentMode, genderPref, matchingType);
     }
   };
 
@@ -80,11 +97,10 @@ export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
                 <button
                   key={mode.value}
                   onClick={() => setIntentMode(mode.value)}
-                  className={`p-3 border-2 rounded-lg transition-all flex flex-col items-center gap-1 ${
-                    intentMode === mode.value
-                      ? 'border-cocoa bg-pixel-pink shadow-pixel-sm'
-                      : 'border-transparent bg-retro-white hover:border-cocoa'
-                  }`}
+                  className={`p-3 border-2 rounded-lg transition-all flex flex-col items-center gap-1 ${intentMode === mode.value
+                    ? 'border-cocoa bg-pixel-pink shadow-pixel-sm'
+                    : 'border-transparent bg-retro-white hover:border-cocoa'
+                    }`}
                 >
                   <Icon className={`w-4 h-4 ${intentMode === mode.value ? 'text-cocoa' : 'text-cocoa-light'}`} strokeWidth={2.5} />
                   <span className="text-xs text-cocoa font-bold">{mode.label}</span>
@@ -102,11 +118,10 @@ export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
               <button
                 key={opt.value}
                 onClick={() => setGenderPref(opt.value)}
-                className={`flex-1 py-2 px-3 text-xs font-bold transition-all border-2 rounded-lg ${
-                  genderPref === opt.value
-                    ? 'bg-pixel-blue border-cocoa text-cocoa shadow-pixel-sm'
-                    : 'bg-retro-white border-transparent text-cocoa-light hover:border-cocoa'
-                }`}
+                className={`flex-1 py-2 px-3 text-xs font-bold transition-all border-2 rounded-lg ${genderPref === opt.value
+                  ? 'bg-pixel-blue border-cocoa text-cocoa shadow-pixel-sm'
+                  : 'bg-retro-white border-transparent text-cocoa-light hover:border-cocoa'
+                  }`}
               >
                 {opt.label}
               </button>
@@ -118,11 +133,10 @@ export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <button
             onClick={() => setSelectedMode("text")}
-            className={`p-4 border-3 rounded-xl transition-all ${
-              selectedMode === "text"
-                ? "border-cocoa bg-pixel-green shadow-pixel"
-                : "border-transparent bg-retro-white hover:border-cocoa"
-            }`}
+            className={`p-4 border-3 rounded-xl transition-all ${selectedMode === "text"
+              ? "border-cocoa bg-pixel-green shadow-pixel"
+              : "border-transparent bg-retro-white hover:border-cocoa"
+              }`}
           >
             <MessageSquareText className={`w-8 h-8 mx-auto mb-2 ${selectedMode === "text" ? "text-cocoa" : "text-cocoa-light"}`} strokeWidth={2.5} />
             <h3 className="font-pixel text-cocoa text-base uppercase tracking-widest mb-1">Text Chat</h3>
@@ -131,17 +145,73 @@ export function ModeSelector({ onStart, queueSize, error }: ModeSelectorProps) {
 
           <button
             onClick={() => setSelectedMode("video")}
-            className={`p-4 border-3 rounded-xl transition-all ${
-              selectedMode === "video"
-                ? "border-cocoa bg-pixel-pink shadow-pixel"
-                : "border-transparent bg-retro-white hover:border-cocoa"
-            }`}
+            className={`p-4 border-3 rounded-xl transition-all ${selectedMode === "video"
+              ? "border-cocoa bg-pixel-pink shadow-pixel"
+              : "border-transparent bg-retro-white hover:border-cocoa"
+              }`}
           >
             <Video className={`w-8 h-8 mx-auto mb-2 ${selectedMode === "video" ? "text-cocoa" : "text-cocoa-light"}`} strokeWidth={2.5} />
             <h3 className="font-pixel text-cocoa text-base uppercase tracking-widest mb-1">Video Chat</h3>
             <p className="text-cocoa-light text-xs font-medium">Face-to-face video conversation</p>
           </button>
         </div>
+
+        {/* Matching Type Toggle */}
+        <div className="mb-4">
+          <label className="font-pixel text-cocoa uppercase tracking-wider mb-2 block text-sm">Matching Style</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setMatchingType('normal')}
+              className={`p-3 border-2 rounded-lg transition-all flex flex-col items-center gap-1 ${matchingType === 'normal'
+                ? 'border-cocoa bg-pixel-yellow shadow-pixel-sm'
+                : 'border-transparent bg-retro-white hover:border-cocoa'
+                }`}
+            >
+              <Dices className="w-6 h-6 text-cocoa" strokeWidth={2.5} />
+              <span className="text-xs text-cocoa font-bold">Random</span>
+              <span className="text-[10px] text-cocoa-light">Quick match</span>
+            </button>
+            <button
+              onClick={() => router.push('/match/agent')}
+              className="p-3 border-2 border-transparent bg-retro-white hover:border-cocoa rounded-lg transition-all flex flex-col items-center gap-1 hover:bg-pixel-purple/20"
+            >
+              <BrainCircuit className="w-6 h-6 text-pixel-purple" strokeWidth={2.5} />
+              <span className="text-xs text-cocoa font-bold">AI Search</span>
+              <span className="text-[10px] text-cocoa-light">Smart match</span>
+            </button>
+          </div>
+        </div>
+
+        {/* AI Search Query - only show when semantic selected */}
+        {matchingType === 'semantic' && (
+          <div className="mb-4 p-4 bg-pixel-purple/10 border-2 border-pixel-purple rounded-lg">
+            <label className="font-pixel text-cocoa uppercase tracking-wider mb-2 block text-sm flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-pixel-purple" />
+              Describe your ideal match
+            </label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="E.g., Bạn nữ thích café ở Hà Nội..."
+              className="w-full bg-retro-white border-3 border-cocoa rounded-lg px-4 py-3 text-sm text-cocoa placeholder-cocoa-light outline-none focus:ring-2 focus:ring-pixel-purple shadow-pixel-inset font-bold"
+            />
+            <div className="flex flex-wrap gap-2 mt-3">
+              {sampleQueries.map((q, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSearchQuery(q)}
+                  className="px-2 py-1 bg-retro-white border-2 border-cocoa text-cocoa text-xs font-bold rounded-lg hover:bg-pixel-purple/20 transition-all"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-cocoa-light mt-2 font-bold">
+              ✨ AI will find the best match based on your description
+            </p>
+          </div>
+        )}
 
         {/* Interests Input */}
         <div className="mb-4">

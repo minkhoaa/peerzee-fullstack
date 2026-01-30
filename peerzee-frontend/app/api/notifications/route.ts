@@ -25,7 +25,7 @@ const mockNotifications = [
   {
     id: '3',
     type: 'match',
-    title: 'New Match! 💕',
+    title: 'New Match!',
     message: 'You matched with Thu Hà',
     avatar: 'https://i.pravatar.cc/150?img=5',
     read: false,
@@ -65,7 +65,7 @@ const mockNotifications = [
   {
     id: '7',
     type: 'match',
-    title: 'New Match! 💕',
+    title: 'New Match!',
     message: 'You matched with Thanh Thảo',
     avatar: 'https://i.pravatar.cc/150?img=25',
     read: true,
@@ -115,7 +115,7 @@ const mockNotifications = [
   {
     id: '12',
     type: 'match',
-    title: 'New Match! 💕',
+    title: 'New Match!',
     message: 'You matched with Trung Kiên',
     avatar: 'https://i.pravatar.cc/150?img=14',
     read: true,
@@ -165,7 +165,7 @@ const mockNotifications = [
   {
     id: '17',
     type: 'match',
-    title: 'New Match! 💕',
+    title: 'New Match!',
     message: 'You matched with Lan Anh',
     avatar: 'https://i.pravatar.cc/150?img=20',
     read: true,

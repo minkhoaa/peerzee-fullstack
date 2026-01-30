@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, X, Plus, Trash2, Loader2, MapPin, Ruler, Music, Play, Pause, Frown, FileText, Image, User, Briefcase, Tag, PenLine, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { profileApi } from '@/lib/api';
+import { profileApi, getAssetUrl } from '@/lib/api';
 import { searchLocations } from '@/lib/vietnam-locations';
 import { TagSelector } from '@/components/TagSelector';
 import { ProfileHero } from '@/components/profile/ProfileHero';
@@ -38,13 +38,14 @@ interface UserProfile {
     occupation?: string;
     education?: string;
     tags?: string[];
-    photos?: { id: string; url: string; order?: number }[];
+    photos?: { id: string; url: string; order?: number; isCover?: boolean }[];
     spotify?: MusicData | { song: string; artist: string } | null;
 }
 
 export default function MyProfilePage() {
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const coverInputRef = useRef<HTMLInputElement>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ matches: 0, likes: 0, views: 0 });
@@ -67,6 +68,39 @@ export default function MyProfilePage() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMusicModalOpen, setMusicModalOpen] = useState(false);
     const [isEditingPhotos, setIsEditingPhotos] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    // Cleanup audio on unmount
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
+
+    // Toggle audio playback
+    const togglePlay = (previewUrl?: string) => {
+        if (!previewUrl) return;
+
+        if (isPlaying) {
+            audioRef.current?.pause();
+            setIsPlaying(false);
+        } else {
+            if (!audioRef.current || audioRef.current.src !== previewUrl) {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                }
+                audioRef.current = new Audio(previewUrl);
+                audioRef.current.volume = 0.5;
+                audioRef.current.onended = () => setIsPlaying(false);
+                audioRef.current.onerror = () => setIsPlaying(false);
+            }
+            audioRef.current.play().catch(() => setIsPlaying(false));
+            setIsPlaying(true);
+        }
+    };
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -80,8 +114,11 @@ export default function MyProfilePage() {
 
     const loadProfile = async () => {
         try {
+            console.log('[Profile] Loading profile...');
             const res = await profileApi.getMyProfile();
             const p: UserProfile = res.data;
+            console.log('[Profile] Loaded:', p);
+            console.log('[Profile] Photos:', p.photos);
             setProfile(p);
             setEditForm({
                 display_name: p.display_name || '',
@@ -133,14 +170,42 @@ export default function MyProfilePage() {
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        console.log('[Photo Upload] Starting upload:', file.name);
         setUploading(true);
         try {
+            const photos = profile?.photos || [];
             const res = await profileApi.uploadPhoto(file, photos.length === 0);
+            console.log('[Photo Upload] Success:', res.data);
             setProfile(res.data);
         } catch (err) {
-            console.error('Failed to upload:', err);
+            console.error('[Photo Upload] Failed:', err);
         } finally {
             setUploading(false);
+            // Reset input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
+    // Upload cover photo specifically (always set as cover)
+    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        console.log('[Cover Upload] Starting upload:', file.name, file.size);
+        setUploading(true);
+        try {
+            const res = await profileApi.uploadPhoto(file, true); // Always set as cover
+            console.log('[Cover Upload] Success, new profile:', res.data);
+            setProfile(res.data);
+        } catch (err) {
+            console.error('[Cover Upload] Failed:', err);
+        } finally {
+            setUploading(false);
+            // Reset input to allow re-upload of same file
+            if (coverInputRef.current) {
+                coverInputRef.current.value = '';
+            }
         }
     };
 
@@ -210,8 +275,8 @@ export default function MyProfilePage() {
                         <Frown className="w-8 h-8 text-cocoa" strokeWidth={2.5} />
                     </div>
                     <p className="font-pixel text-cocoa uppercase tracking-widest mb-4">PROFILE NOT FOUND</p>
-                    <button 
-                        onClick={() => router.push('/discover')} 
+                    <button
+                        onClick={() => router.push('/discover')}
                         className="font-pixel text-sm text-cocoa uppercase tracking-wider px-4 py-2 bg-pixel-pink border-3 border-cocoa rounded-lg shadow-pixel-sm hover:bg-pixel-pink-dark active:translate-y-0.5 active:shadow-none transition-all"
                     >
                         ← GO BACK
@@ -222,8 +287,10 @@ export default function MyProfilePage() {
     }
 
     const photos = profile.photos?.sort((a, b) => (a.order || 0) - (b.order || 0)) || [];
-    const coverPhoto = photos[0]?.url;
-    const avatarUrl = photos[0]?.url;
+    // Find cover photo: first look for isCover=true, then fallback to first photo
+    const coverPhotoObj = photos.find(p => p.isCover) || photos[0];
+    const coverPhoto = getAssetUrl(coverPhotoObj?.url);
+    const avatarUrl = getAssetUrl(coverPhotoObj?.url);
 
     const musicData = profile.spotify && 'cover' in profile.spotify
         ? profile.spotify as MusicData
@@ -233,12 +300,22 @@ export default function MyProfilePage() {
 
     return (
         <div className="min-h-screen bg-retro-bg px-4 py-8 flex flex-col items-center gap-8">
+            {/* Hidden file input for general photo upload */}
             <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
                 onChange={handlePhotoUpload}
+            />
+
+            {/* Hidden file input for cover photo upload */}
+            <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleCoverUpload}
             />
 
             {/* Container */}
@@ -253,69 +330,138 @@ export default function MyProfilePage() {
                     stats={stats}
                     uploading={uploading}
                     onEditClick={() => setShowEditModal(true)}
-                    onCoverUploadClick={() => fileInputRef.current?.click()}
+                    onCoverUploadClick={() => coverInputRef.current?.click()}
+                    onAvatarUploadClick={() => coverInputRef.current?.click()}
                 />
 
                 {/* Retro Widgets Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-                    {/* Vinyl Player Widget - Retro Style */}
+                    {/* Vinyl Player Widget - Enhanced Vinyl Disc Style */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.1 }}
                         whileHover={{ scale: 1.02 }}
                         onClick={() => setMusicModalOpen(true)}
-                        className="bg-retro-white p-6 border-3 border-cocoa rounded-xl shadow-pixel flex items-center gap-4 cursor-pointer hover:translate-y-[-2px] hover:shadow-pixel-lg transition-all"
+                        className="bg-retro-white p-6 border-3 border-cocoa rounded-xl shadow-pixel flex items-center gap-5 cursor-pointer hover:translate-y-[-2px] hover:shadow-pixel-lg transition-all"
                     >
                         {musicData ? (
                             <>
-                                <div className="relative">
+                                {/* Vinyl Disc Container */}
+                                <div className="relative flex-shrink-0">
+                                    {/* Outer glow when playing */}
+                                    {isPlaying && (
+                                        <motion.div
+                                            className="absolute inset-[-4px] rounded-full"
+                                            style={{
+                                                background: musicData.analysis?.color
+                                                    ? `radial-gradient(circle, ${musicData.analysis.color}40 0%, transparent 70%)`
+                                                    : 'radial-gradient(circle, rgba(157,214,157,0.3) 0%, transparent 70%)'
+                                            }}
+                                            animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.3, 0.6] }}
+                                            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                                        />
+                                    )}
+
+                                    {/* Vinyl Disc */}
                                     <motion.div
                                         animate={{ rotate: isPlaying ? 360 : 0 }}
                                         transition={{
-                                            duration: 3,
+                                            duration: 4,
                                             repeat: isPlaying ? Infinity : 0,
                                             ease: "linear"
                                         }}
-                                        className="w-16 h-16 rounded-lg bg-cocoa border-3 border-cocoa overflow-hidden flex items-center justify-center"
+                                        className="w-20 h-20 rounded-full relative overflow-hidden border-3 border-cocoa"
+                                        style={{
+                                            boxShadow: isPlaying
+                                                ? `0 4px 20px ${musicData.analysis?.color || 'rgba(157,214,157,0.4)'}`
+                                                : '2px 2px 0px #62544B'
+                                        }}
                                     >
+                                        {/* Album art as vinyl surface */}
                                         {musicData.cover ? (
                                             <img src={musicData.cover} alt="" className="w-full h-full object-cover" />
                                         ) : (
-                                            <Music className="w-6 h-6 text-pixel-pink" />
+                                            <div
+                                                className="w-full h-full flex items-center justify-center"
+                                                style={{
+                                                    background: musicData.analysis?.color
+                                                        ? `linear-gradient(135deg, ${musicData.analysis.color} 0%, ${musicData.analysis.color}88 100%)`
+                                                        : 'linear-gradient(135deg, #9DD69D 0%, #7BC47B 100%)'
+                                                }}
+                                            >
+                                                <Music className="w-8 h-8 text-white/60" />
+                                            </div>
                                         )}
+
+                                        {/* Vinyl grooves overlay */}
+                                        <div
+                                            className="absolute inset-0 rounded-full pointer-events-none"
+                                            style={{
+                                                background: `repeating-radial-gradient(
+                                                    circle at center,
+                                                    transparent 0px,
+                                                    transparent 3px,
+                                                    rgba(0,0,0,0.12) 3px,
+                                                    rgba(0,0,0,0.12) 4px
+                                                )`,
+                                            }}
+                                        />
+
+                                        {/* Center hole */}
+                                        <div
+                                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-retro-white/95 border-2 border-cocoa flex items-center justify-center backdrop-blur-sm"
+                                        >
+                                            <div className="w-2 h-2 rounded-full bg-cocoa/30" />
+                                        </div>
                                     </motion.div>
+
+                                    {/* Play/Pause Button */}
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setIsPlaying(!isPlaying);
+                                            togglePlay(musicData?.previewUrl);
                                         }}
-                                        className="absolute -bottom-1 -right-1 w-7 h-7 bg-pixel-pink border-2 border-cocoa rounded-lg flex items-center justify-center text-cocoa shadow-pixel-sm hover:bg-pixel-pink-dark active:translate-y-0.5 active:shadow-none transition-all"
+                                        className="absolute -bottom-1 -right-1 w-8 h-8 bg-pixel-pink border-2 border-cocoa rounded-full flex items-center justify-center text-cocoa shadow-pixel-sm hover:bg-pixel-pink-dark active:translate-y-0.5 active:shadow-none transition-all z-10"
                                     >
-                                        {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+                                        {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
                                     </button>
                                 </div>
+
+                                {/* Track Info */}
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-body font-bold text-cocoa truncate text-sm flex items-center gap-1">
-                                        <Music className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {musicData.song}
+                                    <p className="font-body font-bold text-cocoa truncate text-sm flex items-center gap-1.5">
+                                        <Music className="w-3.5 h-3.5 flex-shrink-0 text-pixel-pink-dark" strokeWidth={2.5} />
+                                        {musicData.song}
                                     </p>
-                                    <p className="font-body text-cocoa-light text-xs truncate font-bold">
+                                    <p className="font-body text-cocoa-light text-xs truncate font-bold mt-0.5">
                                         {musicData.artist}
                                     </p>
+                                    {musicData.analysis?.mood && (
+                                        <span
+                                            className="inline-flex mt-2 px-2 py-0.5 rounded-md text-[10px] font-bold border border-cocoa text-cocoa"
+                                            style={{ backgroundColor: `${musicData.analysis.color}66` }}
+                                        >
+                                            {musicData.analysis.mood}
+                                        </span>
+                                    )}
                                 </div>
                             </>
                         ) : (
                             <>
-                                <div className="w-16 h-16 rounded-lg bg-retro-bg border-3 border-dashed border-cocoa flex items-center justify-center">
-                                    <Music className="w-6 h-6 text-cocoa-light" />
+                                {/* Empty vinyl placeholder */}
+                                <div className="w-20 h-20 rounded-full bg-retro-bg border-3 border-dashed border-cocoa-light flex items-center justify-center relative">
+                                    <div className="w-6 h-6 rounded-full border-2 border-dashed border-cocoa-light" />
+                                    <Music className="absolute w-6 h-6 text-cocoa-light" />
                                 </div>
                                 <div className="flex-1">
                                     <p className="font-pixel text-cocoa uppercase tracking-wider text-sm">NO MUSIC</p>
-                                    <p className="font-body text-cocoa-light text-xs font-bold">Add your anthem</p>
+                                    <p className="font-body text-cocoa-light text-xs font-bold mt-1">Thêm bài hát yêu thích của bạn</p>
                                 </div>
                             </>
                         )}
                     </motion.div>
+
 
                     {/* Interest Tags (Pixel Badges) */}
                     <motion.div
@@ -351,21 +497,19 @@ export default function MyProfilePage() {
                         <div className="bg-retro-white p-2 border-3 border-cocoa rounded-xl shadow-pixel inline-flex gap-2">
                             <button
                                 onClick={() => setActiveTab('photos')}
-                                className={`px-6 py-3 rounded-lg font-pixel uppercase tracking-wider transition-all border-3 ${
-                                    activeTab === 'photos'
-                                        ? 'bg-pixel-pink border-cocoa shadow-pixel-sm text-cocoa'
-                                        : 'bg-transparent border-transparent text-cocoa-light hover:border-cocoa hover:bg-retro-bg'
-                                } active:translate-y-0.5 active:shadow-none`}
+                                className={`px-6 py-3 rounded-lg font-pixel uppercase tracking-wider transition-all border-3 ${activeTab === 'photos'
+                                    ? 'bg-pixel-pink border-cocoa shadow-pixel-sm text-cocoa'
+                                    : 'bg-transparent border-transparent text-cocoa-light hover:border-cocoa hover:bg-retro-bg'
+                                    } active:translate-y-0.5 active:shadow-none`}
                             >
                                 <Image className="w-4 h-4 inline-block mr-1" strokeWidth={2.5} /> PHOTOS
                             </button>
                             <button
                                 onClick={() => setActiveTab('posts')}
-                                className={`px-6 py-3 rounded-lg font-pixel uppercase tracking-wider transition-all border-3 ${
-                                    activeTab === 'posts'
-                                        ? 'bg-pixel-pink border-cocoa shadow-pixel-sm text-cocoa'
-                                        : 'bg-transparent border-transparent text-cocoa-light hover:border-cocoa hover:bg-retro-bg'
-                                } active:translate-y-0.5 active:shadow-none`}
+                                className={`px-6 py-3 rounded-lg font-pixel uppercase tracking-wider transition-all border-3 ${activeTab === 'posts'
+                                    ? 'bg-pixel-pink border-cocoa shadow-pixel-sm text-cocoa'
+                                    : 'bg-transparent border-transparent text-cocoa-light hover:border-cocoa hover:bg-retro-bg'
+                                    } active:translate-y-0.5 active:shadow-none`}
                             >
                                 <FileText className="w-4 h-4 inline-block mr-1" strokeWidth={2.5} /> POSTS
                             </button>
@@ -383,11 +527,10 @@ export default function MyProfilePage() {
                             <div className="flex justify-end">
                                 <button
                                     onClick={() => setIsEditingPhotos(!isEditingPhotos)}
-                                    className={`px-6 py-2 rounded-lg font-pixel uppercase tracking-wider transition-all border-3 border-cocoa ${
-                                        isEditingPhotos
-                                            ? 'bg-pixel-green text-cocoa shadow-pixel-sm'
-                                            : 'bg-retro-white text-cocoa hover:bg-pixel-blue hover:shadow-pixel-sm'
-                                    } active:translate-y-0.5 active:shadow-none`}
+                                    className={`px-6 py-2 rounded-lg font-pixel uppercase tracking-wider transition-all border-3 border-cocoa ${isEditingPhotos
+                                        ? 'bg-pixel-green text-cocoa shadow-pixel-sm'
+                                        : 'bg-retro-white text-cocoa hover:bg-pixel-blue hover:shadow-pixel-sm'
+                                        } active:translate-y-0.5 active:shadow-none`}
                                 >
                                     {isEditingPhotos ? '✓ DONE' : <><PenLine className="w-4 h-4 inline" strokeWidth={2.5} /> EDIT</>}
                                 </button>

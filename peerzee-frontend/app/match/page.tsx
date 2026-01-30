@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { VideoStage } from "@/components/match/VideoStage";
 import { ChatPanel } from "@/components/match/ChatPanel";
 import { ModeSelector } from "@/components/match/ModeSelector";
@@ -10,7 +11,11 @@ type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 type GenderPref = 'male' | 'female' | 'all';
 
 export default function MatchPage() {
-  const [mode, setMode] = useState<"text" | "video" | null>(null);
+  const searchParams = useSearchParams();
+  const sessionFromUrl = searchParams.get('session');
+  const modeFromUrl = searchParams.get('mode') as 'text' | 'video' | null;
+
+  const [mode, setMode] = useState<"text" | "video" | null>(modeFromUrl);
   const [interests, setInterests] = useState<string[]>([]);
   const [messages, setMessages] = useState<Array<{ sender: "me" | "stranger" | "system"; content: string; timestamp: Date }>>([]);
   const [isMuted, setIsMuted] = useState(false);
@@ -40,6 +45,7 @@ export default function MatchPage() {
     requestNewTopic,
     requestReveal,
     acceptReveal,
+    joinRoom,
   } = useVideoDating();
 
   // Connect on mount
@@ -48,6 +54,18 @@ export default function MatchPage() {
     return () => disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-join room if session param exists
+  useEffect(() => {
+    // We wait for socket to be initialized and connected (state becomes 'idle' after connect)
+    if (sessionFromUrl && socket && state === 'idle') {
+      console.log('🚀 Auto-joining specific room from URL:', sessionFromUrl);
+      const targetMode = modeFromUrl || 'video';
+      setMode(targetMode); // Crucial for UI to switch from ModeSelector to VideoStage
+      joinRoom(sessionFromUrl, targetMode === 'video');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionFromUrl, socket, state]);
 
   // Listen for incoming chat messages
   useEffect(() => {
@@ -69,22 +87,26 @@ export default function MatchPage() {
     };
   }, [socket]);
 
-  const handleStart = (selectedMode: "text" | "video", selectedInterests: string[], intentMode: IntentMode, genderPref: GenderPref) => {
+  const handleStart = (selectedMode: "text" | "video", selectedInterests: string[], intentMode: IntentMode, genderPref: GenderPref, matchingType: 'normal' | 'semantic', searchQuery?: string) => {
     setMode(selectedMode);
     setInterests(selectedInterests);
-    
+
     const enableCamera = selectedMode === "video";
     setIsCameraOff(!enableCamera);
-    
-    // Use the selected intentMode and genderPref
-    joinQueue(intentMode, genderPref, enableCamera);
-    
-    setMessages([{ 
-      sender: "system", 
-      content: selectedMode === "video" 
-        ? "Looking for someone to video chat with..." 
-        : "Looking for someone who likes " + selectedInterests.join(", ") + "...", 
-      timestamp: new Date() 
+
+    // Use the selected intentMode, genderPref, matchingType, and optional query
+    joinQueue(intentMode, genderPref, enableCamera, matchingType, searchQuery);
+
+    setMessages([{
+      sender: "system",
+      content: searchQuery
+        ? `[AI] Searching for: "${searchQuery}"...`
+        : matchingType === 'semantic'
+          ? "[AI] Finding your perfect match..."
+          : selectedMode === "video"
+            ? "Looking for someone to video chat with..."
+            : "Looking for someone who likes " + selectedInterests.join(", ") + "...",
+      timestamp: new Date()
     }]);
   };
 
@@ -131,7 +153,7 @@ export default function MatchPage() {
 
   const handleSendMessage = (message: string) => {
     setMessages([...messages, { sender: "me", content: message, timestamp: new Date() }]);
-    
+
     // Send via socket
     if (socket) {
       console.log('[CHAT] Sending message:', message);

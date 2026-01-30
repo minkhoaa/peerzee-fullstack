@@ -10,8 +10,8 @@ export default function AuthCard({ children }: { children: React.ReactNode }) {
       <div className="fixed bottom-4 right-4 w-16 h-16 bg-pixel-yellow border-3 border-cocoa rounded-lg shadow-pixel opacity-50" />
       
       <div className="w-full max-w-5xl min-h-[600px] bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel-lg overflow-hidden flex flex-col lg:flex-row">
-        {/* Left Panel - Game Start Screen */}
-        <div className="w-full lg:w-1/2 h-64 lg:h-auto bg-pixel-pink border-r-3 border-cocoa relative flex flex-col items-center justify-center p-10 text-center">
+        {/* Left Panel - Game Start Screen (Now Green) */}
+        <div className="w-full lg:w-1/2 h-64 lg:h-auto bg-pixel-green border-r-3 border-cocoa relative flex flex-col items-center justify-center p-10 text-center">
           {/* Scanline Effect */}
           <div className="absolute inset-0 scanlines" />
           
@@ -20,7 +20,7 @@ export default function AuthCard({ children }: { children: React.ReactNode }) {
             <div className="absolute top-8 left-8 w-8 h-8 bg-retro-white border-3 border-cocoa rounded" />
             <div className="absolute top-16 right-12 w-6 h-6 bg-pixel-yellow border-2 border-cocoa rounded" />
             <div className="absolute bottom-12 left-16 w-10 h-10 bg-pixel-blue border-3 border-cocoa rounded" />
-            <div className="absolute bottom-24 right-8 w-5 h-5 bg-pixel-green border-2 border-cocoa rounded" />
+            <div className="absolute bottom-24 right-8 w-5 h-5 bg-pixel-purple border-2 border-cocoa rounded" />
             <div className="absolute top-1/3 right-1/4 w-4 h-4 bg-retro-white border-2 border-cocoa rounded" />
           </div>
 

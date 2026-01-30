@@ -165,11 +165,10 @@ export function VideoStage({
           <>
             <button
               onClick={onToggleMute}
-              className={`p-3 rounded-lg border-2 border-cocoa transition-all shadow-pixel-sm active:translate-y-0.5 active:shadow-none ${
-                isMuted 
-                  ? 'bg-pixel-red text-white' 
+              className={`p-3 rounded-lg border-2 border-cocoa transition-all shadow-pixel-sm active:translate-y-0.5 active:shadow-none ${isMuted
+                  ? 'bg-pixel-red text-white'
                   : 'bg-retro-white text-cocoa hover:bg-pixel-blue'
-              }`}
+                }`}
               title={isMuted ? "Unmute" : "Mute"}
             >
               {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -179,11 +178,10 @@ export function VideoStage({
             {mode === "video" && (
               <button
                 onClick={onToggleCamera}
-                className={`p-3 rounded-lg border-2 border-cocoa transition-all shadow-pixel-sm active:translate-y-0.5 active:shadow-none ${
-                  isCameraOff 
-                    ? 'bg-pixel-red text-white' 
+                className={`p-3 rounded-lg border-2 border-cocoa transition-all shadow-pixel-sm active:translate-y-0.5 active:shadow-none ${isCameraOff
+                    ? 'bg-pixel-red text-white'
                     : 'bg-retro-white text-cocoa hover:bg-pixel-blue'
-                }`}
+                  }`}
                 title={isCameraOff ? "Turn on camera" : "Turn off camera"}
               >
                 {isCameraOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
@@ -255,14 +253,14 @@ function SearchingPlaceholder({ isSearching, interests }: { isSearching: boolean
       </div>
 
       {/* Cute Animation */}
-      <div className="text-5xl animate-bounce">🧸</div>
+
     </div>
   );
 }
 
 function PlaceholderContent({ mode, state, interests }: { mode: "text" | "video"; state: VideoDatingState; interests: string[] }) {
   const isSearching = state === 'searching';
-  
+
   if (mode === "text" && (state === 'matched' || state === 'connected')) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-6 p-8">

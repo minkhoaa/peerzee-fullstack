@@ -26,8 +26,8 @@
   --color-cocoa-light: #8E8279;        /* Lighter Taupe (Secondary Text) */
   
   /* ACCENTS (Adjusted for cool tones) */
-  --color-pixel-pink: #F4AAB9;         /* Cooler Pink (Primary Action) */
-  --color-pixel-pink-dark: #E08A9B;    /* Hover State */
+  --color-pixel-pink: #9DD69D;         /* Fresh Green (Primary Action - was pink) */
+  --color-pixel-pink-dark: #7BC47B;    /* Darker Green Hover State */
   --color-pixel-blue: #B8E4F0;         /* Cooler Blue */
   --color-pixel-green: #9DD69D;        /* Fresh Green (Success/Online) */
   --color-pixel-red: #F08080;          /* Softer Red (Error/Danger) */
@@ -44,7 +44,7 @@
   --shadow-pixel-sm: 2px 2px 0px #62544B;
   --shadow-pixel-lg: 6px 6px 0px #62544B;
   --shadow-pixel-inset: inset 2px 2px 0px rgba(98, 84, 75, 0.2);
-  --shadow-pixel-pink: 4px 4px 0px #E08A9B;
+  --shadow-pixel-pink: 4px 4px 0px #7BC47B;  /* Now green shadow */
   --shadow-wood: 0 4px 0px #2A1F17;    /* Wood plank shadow */
   
   /* BORDER WIDTH */

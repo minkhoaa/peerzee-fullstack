@@ -20,6 +20,7 @@ import { TypingDto } from './dto/typing.dto';
 import { DeleteMessageDto, EditMessageDto } from './dto/edit-message.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { PresenceService } from '../redis/presence.service';
+import { NotificationService } from '../notification/notification.service';
 
 @WebSocketGateway({
   namespace: '/socket/chat',
@@ -35,6 +36,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly chatService: ChatService,
     private readonly userService: UserService,
     private readonly presenceService: PresenceService,
+    private readonly notificationService: NotificationService,
     private readonly orm: MikroORM,
   ) { }
 
@@ -91,6 +93,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     }
   }
   afterInit(server: Server) {
+    // Set socket server on NotificationService for real-time notifications
+    this.notificationService.setSocketServer(server);
+    
     server.use(async (socket, next) => {
       try {
         const token =

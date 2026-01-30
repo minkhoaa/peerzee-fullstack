@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Camera, Check, X, Star, MessageSquareText, Eye, Loader2, MapPin, Briefcase, Bot } from 'lucide-react';
-import { chatApi, userApi } from '@/lib/api';
+import { chatApi, userApi, getAssetUrl } from '@/lib/api';
 
 interface UserProfileData {
     id: string;
@@ -95,7 +95,7 @@ export default function UserProfilePage() {
     }
 
     const photos = profile.photos?.sort((a, b) => (a.order || 0) - (b.order || 0)) || [];
-    const coverPhoto = photos[0]?.url;
+    const coverPhoto = getAssetUrl(photos[0]?.url);
 
     return (
         <div className="min-h-screen bg-retro-bg">
@@ -206,7 +206,7 @@ export default function UserProfilePage() {
                         <div className="-mt-10 mb-3">
                             <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-pixel-pink to-pixel-yellow flex items-center justify-center text-cocoa text-2xl font-pixel font-bold border-3 border-cocoa">
                                 {photos.length > 0 ? (
-                                    <img src={photos[0].url} alt="" className="w-full h-full object-cover rounded-lg" />
+                                    <img src={getAssetUrl(photos[0].url)} alt="" className="w-full h-full object-cover rounded-lg" />
                                 ) : (
                                     profile.display_name?.charAt(0)?.toUpperCase() || '?'
                                 )}
@@ -299,7 +299,7 @@ export default function UserProfilePage() {
                         <div className="grid grid-cols-3 gap-2">
                             {photos.map((photo, i) => (
                                 <div key={i} className="aspect-square rounded-lg overflow-hidden bg-cocoa/10 border-2 border-cocoa shadow-pixel-sm">
-                                    <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                                    <img src={getAssetUrl(photo.url)} alt="" className="w-full h-full object-cover" />
                                 </div>
                             ))}
                         </div>

@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { SocialPost, SocialComment, SocialLike, SocialVote } from './entities';
 import { CreatePostDto, CreateCommentDto, GetFeedDto } from './dto';
 import { User } from '../user/entities/user.entity';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/entities/notification.entity';
 
 // Response interfaces
 export interface PostWithMeta {
@@ -49,6 +51,8 @@ export class CommunityService {
         @InjectRepository(User)
         private readonly userRepo: EntityRepository<User>,
         private readonly em: EntityManager,
+        @Inject(forwardRef(() => NotificationService))
+        private readonly notificationService: NotificationService,
     ) { }
 
     /**
@@ -220,16 +224,32 @@ export class CommunityService {
             user: { id: userId }, post: { id: postId },
         });
 
+        const post = await this.postRepo.findOne({ id: postId }, { populate: ['author', 'author.profile'] });
+        const liker = await this.userRepo.findOne({ id: userId }, { populate: ['profile'] });
+
         if (existingVote && existingVote.value === 1) {
             // Unlike - remove upvote
             await this.vote(userId, postId, 0);
-            const post = await this.postRepo.findOne({ id: postId });
-            return { liked: false, likesCount: post?.score || 0 };
+            const updatedPost = await this.postRepo.findOne({ id: postId });
+            return { liked: false, likesCount: updatedPost?.score || 0 };
         } else {
             // Like - add upvote
             await this.vote(userId, postId, 1);
-            const post = await this.postRepo.findOne({ id: postId });
-            return { liked: true, likesCount: post?.score || 0 };
+            const updatedPost = await this.postRepo.findOne({ id: postId });
+
+            // Create notification for post author (if not liking own post)
+            if (post && post.author && post.author.id !== userId) {
+                const likerName = liker?.profile?.display_name || liker?.email?.split('@')[0] || 'Someone';
+                await this.notificationService.createAndEmit(
+                    post.author.id,
+                    NotificationType.LIKE_POST,
+                    'Có người thích bài viết của bạn',
+                    `${likerName} đã thích bài viết của bạn`,
+                    { postId, userId, userName: likerName },
+                );
+            }
+
+            return { liked: true, likesCount: updatedPost?.score || 0 };
         }
     }
 
@@ -258,6 +278,21 @@ export class CommunityService {
 
         // Load author relation
         await this.em.populate(comment, ['author', 'author.profile']);
+        
+        // Load post author for notification
+        await this.em.populate(post, ['author']);
+
+        // Create notification for post author (if not commenting on own post)
+        if (post.author && post.author.id !== userId) {
+            const commenterName = author?.profile?.display_name || author?.email?.split('@')[0] || 'Someone';
+            await this.notificationService.createAndEmit(
+                post.author.id,
+                NotificationType.COMMENT,
+                'Có người bình luận bài viết của bạn',
+                `${commenterName} đã bình luận: "${dto.content.substring(0, 50)}${dto.content.length > 50 ? '...' : ''}"`,
+                { postId, userId, userName: commenterName, commentId: comment.id },
+            );
+        }
 
         return comment;
     }

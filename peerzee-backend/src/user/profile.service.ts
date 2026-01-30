@@ -168,19 +168,26 @@ export class ProfileService {
         }
 
         const photos = profile.photos || [];
+        const isCover = dto.isCover || photos.length === 0; // First photo is cover by default
+        
         const newPhoto: ProfilePhoto = {
             id: uuidv4(),
             url: dto.url,
-            isCover: dto.isCover || photos.length === 0, // First photo is cover by default
-            order: photos.length,
+            isCover: isCover,
+            order: isCover ? 0 : photos.length, // Cover photo goes first
         };
 
-        // If this is marked as cover, unset others
-        if (newPhoto.isCover) {
-            photos.forEach((p) => (p.isCover = false));
+        // If this is marked as cover, unset others and reorder
+        if (isCover) {
+            photos.forEach((p) => {
+                p.isCover = false;
+                p.order = (p.order || 0) + 1; // Shift all existing photos down
+            });
+            photos.unshift(newPhoto); // Add new cover at beginning
+        } else {
+            photos.push(newPhoto);
         }
 
-        photos.push(newPhoto);
         profile.photos = photos;
 
         await this.em.persistAndFlush(profile);

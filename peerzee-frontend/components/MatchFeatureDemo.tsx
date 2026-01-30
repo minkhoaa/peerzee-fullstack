@@ -37,7 +37,6 @@ interface ProfilePhoto {
 
 interface ProfilePrompt {
     id: string;
-    emoji: string;
     question: string;
     answer: string;
 }
@@ -85,13 +84,11 @@ const MOCK_PROFILES: UserProfile[] = [
         prompts: [
             {
                 id: 'pr1-1',
-                emoji: '',
                 question: 'My zombie apocalypse plan...',
                 answer: 'Find a Starbucks, barricade the doors, and live off espresso until help arrives. Priorities, right?',
             },
             {
                 id: 'pr1-2',
-                emoji: '',
                 question: 'A goal I\'m working towards...',
                 answer: 'Building a design portfolio that makes recruiters say "we need her, not just want her."',
             },
@@ -115,13 +112,11 @@ const MOCK_PROFILES: UserProfile[] = [
         prompts: [
             {
                 id: 'pr2-1',
-                emoji: '',
                 question: 'The way to my heart is...',
                 answer: 'A perfectly optimized SQL query. Or tacos. Probably tacos.',
             },
             {
                 id: 'pr2-2',
-                emoji: '',
                 question: 'I\'m looking for someone who...',
                 answer: 'Can explain complex topics simply, laughs at my puns, and doesn\'t mind weekend hiking trips.',
             },
@@ -144,7 +139,6 @@ const MOCK_PROFILES: UserProfile[] = [
         prompts: [
             {
                 id: 'pr3-1',
-                emoji: '',
                 question: 'My simple pleasures...',
                 answer: 'Morning pho, perfectly synced calendars, and that feeling when a feature ships with zero bugs.',
             },
@@ -166,7 +160,6 @@ const MOCK_PROFILES: UserProfile[] = [
         prompts: [
             {
                 id: 'pr4-1',
-                emoji: '🤖',
                 question: 'Unpopular opinion I have...',
                 answer: 'AI won\'t replace developers—developers who use AI will replace those who don\'t.',
             },
@@ -314,7 +307,6 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
             type: 'photo',
             contentId: currentPhoto.id,
             preview: `${profile.name}'s photo`,
-            emoji: '',
         });
     };
 
@@ -323,7 +315,6 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
             type: 'prompt',
             contentId: prompt.id,
             preview: prompt.answer,
-            emoji: prompt.emoji,
         });
     };
 
@@ -332,7 +323,6 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
             type: 'vibe',
             contentId: `chip-${chip}`,
             preview: chip,
-            emoji: '',
         });
     };
 
@@ -488,8 +478,8 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                                         key={chip}
                                         onClick={() => handleChipClick(chip)}
                                         className={`group px-3 py-1.5 text-sm rounded-lg border-2 transition-all hover:scale-105 font-bold ${isCommon
-                                                ? 'bg-pixel-pink text-cocoa border-cocoa hover:shadow-pixel-sm'
-                                                : 'bg-retro-paper text-cocoa border-cocoa hover:bg-pixel-yellow'
+                                            ? 'bg-pixel-pink text-cocoa border-cocoa hover:shadow-pixel-sm'
+                                            : 'bg-retro-paper text-cocoa border-cocoa hover:bg-pixel-yellow'
                                             }`}
                                     >
                                         <span className="flex items-center gap-1.5">
@@ -519,7 +509,6 @@ function ProfileCard({ profile, isTop, onSwipe, onEngagement, compatibilityScore
                                 onClick={() => handlePromptClick(prompt)}
                                 className="w-full text-left bg-retro-paper border-3 border-cocoa rounded-xl p-4 flex gap-3 hover:bg-pixel-yellow hover:shadow-pixel-sm transition-all group"
                             >
-                                <span className="text-2xl flex-shrink-0">{prompt.emoji}</span>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-bold text-cocoa mb-1">{prompt.question}</p>
                                     <p className="text-sm text-cocoa-light leading-relaxed font-bold">{prompt.answer}</p>
@@ -782,10 +771,10 @@ export default function MatchFeatureDemo() {
                             <div
                                 key={i}
                                 className={`w-2 h-2 rounded-lg transition-colors border border-cocoa/50 ${i === currentIndex
-                                        ? 'bg-pixel-pink'
-                                        : i < currentIndex
-                                            ? 'bg-pixel-yellow'
-                                            : 'bg-retro-paper'
+                                    ? 'bg-pixel-pink'
+                                    : i < currentIndex
+                                        ? 'bg-pixel-yellow'
+                                        : 'bg-retro-paper'
                                     }`}
                             />
                         ))}
