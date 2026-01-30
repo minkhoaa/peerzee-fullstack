@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { UserProfile } from '../user/entities/user-profile.entity';
 import { AgentsController } from './agents.controller';
 import { MatchWorkflow } from './workflow';
 import { MatchNodes } from './matchNodes';
@@ -16,6 +18,7 @@ import { AiModule } from '../ai/ai.module';
         }),
         DiscoverModule,
         AiModule,
+        MikroOrmModule.forFeature([UserProfile]),
     ],
     controllers: [AgentsController],
     providers: [MatchWorkflow, MatchNodes, AgentMatchQueueService, MatchQueueGateway],

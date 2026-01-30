@@ -11,6 +11,7 @@ export interface QueuedUser {
         location: string | null;
         semantic_topic: string;
     };
+    userGender?: string | null;
     timestamp: Date;
     socketId: string;
     embedding?: number[];
@@ -53,52 +54,66 @@ export class AgentMatchQueueService {
 
     /**
      * Find compatible match in queue using semantic similarity
+     * This should be synchronous if possible to avoid race conditions
      */
-    async findCompatibleMatch(newUser: Omit<QueuedUser, 'status'>): Promise<QueuedUser | null> {
-        const waitingUsers = Array.from(this.queue.values()).filter(
-            u => u.status === 'WAITING' && u.userId !== newUser.userId
-        );
+    findCompatibleMatchSynchronous(newUser: Omit<QueuedUser, 'status'> & { embedding: number[] }): QueuedUser | null {
+        const waitingUsers = Array.from(this.queue.values())
+            .filter(u => u.status === 'WAITING' && u.userId !== newUser.userId)
+            .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
         if (waitingUsers.length === 0) {
             return null;
         }
 
-        // Generate embedding for new user
-        if (!newUser.embedding) {
-            newUser.embedding = await this.aiService.generateEmbedding(newUser.query);
-        }
-
         let bestMatch: QueuedUser | null = null;
         let highestScore = 0;
 
+        this.logger.log(`🔍 Checking matches for user ${newUser.userId}. Queue size: ${waitingUsers.length}`);
+
         for (const queuedUser of waitingUsers) {
-            // Skip self
-            if (queuedUser.userId === newUser.userId) continue;
+            this.logger.log(`  -> Evaluating candidate ${queuedUser.userId}`);
 
             // Check filter compatibility
-            if (!this.areFiltersCompatible(newUser.filters, queuedUser.filters)) {
+            const filtersCompatible = this.areFiltersCompatible(newUser as any, queuedUser);
+            if (!filtersCompatible) {
+                this.logger.log(`     ❌ Filters incompatible: ${JSON.stringify(newUser.filters)} vs ${JSON.stringify(queuedUser.filters)}`);
                 continue;
             }
 
             // Calculate semantic similarity
             const similarity = this.cosineSimilarity(
-                newUser.embedding!,
+                newUser.embedding,
                 queuedUser.embedding!
             );
 
-            this.logger.debug(`Similarity with ${queuedUser.userId}: ${similarity}`);
+            this.logger.log(`     ✅ Filters OK. Similarity: ${similarity.toFixed(4)} (Threshold: 0.6)`);
 
-            if (similarity > highestScore && similarity > 0.7) {
+            if (similarity > highestScore && similarity > 0.6) {
                 highestScore = similarity;
                 bestMatch = queuedUser;
             }
         }
 
         if (bestMatch) {
-            this.logger.log(`Match found! Similarity: ${highestScore}`);
+            this.logger.log(`🎉 Match found! ${newUser.userId} <-> ${bestMatch.userId} (Similarity: ${highestScore.toFixed(4)})`);
+            // Mark as pending immediately to prevent others from matching
+            bestMatch.status = 'MATCH_PENDING';
+        } else {
+            this.logger.log(`🚫 No compatible match found for user ${newUser.userId}`);
         }
 
         return bestMatch;
+    }
+
+    /**
+     * Legacy async version (deprecated, use synchronous version with pre-generated embedding)
+     */
+    async findCompatibleMatch(newUser: Omit<QueuedUser, 'status'>): Promise<QueuedUser | null> {
+        let embedding = newUser.embedding;
+        if (!embedding) {
+            embedding = await this.aiService.generateEmbedding(newUser.query);
+        }
+        return this.findCompatibleMatchSynchronous({ ...newUser, embedding } as any);
     }
 
     /**
@@ -219,17 +234,40 @@ export class AgentMatchQueueService {
      * Check if filters are compatible between two users
      */
     private areFiltersCompatible(
-        f1: QueuedUser['filters'],
-        f2: QueuedUser['filters']
+        u1: Omit<QueuedUser, 'status'>,
+        u2: Omit<QueuedUser, 'status'>
     ): boolean {
-        // Gender compatibility
-        if (f1.gender && f2.gender && f1.gender === f2.gender) {
-            return false;
+        const f1 = u1.filters;
+        const f2 = u2.filters;
+
+        // Diagnostic log - using log instead of debug for guaranteed visibility
+        this.logger.log(`      [COMPAT_CHECK] U1(${u1.userId.substring(0, 8)}) seeking=${f1.gender}, is=${u1.userGender} | U2(${u2.userId.substring(0, 8)}) seeking=${f2.gender}, is=${u2.userGender}`);
+
+        // 1. Reciprocal Gender Check
+        // If U1 is looking for a gender (e.g. MALE), U2 must be that gender
+        if (f1.gender && u2.userGender) {
+            if (f1.gender.toUpperCase() !== u2.userGender.toUpperCase()) {
+                this.logger.log(`      ❌ Gender mismatch: U1 wants ${f1.gender}, but U2 is ${u2.userGender}`);
+                return false;
+            }
         }
 
-        // Location compatibility
-        if (f1.location && f2.location && f1.location !== f2.location) {
-            return false;
+        // If U2 is looking for a gender, U1 must be that gender
+        if (f2.gender && u1.userGender) {
+            if (f2.gender.toUpperCase() !== u1.userGender.toUpperCase()) {
+                this.logger.log(`      ❌ Gender mismatch: U2 wants ${f2.gender}, but U1 is ${u1.userGender}`);
+                return false;
+            }
+        }
+
+        // 2. Location compatibility (case-insensitive, trimmed)
+        if (f1.location && f2.location) {
+            const loc1 = f1.location.trim().toLowerCase();
+            const loc2 = f2.location.trim().toLowerCase();
+            if (loc1 !== loc2) {
+                this.logger.log(`      ❌ Location mismatch: "${loc1}" vs "${loc2}"`);
+                return false;
+            }
         }
 
         return true;

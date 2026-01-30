@@ -23,23 +23,26 @@ export class MatchNodes {
     async parseIntentNode(state: MatchState): Promise<Partial<MatchState>> {
         this.logger.log(`[PARSE] Processing: "${state.userQuery}"`);
 
-        const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-        const prompt = `You are a smart query parser for a dating/friend-finding app.
+        const prompt = `Analyze this search query for a social/dating app: "${state.userQuery}"
 
-Extract structured data from this Vietnamese query: "${state.userQuery}"
-
-Return ONLY this JSON (no markdown):
-{
-  "gender": "MALE" | "FEMALE" | null,
-  "location": "<city name in Vietnamese or null>",
-  "semantic_topic": "<the core interests/vibes they're looking for, in Vietnamese>"
-}
+Extract structured data into JSON:
+- gender: "MALE" | "FEMALE" | null. 
+  CRITICAL: ONLY extract if the user EXPLICITLY requests a gender (e.g., "tìm bạn nữ", "kiếm anh nào", "looking for a girl"). 
+  If they just describe interests (e.g., "thích code", "tìm người học cùng"), return null.
+- location: string | null.
+  CRITICAL: ONLY extract if a city/location is EXPLICITLY mentioned (e.g., "ở Hà Nội", "Sài Gòn", "in Đà Nẵng"). 
+  If no location is mentioned, return null. DO NOT guess based on the language.
+- semantic_topic: string. 
+  The core interests, hobbies, or purpose of the search in Vietnamese.
 
 Examples:
 - "Tìm bạn nữ ở Hà Nội thích cafe" → {"gender": "FEMALE", "location": "Hà Nội", "semantic_topic": "thích cafe, chill"}
-- "Người yêu code và game" → {"gender": null, "location": null, "semantic_topic": "code, game, tech"}
-- "Bạn nam Sài Gòn học AI" → {"gender": "MALE", "location": "Sài Gòn", "semantic_topic": "AI, học tập, công nghệ"}`;
+- "Người yêu code và game" → {"gender": null, "location": null, "semantic_topic": "code, game, công nghệ"}
+- "Bạn nam Sài Gòn học AI" → {"gender": "MALE", "location": "Sài Gòn", "semantic_topic": "AI, học tập"}
+
+Return ONLY the JSON. No markdown, no explanation.`;
 
         try {
             const result = await model.generateContent(prompt);

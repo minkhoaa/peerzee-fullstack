@@ -253,18 +253,17 @@ Keep it under 50 words. No emojis at the start. Casual and fun tone.`;
         try {
             const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-            const prompt = `Analyze this search query: "${userQuery}"
+            const prompt = `Analyze this search query for a social/dating app: "${userQuery}"
 
-Extract JSON with these fields:
-- gender: "MALE" | "FEMALE" | null (based on keywords like "nam", "nữ", "male", "female", "boy", "girl")
-- city: string | null (Vietnamese city names like "Hà Nội", "Hồ Chí Minh", "Đà Nẵng", etc.)
-- intent: "FRIEND" | "DATE" | "STUDY" | null (based on keywords like "bạn học"="STUDY", "hẹn hò"/"tình yêu"="DATE", "kết bạn"="FRIEND")
-- semantic_text: string (keywords for semantic search, translate Vietnamese to English if needed, focus on interests/personality/profession)
-
-Examples:
-- "Tìm bạn nữ học AI ở Hà Nội" -> {"gender":"FEMALE","city":"Hà Nội","intent":"STUDY","semantic_text":"AI machine learning study partner"}
-- "Nam thích gym Sài Gòn" -> {"gender":"MALE","city":"Hồ Chí Minh","intent":null,"semantic_text":"gym fitness workout"}
-- "Người thích code và coffee" -> {"gender":null,"city":null,"intent":null,"semantic_text":"coding programming coffee developer"}
+Extract structured data into JSON:
+- gender: "MALE" | "FEMALE" | null. 
+  CRITICAL: ONLY extract if the user EXPLICITLY mentions a gender preference (e.g., "tìm bạn nữ", "looking for a girl"). 
+  Otherwise, return null.
+- city: string | null.
+  CRITICAL: ONLY extract if a city is EXPLICITLY mentioned (e.g., "ở Hà Nội", "in Saigon"). 
+  Otherwise, return null. DO NOT guess.
+- intent: "FRIEND" | "DATE" | "STUDY" | null.
+- semantic_text: string. Briefly translate interests to English keywords for better search.
 
 Return ONLY raw JSON, no markdown, no explanation.`;
 

@@ -293,28 +293,17 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
                     const targetUserId = ragResult.finalMatch.profile.id;
                     this.logger.log(`✅ RAG found match: ${targetUserId}`);
 
+                    // SAFETY: Check if CURRENT user is still in queue after await
+                    if (!this.videoDatingService.isInQueue(userId)) {
+                        this.logger.log(`User ${userId} was already matched while awaiting RAG. Stopping...`);
+                        return { ok: true, matched: true };
+                    }
+
                     // Check if target user is in queue
                     const targetInQueue = this.videoDatingService.getQueueEntry(targetUserId);
 
                     if (targetInQueue) {
                         this.logger.log(`🎉 Target user ${targetUserId} is in queue! Creating session...`);
-                        // Add current user to queue first
-                        this.videoDatingService.addToQueue({
-                            userId,
-                            socketId: client.id,
-                            intentMode: dto.intentMode,
-                            genderPreference: dto.genderPreference || 'all',
-                            gender: profile?.gender,
-                            displayName: profile?.display_name,
-                            embedding,
-                            bio: profile?.bio,
-                            tags: profile?.tags,
-                            age: profile?.age,
-                            latitude: profile?.latitude,
-                            longitude: profile?.longitude,
-                            joinedAt: new Date(),
-                        });
-
                         // Match with target user
                         await this.createVideoSession(userId, client.id, targetInQueue.userId, targetInQueue.socketId, dto.intentMode);
                         this.broadcastQueueSize();
@@ -332,6 +321,12 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
 
         // Broadcast updated queue size to all connected clients
         this.broadcastQueueSize();
+
+        // 🛡️ SAFETY CHECK: Is user still in queue after any awaits above?
+        if (!this.videoDatingService.isInQueue(userId)) {
+            this.logger.log(`User ${userId} already matched by someone else during initial phase.`);
+            return { ok: true, matched: true };
+        }
 
         // Try to find match based on matching type
         const useSemantic = dto.matchingType !== 'normal';
