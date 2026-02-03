@@ -42,9 +42,9 @@ export class User {
   @Property({ fieldName: 'is_incognito', type: 'boolean', default: false })
   isIncognito: boolean = false;
 
-  // Safety: Blocked user IDs - stored as PostgreSQL text[] array
+  // Safety: Blocked user IDs - stored as PostgreSQL jsonb (for compatibility with existing data)
   @ApiProperty({ description: 'List of blocked user IDs' })
-  @Property({ fieldName: 'blocked_user_ids', type: ArrayType, nullable: true, default: [] })
+  @Property({ fieldName: 'blocked_user_ids', type: 'jsonb', nullable: true, default: [] })
   blockedUserIds: string[] = [];
 
   @OneToOne(() => UserProfile, (profile) => profile.user, { mappedBy: 'user' })

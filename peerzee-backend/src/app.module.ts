@@ -80,30 +80,24 @@ export class AppModule implements OnModuleInit {
     }
 
     try {
-      // Fix users.blocked_user_ids type mismatch (jsonb -> text[])
-      // First make it nullable, then convert type
+      // Fix users.blocked_user_ids - ensure it's nullable jsonb with default
+      // No type conversion needed since we're now using jsonb in entity
       await connection.execute(`
         ALTER TABLE users 
         ALTER COLUMN blocked_user_ids DROP NOT NULL
       `);
       await connection.execute(`
         ALTER TABLE users 
-        ALTER COLUMN blocked_user_ids TYPE text[] 
-        USING CASE 
-          WHEN blocked_user_ids IS NULL THEN '{}'::text[]
-          WHEN jsonb_typeof(blocked_user_ids) = 'array' THEN 
-            ARRAY(SELECT jsonb_array_elements_text(blocked_user_ids))
-          ELSE '{}'::text[]
-        END
+        ALTER COLUMN blocked_user_ids SET DEFAULT '[]'::jsonb
       `);
+      // Fix null values to empty array
       await connection.execute(`
-        ALTER TABLE users 
-        ALTER COLUMN blocked_user_ids SET DEFAULT '{}'
+        UPDATE users SET blocked_user_ids = '[]'::jsonb WHERE blocked_user_ids IS NULL
       `);
-      console.log('✅ Auto-fixed users.blocked_user_ids column type');
+      console.log('✅ Auto-fixed users.blocked_user_ids column');
     } catch (e: any) {
       // Ignore if already fixed or table doesn't exist
-      if (!e.message.includes('does not exist') && !e.message.includes('already') && !e.message.includes('text[]')) {
+      if (!e.message.includes('does not exist')) {
         // console.warn('blocked_user_ids fix skipped:', e.message);
       }
     }
@@ -154,6 +148,22 @@ export class AppModule implements OnModuleInit {
       await connection.execute(`
         ALTER TABLE user_profiles 
         ADD COLUMN IF NOT EXISTS last_active timestamp
+      `);
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS embedding_updated_at timestamp
+      `);
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS city varchar(100)
+      `);
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS region varchar(100)
+      `);
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS country varchar(2)
       `);
       console.log('✅ Auto-fixed user_profiles missing columns');
     } catch (e: any) {
