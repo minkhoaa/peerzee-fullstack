@@ -102,7 +102,7 @@ export default function UserProfilePage() {
             {/* Header - Wooden Beam Style */}
             <header className="sticky top-0 z-30 bg-wood-dark border-b-4 border-wood-shadow shadow-wood relative">
                 {/* Wood grain texture overlay */}
-                <div 
+                <div
                     className="absolute inset-0 opacity-10 pointer-events-none"
                     style={{
                         backgroundImage: `repeating-linear-gradient(
@@ -191,24 +191,26 @@ export default function UserProfilePage() {
                 {/* Profile Card */}
                 <div className="bg-retro-white rounded-xl overflow-hidden border-3 border-cocoa shadow-pixel">
                     {/* Cover Photo */}
-                    <div className="h-32 bg-gradient-to-r from-pixel-pink to-pixel-yellow relative">
+                    <div className="h-40 bg-gradient-to-r from-pixel-pink to-pixel-yellow relative overflow-hidden">
                         {coverPhoto && (
-                            <img src={coverPhoto} alt="" className="w-full h-full object-cover opacity-50" />
+                            <img src={coverPhoto} alt="" className="w-full h-full object-cover" />
                         )}
-                        <button className="absolute bottom-3 right-3 p-2 bg-retro-white/80 rounded-lg text-cocoa hover:bg-pixel-yellow transition-colors border-2 border-cocoa shadow-pixel-sm">
+                        <button className="absolute bottom-3 right-3 p-2 bg-retro-white/90 rounded-lg text-cocoa hover:bg-pixel-yellow transition-colors border-2 border-cocoa shadow-pixel-sm z-10">
                             <Camera className="w-4 h-4" />
                         </button>
                     </div>
 
                     {/* Avatar & Info */}
                     <div className="px-4 pb-4">
-                        {/* Avatar */}
-                        <div className="-mt-10 mb-3">
-                            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-pixel-pink to-pixel-yellow flex items-center justify-center text-cocoa text-2xl font-pixel font-bold border-3 border-cocoa">
+                        {/* Avatar - positioned to overlap cover */}
+                        <div className="-mt-12 mb-3 relative z-10">
+                            <div className="w-24 h-24 rounded-xl bg-retro-white flex items-center justify-center text-cocoa text-2xl font-pixel font-bold border-4 border-cocoa shadow-pixel overflow-hidden">
                                 {photos.length > 0 ? (
-                                    <img src={getAssetUrl(photos[0].url)} alt="" className="w-full h-full object-cover rounded-lg" />
+                                    <img src={getAssetUrl(photos[0].url)} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                    profile.display_name?.charAt(0)?.toUpperCase() || '?'
+                                    <div className="w-full h-full bg-gradient-to-br from-pixel-pink to-pixel-yellow flex items-center justify-center">
+                                        {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
+                                    </div>
                                 )}
                             </div>
                         </div>

@@ -63,6 +63,7 @@ export interface CommentAuthor {
     id: string;
     email: string;
     display_name?: string;
+    avatar?: string;
 }
 
 export interface Comment {
@@ -70,6 +71,8 @@ export interface Comment {
     content: string;
     createdAt: string;
     author: CommentAuthor;
+    likesCount?: number;
+    isLiked?: boolean;
 }
 
 export interface CommentsResponse {
@@ -194,4 +197,5 @@ export interface SuggestedUser {
     email: string;
     display_name: string;
     bio?: string;
+    avatar?: string;
 }

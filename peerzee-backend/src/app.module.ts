@@ -1,7 +1,9 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { MikroORM } from '@mikro-orm/core';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -21,6 +23,14 @@ import config from './mikro-orm.config';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    // Serve uploaded files (images, videos) from /uploads path
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
+      serveStaticOptions: {
+        index: false,
+      },
     }),
     MikroOrmModule.forRoot(config),
     RedisModule,

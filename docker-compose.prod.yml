@@ -1,12 +1,20 @@
-# Production docker-compose - with PostgreSQL container
+# ============================================
+# 🚀 PEERZEE PRODUCTION DOCKER COMPOSE
+# ============================================
+# Docker Hub: tukhoa040505/peerzee
+# Run: docker-compose -f docker-compose.prod.yml up -d
+
 services:
+  # ============================================
+  # 🗄️ POSTGRESQL WITH PGVECTOR
+  # ============================================
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: peerzee-postgres
     environment:
-      POSTGRES_USER: peerzee
-      POSTGRES_PASSWORD: peerzee
-      POSTGRES_DB: peerzee-db
+      POSTGRES_USER: ${DB_USERNAME:-peerzee}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-peerzee}
+      POSTGRES_DB: ${DB_DATABASE:-peerzee-db}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -16,42 +24,89 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # ============================================
+  # 🔴 REDIS FOR REAL-TIME & CACHING
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: peerzee-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    networks:
+      - peerzee-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # ⚙️ NESTJS BACKEND API
+  # ============================================
   backend:
     build:
       context: ./peerzee-backend
       dockerfile: Dockerfile
+    image: tukhoa040505/peerzee-backend:latest
     container_name: peerzee-backend
     env_file:
       - ./peerzee-backend/.env
     environment:
-      # Override to use postgres container
+      NODE_ENV: production
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USERNAME: peerzee
-      DB_PASSWORD: peerzee
-      DB_DATABASE: peerzee-db
       DB_SSL: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     ports:
       - "9000:9000"
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - peerzee-network
-    restart: unless-stopped
-    volumes:
-      - ./peerzee-backend/uploads:/app/uploads
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # ============================================
+  # 🌐 NEXTJS FRONTEND
+  # ============================================
   frontend:
     build:
       context: ./peerzee-frontend
       dockerfile: Dockerfile
       args:
-        # PRODUCTION: empty for nginx proxy
         NEXT_PUBLIC_API_URL: ""
         NEXT_PUBLIC_SOCKET_URL: ""
+    image: tukhoa040505/peerzee-frontend:latest
     container_name: peerzee-frontend
     environment:
       NODE_ENV: production
@@ -61,11 +116,57 @@ services:
       - backend
     networks:
       - peerzee-network
-    restart: unless-stopped
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # ============================================
+  # 🔄 WATCHTOWER - AUTO-UPDATER
+  # ============================================
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 60 --cleanup peerzee-backend peerzee-frontend
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+      - WATCHTOWER_POLL_INTERVAL=60
+      - WATCHTOWER_ROLLING_RESTART=true
+    networks:
+      - peerzee-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+# ============================================
+# 💾 VOLUMES
+# ============================================
 volumes:
   pgdata:
+    name: peerzee_pgdata
+  redisdata:
+    name: peerzee_redisdata
+  uploads:
+    name: peerzee_uploads
 
+# ============================================
+# 🌐 NETWORKS
+# ============================================
 networks:
   peerzee-network:
     driver: bridge
+    name: peerzee_network

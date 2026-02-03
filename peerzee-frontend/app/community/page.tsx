@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, RefreshCw } from 'lucide-react';
-import type { Post, User as UserType, TrendingTopic } from '@/types/community';
+import type { Post, User as UserType, TrendingTopic, Comment as CommentType } from '@/types/community';
 import { NoteCard, WriteNote, TownCrier, VillageNav } from '@/components/community';
 import { GlobalHeader } from '@/components/layout';
 import { communityApi, SocialPost, TrendingTag, SuggestedUser } from '@/lib/communityApi';
@@ -192,7 +192,7 @@ export default function CommunityPage() {
         setSuggestedUsers(response.users.map(u => ({
           id: u.id,
           username: u.display_name || u.email.split('@')[0],
-          avatarUrl: '',
+          avatarUrl: u.avatar || '',
           level: 1,
           isOnline: false,
         })));
@@ -374,6 +374,32 @@ export default function CommunityPage() {
     }
   };
 
+  // Fetch comments for a post
+  const handleFetchComments = async (postId: string): Promise<CommentType[]> => {
+    try {
+      const response = await communityApi.getComments(postId);
+      if (response.ok && response.comments) {
+        return response.comments.map(c => ({
+          id: c.id,
+          content: c.content,
+          author: {
+            id: c.author?.id || 'unknown',
+            username: c.author?.display_name || c.author?.email?.split('@')[0] || 'Anonymous',
+            avatarUrl: c.author?.avatar || '',
+            level: 1,
+          },
+          createdAt: c.createdAt || new Date().toISOString(),
+          likes: c.likesCount || 0,
+          isLiked: c.isLiked || false,
+        }));
+      }
+      return [];
+    } catch (err) {
+      console.error('Failed to fetch comments:', err);
+      return [];
+    }
+  };
+
   // Refresh posts
   const handleRefresh = async () => {
     setIsLoading(true);
@@ -500,6 +526,7 @@ export default function CommunityPage() {
                       onLike={handleLike}
                       onDelete={handleDelete}
                       onComment={handleComment}
+                      onFetchComments={handleFetchComments}
                       pinColor={PIN_COLORS[index % PIN_COLORS.length]}
                     />
                   ))}

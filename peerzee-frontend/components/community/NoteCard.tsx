@@ -4,15 +4,10 @@ import React, { useState } from 'react';
 import { Heart, MessageSquare, MoreHorizontal, Trash2, User, Send, X } from 'lucide-react';
 import type { Post, Comment } from '@/types/community';
 import { PushPin } from '@/components/village';
+import { getAssetUrl } from '@/lib/api';
 
 // Pin colors for variety
 const PIN_COLORS: Array<'pink' | 'red' | 'blue' | 'yellow' | 'green'> = ['red', 'blue', 'yellow', 'green', 'pink'];
-
-// Mock comments for demo
-const MOCK_COMMENTS: Comment[] = [
-  { id: '1', content: 'This is so exciting! Can\'t wait! 🎉', author: { id: '201', username: 'VillagerAlex', avatarUrl: 'https://i.pravatar.cc/150?img=3', level: 5 }, createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), likes: 3, isLiked: false },
-  { id: '2', content: 'Count me in!', author: { id: '202', username: 'FarmerBen', avatarUrl: 'https://i.pravatar.cc/150?img=7', level: 8 }, createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(), likes: 1, isLiked: true },
-];
 
 interface NoteCardProps {
   post: Post;
@@ -20,6 +15,7 @@ interface NoteCardProps {
   onLike?: (postId: string) => void;
   onDelete?: (postId: string) => void;
   onComment?: (postId: string, content: string) => void;
+  onFetchComments?: (postId: string) => Promise<Comment[]>;
   pinColor?: 'pink' | 'red' | 'blue' | 'yellow' | 'green';
 }
 
@@ -27,20 +23,25 @@ interface NoteCardProps {
  * NoteCard - A pinned note on the bulletin board
  * Fresh Sage & Cool Taupe palette with working Like & Comment
  */
-export function NoteCard({ 
-  post, 
-  currentUserId, 
-  onLike, 
+export function NoteCard({
+  post,
+  currentUserId,
+  onLike,
   onDelete,
   onComment,
-  pinColor = 'red' 
+  onFetchComments,
+  pinColor = 'red'
 }: NoteCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
-  const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
+  const [localComments, setLocalComments] = useState<Comment[]>([]);
+  const [fetchedComments, setFetchedComments] = useState<Comment[]>([]);
+  const [hasFetchedComments, setHasFetchedComments] = useState(false);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [localCommentCount, setLocalCommentCount] = useState(0);
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
-  
+
   const isOwner = currentUserId === post.author.id;
 
   // Random slight rotation for natural look
@@ -69,10 +70,33 @@ export function NoteCard({
     setTimeout(() => setIsLikeAnimating(false), 300);
   };
 
+  // Handle toggle comments - fetch if first time
+  const handleToggleComments = async () => {
+    const willShow = !showComments;
+    setShowComments(willShow);
+
+    // Fetch comments from backend if first time opening
+    if (willShow && !hasFetchedComments && onFetchComments) {
+      setIsLoadingComments(true);
+      try {
+        const comments = await onFetchComments(post.id);
+        setFetchedComments(comments);
+        setHasFetchedComments(true);
+      } catch (err) {
+        console.error('Failed to fetch comments:', err);
+      } finally {
+        setIsLoadingComments(false);
+      }
+    }
+  };
+
+  // All comments to display (local new ones first, then fetched)
+  const allComments = [...localComments, ...fetchedComments];
+
   // Handle comment submit
   const handleCommentSubmit = () => {
     if (!newComment.trim()) return;
-    
+
     const comment: Comment = {
       id: `comment-${Date.now()}`,
       content: newComment,
@@ -81,8 +105,9 @@ export function NoteCard({
       likes: 0,
       isLiked: false,
     };
-    
-    setComments(prev => [comment, ...prev]);
+
+    setLocalComments(prev => [comment, ...prev]);
+    setLocalCommentCount(prev => prev + 1);
     setNewComment('');
     onComment?.(post.id, newComment);
   };
@@ -99,10 +124,10 @@ export function NoteCard({
         {/* Author Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 border-2 border-cocoa overflow-hidden flex-shrink-0 bg-retro-white">
+            <div className="w-10 h-10 rounded-lg border-2 border-cocoa overflow-hidden shrink-0 bg-retro-white">
               {post.author.avatarUrl ? (
                 <img
-                  src={post.author.avatarUrl}
+                  src={getAssetUrl(post.author.avatarUrl)}
                   alt={post.author.username}
                   className="w-full h-full object-cover"
                 />
@@ -159,7 +184,7 @@ export function NoteCard({
           <div className="mb-3 -mx-2">
             <div className="rounded-lg border-3 border-cocoa overflow-hidden shadow-pixel-sm">
               <img
-                src={post.imageUrls[0]}
+                src={getAssetUrl(post.imageUrls[0])}
                 alt="Post image"
                 className="w-full h-48 object-cover"
               />
@@ -185,9 +210,8 @@ export function NoteCard({
         <div className="flex items-center gap-4 pt-3 border-t border-dashed border-cocoa">
           <button
             onClick={handleLikeClick}
-            className={`flex items-center gap-1 transition-all hover:scale-105 active:scale-95 ${
-              post.isLiked ? 'text-pixel-red' : 'text-cocoa-light hover:text-pixel-red'
-            } ${isLikeAnimating ? 'scale-125' : ''}`}
+            className={`flex items-center gap-1 transition-all hover:scale-105 active:scale-95 ${post.isLiked ? 'text-pixel-red' : 'text-cocoa-light hover:text-pixel-red'
+              } ${isLikeAnimating ? 'scale-125' : ''}`}
           >
             <Heart
               className={`w-4 h-4 transition-transform ${isLikeAnimating ? 'animate-pulse' : ''}`}
@@ -196,14 +220,13 @@ export function NoteCard({
             />
             <span className="text-sm font-body font-bold">{post.stats.likes}</span>
           </button>
-          <button 
-            onClick={() => setShowComments(!showComments)}
-            className={`flex items-center gap-1 transition-colors hover:scale-105 ${
-              showComments ? 'text-pixel-blue' : 'text-cocoa-light hover:text-pixel-blue'
-            }`}
+          <button
+            onClick={handleToggleComments}
+            className={`flex items-center gap-1 transition-colors hover:scale-105 ${showComments ? 'text-pixel-blue' : 'text-cocoa-light hover:text-pixel-blue'
+              }`}
           >
             <MessageSquare className="w-4 h-4" strokeWidth={2.5} />
-            <span className="text-sm font-body font-bold">{post.stats.comments + comments.length - MOCK_COMMENTS.length}</span>
+            <span className="text-sm font-body font-bold">{post.stats.comments + localCommentCount}</span>
           </button>
           {post.stats.likes > 50 && (
             <span className="ml-auto text-xs font-pixel text-pixel-pink font-bold">
@@ -236,11 +259,16 @@ export function NoteCard({
 
             {/* Comments List */}
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {comments.map((comment) => (
+              {isLoadingComments && (
+                <p className="text-center text-xs text-cocoa-light font-body py-4">
+                  Loading comments...
+                </p>
+              )}
+              {!isLoadingComments && allComments.map((comment) => (
                 <div key={comment.id} className="flex gap-2 p-2 bg-retro-white/50 border border-cocoa/30 rounded">
-                  <div className="w-6 h-6 border border-cocoa rounded overflow-hidden flex-shrink-0">
+                  <div className="w-6 h-6 border border-cocoa rounded overflow-hidden shrink-0">
                     {comment.author.avatarUrl ? (
-                      <img src={comment.author.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      <img src={getAssetUrl(comment.author.avatarUrl)} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-cocoa/10 flex items-center justify-center">
                         <User className="w-3 h-3 text-cocoa" />
@@ -256,7 +284,7 @@ export function NoteCard({
                   </div>
                 </div>
               ))}
-              {comments.length === 0 && (
+              {!isLoadingComments && allComments.length === 0 && (
                 <p className="text-center text-xs text-cocoa-light font-body py-4">
                   No comments yet. Be the first to comment!
                 </p>

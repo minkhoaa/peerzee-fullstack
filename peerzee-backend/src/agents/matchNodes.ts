@@ -23,7 +23,7 @@ export class MatchNodes {
     async parseIntentNode(state: MatchState): Promise<Partial<MatchState>> {
         this.logger.log(`[PARSE] Processing: "${state.userQuery}"`);
 
-        const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
         const prompt = `Analyze this search query for a social/dating app: "${state.userQuery}"
 

@@ -3,6 +3,7 @@
 import React from 'react';
 import { TrendingUp, Users, BookOpen, HelpCircle, Shield, User, Bird } from 'lucide-react';
 import type { User as UserType, TrendingTopic } from '@/types/community';
+import { getAssetUrl } from '@/lib/api';
 
 interface TownCrierProps {
   trendingTopics: TrendingTopic[];
@@ -77,10 +78,10 @@ export function TownCrier({
               onClick={() => onVillagerClick?.(villager.id)}
               className="relative group"
             >
-              <div className="w-full aspect-square border-2 border-cocoa overflow-hidden bg-retro-white">
+              <div className="w-full aspect-square rounded-lg border-2 border-cocoa overflow-hidden bg-retro-white">
                 {villager.avatarUrl ? (
                   <img
-                    src={villager.avatarUrl}
+                    src={getAssetUrl(villager.avatarUrl)}
                     alt={villager.username}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                   />
