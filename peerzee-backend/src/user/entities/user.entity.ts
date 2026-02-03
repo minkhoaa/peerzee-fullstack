@@ -23,7 +23,7 @@ export class User {
 
   @ApiProperty()
   @Property({ unique: true, nullable: true })
-  phone: string;
+  phone: string | null;
 
   @Property({ hidden: true })
   password_hash: string;

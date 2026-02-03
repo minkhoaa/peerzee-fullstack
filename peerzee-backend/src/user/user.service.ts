@@ -45,7 +45,7 @@ export class UserService {
     const user = new User();
     user.email = dto.email;
     user.password_hash = hashedPassword;
-    user.phone = dto.phone;
+    user.phone = dto.phone || null; // Use null instead of empty string
     this.em.persist(user);
 
     const profile = new UserProfile();
