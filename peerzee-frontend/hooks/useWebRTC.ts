@@ -144,12 +144,7 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
 
             console.log('[WebRTC] Answering call - offerHasVideo:', offerHasVideo, 'hasLocalVideo:', hasLocalVideo);
 
-            // If offer has video but we don't have local video track,
-            // we need to add a recvonly transceiver to receive video from caller
-            if (offerHasVideo && !hasLocalVideo) {
-                console.log('[WebRTC] Adding recvonly transceiver to receive video from caller');
-                peerConnection.current.addTransceiver('video', { direction: 'recvonly' });
-            }
+
 
             peerConnection.current.onicecandidate = (event) => {
                 if (event.candidate) {
@@ -176,10 +171,19 @@ export function useWebRTC(socketRef: MutableRefObject<Socket | null>) {
                 }
 
                 if (remoteAudio.current && event.track.kind === 'audio') {
+                    console.log('[WebRTC] Attaching audio track to audio element');
                     remoteAudio.current.srcObject = remoteStreamRef.current;
-                    remoteAudio.current.play().catch(console.error);
+                    remoteAudio.current.play().catch(err => console.error('[WebRTC] Audio play failed:', err));
                 }
             }
+
+            // IMPORTANT: Add transceiver BEFORE setRemoteDescription for proper SDP negotiation
+            // If offer has video but we don't have local video track, add recvonly transceiver
+            if (offerHasVideo && !hasLocalVideo) {
+                console.log('[WebRTC] Adding recvonly transceiver BEFORE SRD to receive video from caller');
+                peerConnection.current.addTransceiver('video', { direction: 'recvonly' });
+            }
+
             await peerConnection.current.setRemoteDescription(offer);
             const answer = await peerConnection.current.createAnswer();
             await peerConnection.current.setLocalDescription(answer);

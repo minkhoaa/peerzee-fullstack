@@ -157,10 +157,17 @@ export class VideoDatingService {
             if (candidateId === userId) continue;
             if (candidate.intentMode !== currentUser.intentMode) continue;
 
+            // Gender preference compatibility (same logic as findMatch)
             const userPref = currentUser.genderPreference;
             const candidatePref = candidate.genderPreference;
+            const userGender = currentUser.gender || 'unknown';
+            const candidateGender = candidate.gender || 'unknown';
 
-            if (userPref === 'all' && candidatePref === 'all') {
+            const userWantsCandidate = userPref === 'all' || userPref === candidateGender;
+            const candidateWantsUser = candidatePref === 'all' || candidatePref === userGender;
+
+            if (userWantsCandidate && candidateWantsUser) {
+                this.logger.log(`✅ Simple match found: ${userId} <-> ${candidateId}`);
                 return candidate;
             }
         }
