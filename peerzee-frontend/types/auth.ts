@@ -14,13 +14,16 @@ export interface LoginResponse {
 }
 
 // POST /user/register
+export type UserGender = 'MALE' | 'FEMALE' | 'OTHER';
+
 export interface RegisterDto {
     email: string;
-    phone: string;
+    phone?: string;
     password: string;
     location: string;
     display_name: string;
     bio: string;
+    gender?: UserGender;
 }
 
 export interface RegisterResponse {

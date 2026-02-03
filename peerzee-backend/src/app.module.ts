@@ -80,6 +80,35 @@ export class AppModule implements OnModuleInit {
     }
 
     try {
+      // Fix users.blocked_user_ids type mismatch (jsonb -> text[])
+      // First make it nullable, then convert type
+      await connection.execute(`
+        ALTER TABLE users 
+        ALTER COLUMN blocked_user_ids DROP NOT NULL
+      `);
+      await connection.execute(`
+        ALTER TABLE users 
+        ALTER COLUMN blocked_user_ids TYPE text[] 
+        USING CASE 
+          WHEN blocked_user_ids IS NULL THEN '{}'::text[]
+          WHEN jsonb_typeof(blocked_user_ids) = 'array' THEN 
+            ARRAY(SELECT jsonb_array_elements_text(blocked_user_ids))
+          ELSE '{}'::text[]
+        END
+      `);
+      await connection.execute(`
+        ALTER TABLE users 
+        ALTER COLUMN blocked_user_ids SET DEFAULT '{}'
+      `);
+      console.log('✅ Auto-fixed users.blocked_user_ids column type');
+    } catch (e: any) {
+      // Ignore if already fixed or table doesn't exist
+      if (!e.message.includes('does not exist') && !e.message.includes('already') && !e.message.includes('text[]')) {
+        // console.warn('blocked_user_ids fix skipped:', e.message);
+      }
+    }
+
+    try {
       // Ensure bio_embedding column exists for AI
       await connection.execute(`
         ALTER TABLE user_profiles 

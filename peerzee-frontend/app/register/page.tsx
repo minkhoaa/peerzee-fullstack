@@ -8,7 +8,7 @@ import { AxiosError } from "axios";
 import { motion } from "framer-motion";
 import AuthCard from "@/components/auth/AuthCard";
 import { AlertTriangle, Loader2 } from 'lucide-react';
-import type { RegisterDto } from "@/types";
+import type { RegisterDto, UserGender } from "@/types";
 
 const SocialIcons = {
   google: (
@@ -36,11 +36,12 @@ export default function RegisterPage() {
     phone: "",
     bio: "",
     location: "",
+    gender: "" as UserGender | "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
   };
@@ -61,9 +62,10 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
         display_name: formData.display_name,
-        phone: formData.phone,
+        phone: formData.phone || undefined,
         bio: formData.bio,
         location: formData.location,
+        gender: formData.gender || undefined,
       };
       await authApi.register(payload);
       router.push("/login");
@@ -130,6 +132,39 @@ export default function RegisterPage() {
             className="w-full h-12 px-4 rounded-lg bg-retro-white border-3 border-cocoa text-cocoa font-body font-bold placeholder-cocoa-light shadow-pixel-inset focus:outline-none focus:border-pixel-pink transition-colors"
             placeholder="Hero_Name_123"
           />
+        </div>
+
+        {/* Phone Input */}
+        <div className="flex flex-col gap-2">
+          <label className="font-pixel text-cocoa uppercase tracking-wider text-sm ml-1">
+            PHONE (Optional)
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="w-full h-12 px-4 rounded-lg bg-retro-white border-3 border-cocoa text-cocoa font-body font-bold placeholder-cocoa-light shadow-pixel-inset focus:outline-none focus:border-pixel-pink transition-colors"
+            placeholder="+84 123 456 789"
+          />
+        </div>
+
+        {/* Gender Select */}
+        <div className="flex flex-col gap-2">
+          <label className="font-pixel text-cocoa uppercase tracking-wider text-sm ml-1">
+            GENDER
+          </label>
+          <select
+            name="gender"
+            value={formData.gender}
+            onChange={handleChange}
+            className="w-full h-12 px-4 rounded-lg bg-retro-white border-3 border-cocoa text-cocoa font-body font-bold shadow-pixel-inset focus:outline-none focus:border-pixel-pink transition-colors appearance-none cursor-pointer"
+          >
+            <option value="">-- Select Gender --</option>
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+            <option value="OTHER">Other / Prefer not to say</option>
+          </select>
         </div>
 
         {/* Password Input */}

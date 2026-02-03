@@ -129,9 +129,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # ============================================
-  # 🔄 WATCHTOWER - AUTO-UPDATER
-  # ============================================
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
