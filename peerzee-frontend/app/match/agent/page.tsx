@@ -188,7 +188,7 @@ export default function AgentMatchPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-pixel-purple/20 to-retro-white p-4 md:p-8">
+        <div className="min-h-screen bg-linear-to-b from-pixel-purple/20 to-retro-white p-4 md:p-8">
             {/* Countdown Overlay */}
             <AnimatePresence>
                 {consoleMode === 'NAVIGATING' && countdown !== null && (

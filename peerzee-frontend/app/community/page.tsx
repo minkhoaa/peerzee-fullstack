@@ -432,7 +432,7 @@ export default function CommunityPage() {
       {/* ========== MAIN LAYOUT ========== */}
       <div className="max-w-7xl mx-auto flex gap-4 p-4">
         {/* ===== LEFT SIDEBAR ===== */}
-        <aside className="hidden lg:block w-56 flex-shrink-0">
+        <aside className="hidden lg:block w-56 shrink-0">
           <div className="sticky top-20">
             <VillageNav activeRoute="/community" mailCount={3} />
           </div>
@@ -559,7 +559,7 @@ export default function CommunityPage() {
         </main>
 
         {/* ===== RIGHT SIDEBAR ===== */}
-        <aside className="hidden xl:block w-64 flex-shrink-0">
+        <aside className="hidden xl:block w-64 shrink-0">
           <div className="sticky top-20">
             <TownCrier
               trendingTopics={trendingTopics}

@@ -67,7 +67,7 @@ export function VideoStage({
   const isConnected = state === 'matched' || state === 'connected';
 
   return (
-    <div className="flex-[2] h-full bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel relative overflow-hidden flex flex-col">
+    <div className="flex-2 h-full bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel relative overflow-hidden flex flex-col">
       {/* Blind Date Overlay - AI Dating Host */}
       {blindDate && onRequestTopic && onRequestReveal && onAcceptReveal && (
         <BlindDateOverlay

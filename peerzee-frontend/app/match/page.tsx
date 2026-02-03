@@ -179,7 +179,7 @@ export default function MatchPage() {
 
   return (
     <>
-      <div className="h-[100dvh] w-full bg-retro-bg p-4 flex gap-4 overflow-hidden flex-col lg:flex-row">
+      <div className="h-dvh w-full bg-retro-bg p-4 flex gap-4 overflow-hidden flex-col lg:flex-row">
         {/* Left Panel: Video/Stage */}
         <VideoStage
           mode={mode}

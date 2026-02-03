@@ -100,7 +100,7 @@ export default function UserProfilePage() {
     return (
         <div className="min-h-screen bg-retro-bg">
             {/* Header - Wooden Beam Style */}
-            <header className="sticky top-0 z-30 bg-wood-dark border-b-4 border-wood-shadow shadow-wood relative">
+            <header className="sticky top-0 z-30 bg-wood-dark border-b-4 border-wood-shadow shadow-wood">
                 {/* Wood grain texture overlay */}
                 <div
                     className="absolute inset-0 opacity-10 pointer-events-none"
@@ -191,7 +191,7 @@ export default function UserProfilePage() {
                 {/* Profile Card */}
                 <div className="bg-retro-white rounded-xl overflow-hidden border-3 border-cocoa shadow-pixel">
                     {/* Cover Photo */}
-                    <div className="h-40 bg-gradient-to-r from-pixel-pink to-pixel-yellow relative overflow-hidden">
+                    <div className="h-40 bg-linear-to-r from-pixel-pink to-pixel-yellow relative overflow-hidden">
                         {coverPhoto && (
                             <img src={coverPhoto} alt="" className="w-full h-full object-cover" />
                         )}
@@ -208,7 +208,7 @@ export default function UserProfilePage() {
                                 {photos.length > 0 ? (
                                     <img src={getAssetUrl(photos[0].url)} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-pixel-pink to-pixel-yellow flex items-center justify-center">
+                                    <div className="w-full h-full bg-linear-to-br from-pixel-pink to-pixel-yellow flex items-center justify-center">
                                         {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
                                     </div>
                                 )}

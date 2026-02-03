@@ -73,7 +73,7 @@ export function ModeSelector({ onStart, queueSize, error, sessionRoomId }: ModeS
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-retro-bg flex items-center justify-center p-3 overflow-hidden">
+    <div className="h-dvh w-full bg-retro-bg flex items-center justify-center p-3 overflow-hidden">
       <div className="bg-retro-paper border-3 border-cocoa rounded-xl shadow-pixel p-6 max-w-2xl w-full max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="text-center mb-4">
@@ -215,7 +215,7 @@ export function ModeSelector({ onStart, queueSize, error, sessionRoomId }: ModeS
             {/* AI Search Query - only show when semantic selected */}
             {matchingType === 'semantic' && (
               <div className="mb-4 p-4 bg-pixel-purple/10 border-2 border-pixel-purple rounded-lg">
-                <label className="font-pixel text-cocoa uppercase tracking-wider mb-2 block text-sm flex items-center gap-2">
+                <label className="font-pixel text-cocoa uppercase tracking-wider mb-2 block text-sm items-center gap-2">
                   <Sparkles className="w-4 h-4 text-pixel-purple" />
                   Describe your ideal match
                 </label>
