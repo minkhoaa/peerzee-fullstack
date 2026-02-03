@@ -125,6 +125,44 @@ export class AppModule implements OnModuleInit {
       console.warn('Bio embedding fix warning:', e);
     }
 
+    try {
+      // Create intent_mode enum type if not exists
+      await connection.execute(`
+        DO $$ BEGIN
+          CREATE TYPE intent_mode_enum AS ENUM ('DATE', 'STUDY', 'FRIEND');
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;
+      `);
+      // Add missing user_profiles columns
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS intent_mode varchar(20) DEFAULT 'DATE'
+      `);
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS profile_properties jsonb DEFAULT '{}'
+      `);
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS availability jsonb DEFAULT '{}'
+      `);
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS gender varchar(20)
+      `);
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS last_active timestamp
+      `);
+      console.log('✅ Auto-fixed user_profiles missing columns');
+    } catch (e: any) {
+      // Ignore if already exists
+      if (!e.message.includes('already exists')) {
+        console.warn('user_profiles columns fix warning:', e.message);
+      }
+    }
+
     // 3. Update schema safely (no data loss)
     try {
       const generator = this.orm.getSchemaGenerator();

@@ -80,7 +80,7 @@ export default function LoginPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 p-4 bg-pixel-red/20 border-3 border-pixel-red text-cocoa rounded-lg shadow-pixel-sm flex items-center gap-3"
         >
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" strokeWidth={2.5} />
+          <AlertTriangle className="w-5 h-5 shrink-0" strokeWidth={2.5} />
           <span className="font-body font-bold text-sm">{error}</span>
         </motion.div>
       )}
