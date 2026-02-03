@@ -137,8 +137,8 @@ export class CommunityService {
         const data: PostWithMeta[] = posts.map((post) => ({
             id: post.id,
             content: post.content,
-            media: post.media,
-            tags: post.tags,
+            media: post.media || [],
+            tags: post.tags || [],
             score: post.score,
             commentsCount: post.commentsCount,
             createdAt: post.createdAt,
@@ -360,8 +360,8 @@ export class CommunityService {
         return {
             id: post.id,
             content: post.content,
-            media: post.media,
-            tags: post.tags,
+            media: post.media || [],
+            tags: post.tags || [],
             score: post.score,
             commentsCount: post.commentsCount,
             createdAt: post.createdAt,

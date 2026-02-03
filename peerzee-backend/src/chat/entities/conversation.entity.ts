@@ -1,4 +1,4 @@
-import { Entity, PrimaryKey, Property, OneToMany } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property, OneToMany, JsonType } from '@mikro-orm/core';
 import { Participant } from './participants.entity';
 import { Message } from './message.entity';
 import { v4 as uuid } from 'uuid';
@@ -35,8 +35,8 @@ export class Conversation {
   lastSeq: string = '0';
 
   // Icebreaker game data
-  @Property({ type: 'jsonb', nullable: true })
-  icebreaker: IcebreakerData | null = null;
+  @Property({ type: JsonType, nullable: true })
+  icebreaker?: IcebreakerData | null;
 
   // AI-generated contextual icebreaker suggestion
   @Property({ fieldName: 'icebreaker_suggestion', type: 'text', nullable: true })

@@ -3,13 +3,14 @@ import {
   NotFoundException,
   ConflictException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { RegisterDto } from './dto/register.dto';
 import { ProfileTag } from './entities/profile-tag.entity';
 import { UserSession } from './entities/user-session.entity';
-import { UserProfile } from './entities/user-profile.entity';
+import { UserProfile, UserGender } from './entities/user-profile.entity';
 import { UserTag } from './entities/user-tag.entity';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
@@ -20,6 +21,8 @@ import { UpdateUserProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+  
   constructor(
     @InjectRepository(User)
     private readonly userRepository: EntityRepository<User>,
@@ -229,5 +232,73 @@ export class UserService {
       intentMode: profile.intentMode,
       profileProperties: profile.profileProperties,
     };
+  }
+
+  /**
+   * Seed mock users for testing
+   */
+  async seedMockUsers(count: number = 50) {
+    this.logger.log(`Seeding ${count} mock users...`);
+
+    const cities = ['Hà Nội', 'Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ', 'Nha Trang', 'Vũng Tàu', 'Huế', 'Đà Lạt', 'Quy Nhơn'];
+    const occupations = ['Software Engineer', 'Designer', 'Marketing Manager', 'Teacher', 'Doctor', 'Photographer', 'Content Creator', 'Entrepreneur', 'Student', 'Freelancer'];
+    const tags = ['Coffee', 'Travel', 'Music', 'Fitness', 'Reading', 'Cooking', 'Photography', 'Gaming', 'Art', 'Movies', 'Yoga', 'Dancing'];
+    const bios = [
+      'Love exploring new places and meeting new people 🌍',
+      'Coffee enthusiast and bookworm 📚☕',
+      'Adventure seeker looking for the next thrill 🏔️',
+      'Foodie who loves trying new restaurants 🍜',
+      'Music lover and concert goer 🎵',
+      'Fitness junkie and health enthusiast 💪',
+      'Creative soul with a passion for art 🎨',
+      'Tech geek and startup enthusiast 💻',
+      'Nature lover and weekend hiker 🌲',
+      'Movie buff and popcorn addict 🎬',
+    ];
+    const firstNames = ['Anh', 'Bình', 'Chi', 'Dương', 'Hà', 'Hùng', 'Lan', 'Linh', 'Mai', 'Nam', 'Phương', 'Quân', 'Thảo', 'Trung', 'Tú', 'Vy'];
+    const lastNames = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Phan', 'Vũ', 'Đặng'];
+
+    const passwordHash = await bcrypt.hash('password123', 10);
+    let created = 0;
+
+    for (let i = 0; i < count; i++) {
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const displayName = `${lastName} ${firstName}`;
+      const email = `user${i + 1}@test.com`;
+
+      const existingUser = await this.userRepository.findOne({ email });
+      if (existingUser) {
+        this.logger.log(`User ${email} already exists, skipping...`);
+        continue;
+      }
+
+      const user = new User();
+      user.email = email;
+      user.password_hash = passwordHash;
+      user.status = 'active';
+
+      const profile = new UserProfile();
+      profile.display_name = displayName;
+      profile.bio = bios[Math.floor(Math.random() * bios.length)];
+      profile.location = cities[Math.floor(Math.random() * cities.length)];
+      profile.age = Math.floor(Math.random() * 20) + 22;
+      profile.occupation = occupations[Math.floor(Math.random() * occupations.length)];
+      profile.height = (Math.floor(Math.random() * 30) + 155).toString();
+      profile.gender = i % 2 === 0 ? UserGender.MALE : UserGender.FEMALE;
+      
+      const numTags = Math.floor(Math.random() * 3) + 3;
+      const shuffled = [...tags].sort(() => 0.5 - Math.random());
+      profile.tags = shuffled.slice(0, numTags); // Already an array, will be persisted correctly
+      profile.user = user;
+
+      this.em.persist(user);
+      this.em.persist(profile);
+      created++;
+    }
+
+    await this.em.flush();
+    this.logger.log(`✅ Successfully seeded ${created} mock users`);
+    return { ok: true, message: `Seeded ${created} mock users` };
   }
 }

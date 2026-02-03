@@ -46,16 +46,16 @@ export class SwipeService {
             FROM users u
             LEFT JOIN user_profiles p ON u.id = p.user_id
             WHERE u.status = 'active'
-            AND u.id != $1
+            AND u.id != ?
             AND NOT EXISTS (
                 SELECT 1 FROM user_swipes s 
-                WHERE s.target_id = u.id AND s.swiper_id = $1
+                WHERE s.target_id = u.id AND s.swiper_id = ?
             )
             ORDER BY RANDOM()
-            LIMIT $2
+            LIMIT ?
         `;
 
-        const users = await this.em.getConnection().execute<any[]>(sql, [userId, limit]);
+        const users = await this.em.getConnection().execute<any[]>(sql, [userId, userId, limit]);
 
         return users.map((row) => ({
             id: row.id,
@@ -268,14 +268,14 @@ export class SwipeService {
             FROM users u
             LEFT JOIN user_profiles p ON u.id = p.user_id
             WHERE u.status = 'active'
-            AND u.id != $1
-            AND NOT EXISTS (SELECT 1 FROM user_swipes s WHERE s.target_id = u.id AND s.swiper_id = $1)
-            AND NOT EXISTS (SELECT 1 FROM matches m WHERE (m.user1_id = $1 AND m.user2_id = u.id) OR (m.user2_id = $1 AND m.user1_id = u.id))
+            AND u.id != ?
+            AND NOT EXISTS (SELECT 1 FROM user_swipes s WHERE s.target_id = u.id AND s.swiper_id = ?)
+            AND NOT EXISTS (SELECT 1 FROM matches m WHERE (m.user1_id = ? AND m.user2_id = u.id) OR (m.user2_id = ? AND m.user1_id = u.id))
             ORDER BY RANDOM()
-            LIMIT $2
+            LIMIT ?
         `;
 
-        const users = await this.em.getConnection().execute<any[]>(sql, [userId, limit]);
+        const users = await this.em.getConnection().execute<any[]>(sql, [userId, userId, userId, userId, limit]);
 
         return users.map((row) => ({
             id: row.id,
@@ -292,17 +292,17 @@ export class SwipeService {
             FROM user_swipes s
             LEFT JOIN users u ON s.swiper_id = u.id
             LEFT JOIN user_profiles p ON u.id = p.user_id
-            WHERE s.target_id = $1
+            WHERE s.target_id = ?
             AND s.action IN ('LIKE', 'SUPER_LIKE')
             AND NOT EXISTS (
                 SELECT 1 FROM matches m 
-                WHERE (m.user1_id = $1 AND m.user2_id = s.swiper_id) 
-                OR (m.user2_id = $1 AND m.user1_id = s.swiper_id)
+                WHERE (m.user1_id = ? AND m.user2_id = s.swiper_id) 
+                OR (m.user2_id = ? AND m.user1_id = s.swiper_id)
             )
             ORDER BY s.created_at DESC
         `;
 
-        const likers = await this.em.getConnection().execute<any[]>(sql, [userId]);
+        const likers = await this.em.getConnection().execute<any[]>(sql, [userId, userId, userId]);
 
         return likers.map((row) => ({
             id: row.swiper_id,

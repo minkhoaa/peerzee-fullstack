@@ -4,6 +4,7 @@ import {
   Property,
   OneToOne,
   OneToMany,
+  ArrayType,
 } from '@mikro-orm/core';
 import { v4 as uuid } from 'uuid';
 
@@ -41,10 +42,10 @@ export class User {
   @Property({ fieldName: 'is_incognito', type: 'boolean', default: false })
   isIncognito: boolean = false;
 
-  // Safety: Blocked user IDs
+  // Safety: Blocked user IDs - stored as PostgreSQL text[] array
   @ApiProperty({ description: 'List of blocked user IDs' })
-  @Property({ fieldName: 'blocked_user_ids', type: 'jsonb' })
-  blockedUserIds: string[] = [];
+  @Property({ fieldName: 'blocked_user_ids', type: ArrayType, nullable: true })
+  blockedUserIds?: string[];
 
   @OneToOne(() => UserProfile, (profile) => profile.user, { mappedBy: 'user' })
   profile: UserProfile;

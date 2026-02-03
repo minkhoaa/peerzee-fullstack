@@ -243,21 +243,29 @@ export class AgentMatchQueueService {
         // Diagnostic log - using log instead of debug for guaranteed visibility
         this.logger.log(`      [COMPAT_CHECK] U1(${u1.userId.substring(0, 8)}) seeking=${f1.gender}, is=${u1.userGender} | U2(${u2.userId.substring(0, 8)}) seeking=${f2.gender}, is=${u2.userGender}`);
 
-        // 1. Reciprocal Gender Check
-        // If U1 is looking for a gender (e.g. MALE), U2 must be that gender
-        if (f1.gender && u2.userGender) {
+        // 1. Reciprocal Gender Check (FLEXIBLE: skip if either gender is OTHER or null)
+        const u1GenderFlexible = !u1.userGender || u1.userGender.toUpperCase() === 'OTHER';
+        const u2GenderFlexible = !u2.userGender || u2.userGender.toUpperCase() === 'OTHER';
+
+        // If U1 is looking for a gender, U2 must be that gender (unless U2 is flexible)
+        if (f1.gender && u2.userGender && !u2GenderFlexible) {
             if (f1.gender.toUpperCase() !== u2.userGender.toUpperCase()) {
                 this.logger.log(`      ❌ Gender mismatch: U1 wants ${f1.gender}, but U2 is ${u2.userGender}`);
                 return false;
             }
         }
 
-        // If U2 is looking for a gender, U1 must be that gender
-        if (f2.gender && u1.userGender) {
+        // If U2 is looking for a gender, U1 must be that gender (unless U1 is flexible)
+        if (f2.gender && u1.userGender && !u1GenderFlexible) {
             if (f2.gender.toUpperCase() !== u1.userGender.toUpperCase()) {
                 this.logger.log(`      ❌ Gender mismatch: U2 wants ${f2.gender}, but U1 is ${u1.userGender}`);
                 return false;
             }
+        }
+
+        // If both are flexible, always match on gender (skip this check entirely)
+        if (u1GenderFlexible && u2GenderFlexible) {
+            this.logger.log(`      ℹ️ Both users are gender-flexible (OTHER/null), skipping gender check`);
         }
 
         // 2. Location compatibility (case-insensitive, trimmed)

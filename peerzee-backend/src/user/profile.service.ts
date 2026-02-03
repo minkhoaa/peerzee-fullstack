@@ -169,7 +169,7 @@ export class ProfileService {
 
         const photos = profile.photos || [];
         const isCover = dto.isCover || photos.length === 0; // First photo is cover by default
-        
+
         const newPhoto: ProfilePhoto = {
             id: uuidv4(),
             url: dto.url,
@@ -271,7 +271,7 @@ export class ProfileService {
         const matchesCount = await this.em.getConnection().execute<any[]>(
             `SELECT COUNT(*) FROM user_swipes 
              WHERE target_id = ? AND action = 'LIKE' 
-             AND EXISTS (SELECT 1 FROM user_swipes s2 WHERE s2.user_id = ? AND s2.target_id = user_swipes.user_id AND s2.action = 'LIKE')`,
+             AND EXISTS (SELECT 1 FROM user_swipes s2 WHERE s2.swiper_id = ? AND s2.target_id = user_swipes.swiper_id AND s2.action = 'LIKE')`,
             [userId, userId]
         );
 
@@ -283,7 +283,7 @@ export class ProfileService {
 
         // Views would require a profile_views table - for now return estimated
         const viewsCount = await this.em.getConnection().execute<any[]>(
-            `SELECT COUNT(DISTINCT user_id) FROM user_swipes WHERE target_id = ?`,
+            `SELECT COUNT(DISTINCT swiper_id) FROM user_swipes WHERE target_id = ?`,
             [userId]
         );
 

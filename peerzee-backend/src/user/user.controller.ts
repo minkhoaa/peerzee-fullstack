@@ -96,4 +96,14 @@ export class UserController {
     const size = batchSize ? parseInt(batchSize, 10) : 10;
     return this.profileService.reindexAllProfiles(size);
   }
+
+  /**
+   * Admin endpoint: Seed mock users
+   * POST /user/seed-mock?count=50
+   */
+  @Post('seed-mock')
+  async seedMockUsers(@Query('count') count?: string) {
+    const numUsers = count ? parseInt(count, 10) : 50;
+    return this.userService.seedMockUsers(numUsers);
+  }
 }

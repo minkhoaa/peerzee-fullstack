@@ -1,4 +1,4 @@
-import { Entity, PrimaryKey, Property, OneToOne, Enum } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property, OneToOne, Enum, ArrayType, JsonType } from '@mikro-orm/core';
 import { User } from './user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { v4 as uuid } from 'uuid';
@@ -118,28 +118,28 @@ export class UserProfile {
 
   // Rich Profile Fields (JSONB)
   @ApiProperty({ description: 'Array of profile photos' })
-  @Property({ type: 'jsonb', nullable: true })
-  photos: ProfilePhoto[] = [];
+  @Property({ type: JsonType, nullable: true })
+  photos?: ProfilePhoto[];
 
   @ApiProperty({ description: 'Array of prompt responses' })
-  @Property({ type: 'jsonb', nullable: true })
-  prompts: ProfilePrompt[] = [];
+  @Property({ type: JsonType, nullable: true })
+  prompts?: ProfilePrompt[];
 
   @ApiProperty({ description: 'Array of interest tags' })
-  @Property({ type: 'jsonb', nullable: true })
-  tags: string[] = [];
+  @Property({ type: ArrayType, nullable: true })
+  tags?: string[];
 
   @ApiProperty({ description: 'AI-extracted hidden keywords for enriched vector search' })
-  @Property({ type: 'jsonb', nullable: true })
-  hidden_keywords: string[] = [];
+  @Property({ type: ArrayType, nullable: true })
+  hidden_keywords?: string[];
 
   @ApiProperty({ description: 'Discovery preferences' })
-  @Property({ type: 'jsonb', nullable: true })
-  discovery_settings: DiscoverySettings = {};
+  @Property({ type: JsonType, nullable: true })
+  discovery_settings?: DiscoverySettings;
 
   @ApiProperty({ description: 'Spotify anthem with AI vibe analysis' })
-  @Property({ type: 'jsonb', nullable: true })
-  spotify: SpotifyData | null;
+  @Property({ type: JsonType, nullable: true })
+  spotify?: SpotifyData | null;
 
   @ApiProperty({ description: 'Instagram handle' })
   @Property({ nullable: true })
@@ -209,9 +209,6 @@ export class UserProfile {
 
   // ============================================================================
 
-  @OneToOne(() => User, (user) => user.profile)
+  @OneToOne(() => User, (user) => user.profile, { fieldName: 'user_id', owner: true })
   user: User;
-
-  @Property({ fieldName: 'user_id' })
-  user_id: string;
 }

@@ -60,10 +60,46 @@ export class AppModule implements OnModuleInit {
       console.error('Failed to create pgvector extension:', error);
     }
 
-    // 2. Update schema safely (no data loss)
+    // 2. Auto-fix common schema issues before syncing
+    const connection = this.orm.em.getConnection();
+
+    try {
+      // Fix social_posts.tags type mismatch (text[] -> jsonb)
+      // This is a known issue where ORM cannot auto-cast existing data
+      await connection.execute(`
+        ALTER TABLE social_posts 
+        ALTER COLUMN tags TYPE jsonb 
+        USING to_jsonb(tags)
+      `);
+      console.log('✅ Auto-fixed social_posts.tags column type');
+    } catch (e: any) {
+      // Ignore if already fixed or table doesn't exist
+      if (!e.message.includes('does not exist') && !e.message.includes('no schema has been selected')) {
+        // console.warn('Schema fix skipped (probably already correct):', e.message);
+      }
+    }
+
+    try {
+      // Ensure bio_embedding column exists for AI
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS "bioEmbedding" vector(768)
+      `);
+      // Note: We use "bioEmbedding" (quoted) if that matches what MikroORM expects 
+      // OR snake_case "bio_embedding" if standard. Based on previous fix, we want snake_case.
+      await connection.execute(`
+        ALTER TABLE user_profiles 
+        ADD COLUMN IF NOT EXISTS bio_embedding vector(768)
+      `);
+      console.log('✅ Auto-fixed bio_embedding column');
+    } catch (e) {
+      console.warn('Bio embedding fix warning:', e);
+    }
+
+    // 3. Update schema safely (no data loss)
     try {
       const generator = this.orm.getSchemaGenerator();
-      await generator.updateSchema();
+      await generator.updateSchema({ safe: true }); // Safe mode prevents dropping tables/data
       console.log('✅ Database schema synchronized');
     } catch (error) {
       console.error('Failed to update schema:', error);

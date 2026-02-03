@@ -4,6 +4,7 @@ import {
     Property,
     ManyToOne,
     OneToMany,
+    JsonType,
 } from '@mikro-orm/core';
 import { User } from '../../user/entities/user.entity';
 import { SocialComment } from './social-comment.entity';
@@ -30,11 +31,11 @@ export class SocialPost {
     content: string;
 
     // Renamed from 'images' to 'media' to support both images and videos
-    @Property({ type: 'jsonb' })
-    media: MediaItem[] = [];
+    @Property({ type: JsonType })
+    media?: MediaItem[];
 
-    @Property({ type: 'jsonb' })
-    tags: string[] = [];
+    @Property({ type: JsonType })
+    tags?: string[];
 
     @ManyToOne(() => User, { fieldName: 'author_id' })
     author: User;

@@ -151,7 +151,7 @@ export class DiscoverService {
             LEFT JOIN user_profiles p ON u.id = p.user_id
             WHERE u.id != ?
             AND u.status = ?
-            AND p."intentMode" = ?
+            AND p.intent_mode = ?
             AND NOT EXISTS (
                 SELECT 1 FROM user_swipes s 
                 WHERE s.target_id = u.id AND s.swiper_id = ?
@@ -216,26 +216,28 @@ export class DiscoverService {
                 )) AS distance
             FROM users u
             LEFT JOIN user_profiles p ON u.id = p.user_id
-            WHERE u.id != $3
+            WHERE u.id != ?
             AND u.status = 'active'
-            AND p."intentMode" = $4
+            AND p.intent_mode = ?
             AND p.latitude IS NOT NULL 
             AND p.longitude IS NOT NULL 
             AND NOT EXISTS (
                 SELECT 1 FROM user_swipes s 
-                WHERE s.target_id = u.id AND s.swiper_id = $3
+                WHERE s.target_id = u.id AND s.swiper_id = ?
             )
             AND (6371 * acos(
-                cos(radians($1)) * cos(radians(p.latitude)) * 
-                cos(radians(p.longitude) - radians($2)) + 
-                sin(radians($1)) * sin(radians(p.latitude))
-            )) <= $5
+                cos(radians(?)) * cos(radians(p.latitude)) * 
+                cos(radians(p.longitude) - radians(?)) + 
+                sin(radians(?)) * sin(radians(p.latitude))
+            )) <= ?
             ORDER BY distance ASC
-            LIMIT $6
+            LIMIT ?
         `;
 
         const rawResults = await this.em.getConnection().execute<any[]>(sql, [
-            userLat, userLong, userId, userIntentMode, radiusInKm, limit
+            userId, userIntentMode, userId,
+            userLat, userLong, userLat,
+            radiusInKm, limit
         ]);
 
         const data: DiscoverUserDto[] = rawResults.map((row) => ({
@@ -438,15 +440,15 @@ export class DiscoverService {
 
         if (filters.gender) {
             // params.push(filters.gender);
-            // whereClause += ` AND p.gender = $${paramIdx++}`;
+            // whereClause += ` AND p.gender = ?`;
         }
         if (filters.city) {
             // params.push(`%${filters.city}%`);
-            // whereClause += ` AND LOWER(p.city) LIKE LOWER($${paramIdx++})`;
+            // whereClause += ` AND LOWER(p.city) LIKE LOWER(?)`;
         }
         if (filters.intent) {
             params.push(filters.intent);
-            whereClause += ` AND p."intentMode" = $${paramIdx++}`;
+            whereClause += ` AND p.intent_mode = ?`;
         }
 
         // Optional location filter
@@ -484,12 +486,12 @@ export class DiscoverService {
             vectorScoreCalc = `
                 (
                     -- 1. Vector Similarity (60% weight)
-                    (1 - (p."bioEmbedding" <=> '${vectorStr}')) * 0.6 +
+                    (1 - (p.bio_embedding <=> '${vectorStr}')) * 0.6 +
                     -- 2. Activity Recency (20% weight)
                     (CASE 
-                        WHEN p."lastActive" > NOW() - INTERVAL '1 day' THEN 1
-                        WHEN p."lastActive" > NOW() - INTERVAL '7 days' THEN 0.7
-                        WHEN p."lastActive" > NOW() - INTERVAL '30 days' THEN 0.5
+                        WHEN p.last_active > NOW() - INTERVAL '1 day' THEN 1
+                        WHEN p.last_active > NOW() - INTERVAL '7 days' THEN 0.7
+                        WHEN p.last_active > NOW() - INTERVAL '30 days' THEN 0.5
                         ELSE 0.3
                     END) * 0.2 +
                     -- 3. Profile Completeness (20% weight)
@@ -502,7 +504,7 @@ export class DiscoverService {
                     ) * 0.2
                 )
             `;
-            whereClause += ` AND p."bioEmbedding" IS NOT NULL`;
+            whereClause += ` AND p.bio_embedding IS NOT NULL`;
             orderBy = `ORDER BY weighted_score DESC`;
         } else {
             vectorScoreCalc = `

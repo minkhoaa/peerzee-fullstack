@@ -4,6 +4,7 @@ import {
     Property,
     ManyToOne,
     Enum,
+    JsonType,
 } from '@mikro-orm/core';
 import { User } from '../../user/entities/user.entity';
 import { v4 as uuid } from 'uuid';
@@ -45,8 +46,8 @@ export class Notification {
     @Property({ type: 'text' })
     message: string;
 
-    @Property({ type: 'jsonb' })
-    data: NotificationData = {};
+    @Property({ type: JsonType })
+    data?: NotificationData;
 
     @Property({ fieldName: 'is_read', type: 'boolean', default: false })
     isRead: boolean = false;
