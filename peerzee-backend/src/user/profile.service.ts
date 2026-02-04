@@ -169,7 +169,7 @@ export class ProfileService {
 
         const photos = profile.photos || [];
         const isCover = dto.isCover || photos.length === 0; // First photo is cover by default
-
+        
         const newPhoto: ProfilePhoto = {
             id: uuidv4(),
             url: dto.url,
@@ -271,7 +271,7 @@ export class ProfileService {
         const matchesCount = await this.em.getConnection().execute<any[]>(
             `SELECT COUNT(*) FROM user_swipes 
              WHERE target_id = ? AND action = 'LIKE' 
-             AND EXISTS (SELECT 1 FROM user_swipes s2 WHERE s2.swiper_id = ? AND s2.target_id = user_swipes.swiper_id AND s2.action = 'LIKE')`,
+             AND EXISTS (SELECT 1 FROM user_swipes s2 WHERE s2.user_id = ? AND s2.target_id = user_swipes.user_id AND s2.action = 'LIKE')`,
             [userId, userId]
         );
 
@@ -283,7 +283,7 @@ export class ProfileService {
 
         // Views would require a profile_views table - for now return estimated
         const viewsCount = await this.em.getConnection().execute<any[]>(
-            `SELECT COUNT(DISTINCT swiper_id) FROM user_swipes WHERE target_id = ?`,
+            `SELECT COUNT(DISTINCT user_id) FROM user_swipes WHERE target_id = ?`,
             [userId]
         );
 
@@ -344,29 +344,37 @@ export class ProfileService {
 
             this.logger.log(`Processing batch ${batchNum}/${totalBatches}`);
 
-            // Process batch sequentially
-            for (const profile of batch) {
-                try {
+            // Process batch in parallel
+            const results = await Promise.allSettled(
+                batch.map(async (profile) => {
                     const embedding = await this.aiService.generateProfileEmbedding(profile);
-                    if (embedding && embedding.length > 0) {
+                    if (embedding.length > 0) {
                         profile.bioEmbedding = embedding;
                         profile.embeddingUpdatedAt = new Date();
                         await this.em.persistAndFlush(profile);
-                        success++;
-                    } else {
-                        failed++;
-                        errors.push(`Empty profile for user ${profile.id}`);
+                        return { userId: profile.user.id, success: true };
                     }
-                } catch (err) {
+                    return { userId: profile.user.id, success: false, reason: 'Empty profile' };
+                }),
+            );
+
+            // Count results
+            for (const result of results) {
+                if (result.status === 'fulfilled' && result.value.success) {
+                    success++;
+                } else {
                     failed++;
-                    this.logger.error(`Reindex failed for user ${profile.id}: ${err.message}`);
-                    errors.push(err.message);
+                    const reason = result.status === 'rejected'
+                        ? result.reason?.message || 'Unknown error'
+                        : (result.value as any).reason || 'Failed';
+                    this.logger.error(`Reindex failed: ${reason}`);
+                    errors.push(reason);
                 }
             }
 
             // Small delay between batches to respect rate limits
             if (i + batchSize < profiles.length) {
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
 

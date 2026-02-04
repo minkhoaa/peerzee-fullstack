@@ -14,7 +14,6 @@ import { UserProfile, UserGender } from './entities/user-profile.entity';
 import { UserTag } from './entities/user-tag.entity';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { AddTagDto } from './dto/add-tag.dto';
@@ -23,7 +22,7 @@ import { UpdateUserProfileDto } from './dto/update-profile.dto';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
-
+  
   constructor(
     @InjectRepository(User)
     private readonly userRepository: EntityRepository<User>,
@@ -57,7 +56,6 @@ export class UserService {
     profile.display_name = dto.display_name;
     profile.bio = dto.bio;
     profile.location = dto.location;
-    profile.gender = dto.gender ? (dto.gender as unknown as UserGender) : UserGender.OTHER;
     this.em.persist(profile);
 
     await this.em.flush();
@@ -288,13 +286,10 @@ export class UserService {
       profile.occupation = occupations[Math.floor(Math.random() * occupations.length)];
       profile.height = (Math.floor(Math.random() * 30) + 155).toString();
       profile.gender = i % 2 === 0 ? UserGender.MALE : UserGender.FEMALE;
-
+      
       const numTags = Math.floor(Math.random() * 3) + 3;
       const shuffled = [...tags].sort(() => 0.5 - Math.random());
       profile.tags = shuffled.slice(0, numTags); // Already an array, will be persisted correctly
-      profile.photos = [
-        { id: uuidv4(), url: `https://i.pravatar.cc/150?u=${email}`, isCover: true, order: 0 }
-      ];
       profile.user = user;
 
       this.em.persist(user);
