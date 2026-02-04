@@ -54,7 +54,7 @@ export default function ChatSidebar({
     const [searchQuery, setSearchQuery] = React.useState('');
     const [activeFilter, setActiveFilter] = React.useState<FilterTab>('all');
 
-    // Filter conversations based on search and filter tab
+    // Filter and sort conversations based on search, filter tab, and last message time
     const filteredConversations = React.useMemo(() => {
         let filtered = conversations;
 
@@ -70,6 +70,13 @@ export default function ChatSidebar({
         if (activeFilter === 'unread') {
             filtered = filtered.filter(c => unreadCounts[c.id] > 0);
         }
+
+        // Sort by lastMessageAt (most recent first)
+        filtered = [...filtered].sort((a, b) => {
+            const timeA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+            const timeB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+            return timeB - timeA;
+        });
 
         return filtered;
     }, [conversations, searchQuery, activeFilter, unreadCounts]);

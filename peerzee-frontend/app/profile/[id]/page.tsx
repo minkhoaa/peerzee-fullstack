@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Camera, Check, X, Star, MessageSquareText, Eye, Loader2, MapPin, Briefcase, Bot } from 'lucide-react';
 import { chatApi, userApi, getAssetUrl } from '@/lib/api';
+import { useSwipe } from '@/hooks/useDiscover';
 
 interface UserProfileData {
     id: string;
@@ -31,9 +32,15 @@ export default function UserProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [startingDM, setStartingDM] = useState(false);
+    const [isOwnProfile, setIsOwnProfile] = useState(false);
+    
+    const swipeMutation = useSwipe();
 
     useEffect(() => {
         if (!userId) return;
+        // Check if viewing own profile
+        const currentUserId = localStorage.getItem('userId');
+        setIsOwnProfile(currentUserId === userId);
         loadProfile();
     }, [userId]);
 
@@ -88,7 +95,45 @@ export default function UserProfilePage() {
             router.push(`/chat?conversation=${res.data.conversationId}`);
         } catch (err) {
             console.error('Failed to start DM:', err);
+            alert('Không thể bắt đầu trò chuyện');
             setStartingDM(false);
+        }
+    };
+
+    // Handle Like action
+    const handleLike = async () => {
+        try {
+            const result = await swipeMutation.mutateAsync({
+                targetId: userId,
+                action: 'LIKE',
+            });
+            
+            if (result.isMatch) {
+                alert('🎉 Match! Bạn đã ghép đôi thành công!');
+                // Redirect to chat if matched
+                if (result.conversationId) {
+                    router.push(`/chat?conversation=${result.conversationId}`);
+                }
+            } else {
+                router.back();
+            }
+        } catch (err) {
+            console.error('Failed to like:', err);
+            alert('Không thể gửi like');
+        }
+    };
+
+    // Handle Pass action
+    const handlePass = async () => {
+        try {
+            await swipeMutation.mutateAsync({
+                targetId: userId,
+                action: 'PASS',
+            });
+            router.back();
+        } catch (err) {
+            console.error('Failed to pass:', err);
+            alert('Không thể pass');
         }
     };
 
@@ -150,7 +195,8 @@ export default function UserProfilePage() {
             </header>
 
             <main className="max-w-2xl mx-auto px-4 pb-8 space-y-4">
-                {/* Profile Strength Card */}
+                {/* Profile Strength Card - Only show for own profile */}
+                {isOwnProfile && (
                 <div className="bg-retro-white rounded-xl p-4 flex items-center gap-6 border-3 border-cocoa shadow-pixel">
                     {/* Circular Progress */}
                     <div className="relative w-20 h-20 shrink-0">
@@ -206,6 +252,7 @@ export default function UserProfilePage() {
                         <p className="text-cocoa-light text-xs font-body font-bold">Complete ID verification to unlock premium matches</p>
                     </div>
                 </div>
+                )}
 
                 {/* Profile Card */}
                 <div className="bg-retro-white rounded-xl overflow-hidden border-3 border-cocoa shadow-pixel">
@@ -214,9 +261,12 @@ export default function UserProfilePage() {
                         {coverPhoto && (
                             <img src={coverPhoto} alt="" className="w-full h-full object-cover" />
                         )}
+                        {/* Camera button - Only show for own profile */}
+                        {isOwnProfile && (
                         <button className="absolute bottom-3 right-3 p-2 bg-retro-white/90 rounded-lg text-cocoa hover:bg-pixel-yellow transition-colors border-2 border-cocoa shadow-pixel-sm z-10">
                             <Camera className="w-4 h-4" />
                         </button>
+                        )}
                     </div>
 
                     {/* Avatar & Info */}
@@ -245,10 +295,21 @@ export default function UserProfilePage() {
                                 </h2>
                                 <p className="text-cocoa-light text-sm font-body font-bold">@{profile.display_name?.toLowerCase().replace(/\s/g, '') || 'user'}</p>
                             </div>
-                            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-cocoa/10 hover:bg-pixel-yellow text-cocoa text-sm rounded-lg transition-colors border-2 border-cocoa shadow-pixel-sm font-pixel">
-                                <Star className="w-4 h-4" strokeWidth={2.5} />
+                            {/* Like button - Only show for other users' profiles */}
+                            {!isOwnProfile && (
+                            <button 
+                                onClick={handleLike}
+                                disabled={swipeMutation.isPending}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-cocoa/10 hover:bg-pixel-yellow text-cocoa text-sm rounded-lg transition-colors border-2 border-cocoa shadow-pixel-sm font-pixel disabled:opacity-50"
+                            >
+                                {swipeMutation.isPending ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Star className="w-4 h-4" strokeWidth={2.5} />
+                                )}
                                 Like
                             </button>
+                            )}
                         </div>
 
                         {/* Stats */}
@@ -342,19 +403,31 @@ export default function UserProfilePage() {
                     </div>
                 )}
 
-                {/* Action Buttons */}
+                {/* Action Buttons - Only show for other users' profiles */}
+                {!isOwnProfile && (
                 <div className="flex gap-3 pt-4">
                     <button
-                        onClick={() => router.back()}
-                        className="flex-1 py-3 bg-retro-white text-cocoa-light border-3 border-cocoa rounded-xl hover:bg-pixel-red/20 transition-colors flex items-center justify-center gap-2 shadow-pixel font-pixel"
+                        onClick={handlePass}
+                        disabled={swipeMutation.isPending}
+                        className="flex-1 py-3 bg-retro-white text-cocoa-light border-3 border-cocoa rounded-xl hover:bg-pixel-red/20 transition-colors flex items-center justify-center gap-2 shadow-pixel font-pixel disabled:opacity-50"
                     >
-                        <X className="w-5 h-5" />
+                        {swipeMutation.isPending ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <X className="w-5 h-5" />
+                        )}
                         Pass
                     </button>
                     <button
-                        className="flex-1 py-3 bg-pixel-pink text-cocoa border-3 border-cocoa rounded-xl hover:bg-pixel-pink/80 transition-colors flex items-center justify-center gap-2 shadow-pixel font-pixel"
+                        onClick={handleLike}
+                        disabled={swipeMutation.isPending}
+                        className="flex-1 py-3 bg-pixel-pink text-cocoa border-3 border-cocoa rounded-xl hover:bg-pixel-pink/80 transition-colors flex items-center justify-center gap-2 shadow-pixel font-pixel disabled:opacity-50"
                     >
-                        <Star className="w-5 h-5" strokeWidth={2.5} />
+                        {swipeMutation.isPending ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <Star className="w-5 h-5" strokeWidth={2.5} />
+                        )}
                         Like
                     </button>
                     <button
@@ -370,6 +443,7 @@ export default function UserProfilePage() {
                         Nhắn tin
                     </button>
                 </div>
+                )}
             </main>
         </div>
     );

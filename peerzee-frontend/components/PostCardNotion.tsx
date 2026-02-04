@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowUp, ArrowDown, MessageSquareText, Share, Bookmark, MoreHorizontal, Trash2, Send, Loader2 } from 'lucide-react';
 import { SocialPost, communityApi, type Comment } from '@/lib/communityApi';
 import { useVote, useDeletePost } from '@/hooks/usePosts';
@@ -26,6 +27,7 @@ function getInitials(name?: string): string {
 }
 
 export default function PostCardNotion({ post, currentUserId }: PostCardNotionProps) {
+    const router = useRouter();
     const [showMenu, setShowMenu] = useState(false);
     const [showComments, setShowComments] = useState(false);
     const [comments, setComments] = useState<Comment[]>([]);
@@ -40,6 +42,11 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
 
     const displayName = post.author.display_name || post.author.email?.split('@')[0] || 'Unknown';
     const isAuthor = currentUserId === post.author.id;
+
+    // Navigate to author's profile
+    const handleViewProfile = useCallback(() => {
+        router.push(`/profile/${post.author.id}`);
+    }, [router, post.author.id]);
 
     // Reddit-style voting: userVote is 1 (up), -1 (down), or 0 (none)
     const userVote = post.userVote || 0;
@@ -140,12 +147,18 @@ export default function PostCardNotion({ post, currentUserId }: PostCardNotionPr
                 <div className="flex-1 min-w-0">
                     {/* Header */}
                     <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-lg bg-pixel-pink border-2 border-cocoa flex items-center justify-center text-cocoa text-xs font-pixel shadow-pixel-sm">
+                        <button
+                            onClick={handleViewProfile}
+                            className="w-8 h-8 rounded-lg bg-pixel-pink border-2 border-cocoa flex items-center justify-center text-cocoa text-xs font-pixel shadow-pixel-sm hover:bg-pixel-yellow transition-colors"
+                        >
                             {getInitials(displayName)}
-                        </div>
-                        <span className="text-cocoa text-sm font-bold hover:underline cursor-pointer">
+                        </button>
+                        <button
+                            onClick={handleViewProfile}
+                            className="text-cocoa text-sm font-bold hover:underline hover:text-pixel-pink transition-colors"
+                        >
                             {displayName}
-                        </span>
+                        </button>
                         <span className="text-cocoa-light text-xs">·</span>
                         <span className="text-cocoa-light text-xs font-bold">{formatTimeAgo(post.createdAt)}</span>
 

@@ -17,6 +17,7 @@ import { VideoDatingModule } from './video-dating/video-dating.module';
 import { AiModule } from './ai/ai.module';
 import { RedisModule } from './redis/redis.module';
 import { AgentsModule } from './agents/agents.module';
+import { WingmanModule } from './wingman/wingman.module';
 import config from './mikro-orm.config';
 
 @Module({
@@ -44,6 +45,7 @@ import config from './mikro-orm.config';
     VideoDatingModule,
     AiModule,
     AgentsModule,
+    WingmanModule,
   ],
   controllers: [AppController],
   providers: [AppService],

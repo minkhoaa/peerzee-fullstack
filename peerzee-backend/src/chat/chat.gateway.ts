@@ -21,6 +21,7 @@ import { DeleteMessageDto, EditMessageDto } from './dto/edit-message.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { PresenceService } from '../redis/presence.service';
 import { NotificationService } from '../notification/notification.service';
+import { VoiceService } from './voice.service';
 
 @WebSocketGateway({
   namespace: '/socket/chat',
@@ -37,6 +38,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly userService: UserService,
     private readonly presenceService: PresenceService,
     private readonly notificationService: NotificationService,
+    private readonly voiceService: VoiceService,
     private readonly orm: MikroORM,
   ) { }
 
@@ -387,6 +389,60 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
     const results = await this.chatService.searchMessages(dto.conversation_id, dto.query);
     return { ok: true, results };
+  }
+
+  /**
+   * Voice message transcription request
+   * Client sends this after uploading a voice message to trigger AI transcription
+   */
+  @SubscribeMessage('voice:transcribe')
+  async handleVoiceTranscribe(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() dto: { 
+      message_id: string; 
+      conversation_id: string; 
+      file_path: string;
+      mime_type?: string;
+    }
+  ) {
+    return RequestContext.create(this.orm.em, async () => {
+      const userId = client.data.user_id;
+      if (!userId) return { ok: false, message: 'Not authenticated' };
+
+      try {
+        // Process the voice note (transcribe + analyze sentiment)
+        const result = await this.voiceService.processVoiceNote(
+          dto.file_path,
+          dto.mime_type || 'audio/webm'
+        );
+
+        // Update the message with transcription data
+        await this.voiceService.updateMessageWithVoiceData(
+          dto.message_id,
+          result.transcription,
+          result.analysis,
+          result.duration
+        );
+
+        // Broadcast transcription to all participants in the conversation
+        this.server.to(dto.conversation_id).emit('voice:transcribed', {
+          message_id: dto.message_id,
+          transcription: result.transcription,
+          analysis: result.analysis,
+          duration: result.duration,
+        });
+
+        return { 
+          ok: true, 
+          transcription: result.transcription,
+          analysis: result.analysis,
+          duration: result.duration,
+        };
+      } catch (error: any) {
+        console.error('[VOICE] Transcription failed:', error);
+        return { ok: false, message: error.message || 'Transcription failed' };
+      }
+    });
   }
 
   @SubscribeMessage('call:offer')

@@ -9,6 +9,13 @@ import { Conversation } from './conversation.entity';
 import { MessageReaction } from './message-reaction.entity';
 import { v4 as uuid } from 'uuid';
 
+// Voice analysis result type
+interface VoiceAnalysis {
+  sentiment: 'positive' | 'neutral' | 'negative';
+  emotion: string; // happy, sad, excited, calm, etc.
+  confidence: number;
+}
+
 @Entity({ tableName: 'message' })
 export class Message {
   @PrimaryKey({ type: 'uuid' })
@@ -52,6 +59,16 @@ export class Message {
 
   @Property({ type: 'varchar', nullable: true })
   fileType: string | null;
+
+  // Voice note fields
+  @Property({ type: 'int', nullable: true, fieldName: 'audio_duration' })
+  audioDuration: number | null;
+
+  @Property({ type: 'text', nullable: true })
+  transcription: string | null;
+
+  @Property({ type: 'jsonb', nullable: true, fieldName: 'voice_analysis' })
+  voiceAnalysis: VoiceAnalysis | null;
 
   @OneToMany(() => MessageReaction, (r) => r.message)
   reactions: MessageReaction[];

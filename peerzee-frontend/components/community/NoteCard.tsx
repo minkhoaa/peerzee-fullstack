@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Heart, MessageSquare, MoreHorizontal, Trash2, User, Send, X } from 'lucide-react';
 import type { Post, Comment } from '@/types/community';
 import { PushPin } from '@/components/village';
@@ -123,7 +124,10 @@ export function NoteCard({
       <div className="p-5 pt-6 border-3 border-cocoa relative bg-retro-paper shadow-pixel">
         {/* Author Header */}
         <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
+          <Link
+            href={`/profile/${post.author.id}`}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+          >
             <div className="w-10 h-10 rounded-lg border-2 border-cocoa overflow-hidden shrink-0 bg-retro-white">
               {post.author.avatarUrl ? (
                 <img
@@ -138,14 +142,14 @@ export function NoteCard({
               )}
             </div>
             <div>
-              <p className="font-pixel text-sm text-cocoa font-bold">
+              <p className="font-pixel text-sm text-cocoa font-bold hover:text-pixel-pink transition-colors">
                 {post.author.username}
               </p>
               <p className="text-xs font-body font-bold text-cocoa-light">
                 {formatTimeAgo(post.createdAt)}
               </p>
             </div>
-          </div>
+          </Link>
 
           {/* Options Menu */}
           {isOwner && (

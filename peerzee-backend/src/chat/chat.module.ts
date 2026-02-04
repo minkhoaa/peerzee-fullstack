@@ -17,6 +17,7 @@ import { UserModule } from '../user/user.module';
 import { UserProfile } from '../user/entities/user-profile.entity';
 import { AiModule } from '../ai/ai.module';
 import { NotificationModule } from '../notification/notification.module';
+import { VoiceService } from './voice.service';
 
 @Module({
   imports: [
@@ -36,8 +37,8 @@ import { NotificationModule } from '../notification/notification.module';
     }),
   ],
   controllers: [UploadController, ChatController],
-  providers: [ChatGateway, ChatService],
-  exports: [ChatService],
+  providers: [ChatGateway, ChatService, VoiceService],
+  exports: [ChatService, VoiceService],
 })
 export class ChatModule { }
 

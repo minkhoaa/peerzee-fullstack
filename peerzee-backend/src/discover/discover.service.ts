@@ -150,7 +150,9 @@ AND(6371 * acos(
 
         // RAW SQL IS MUST HERE for complex joins and exclusions
         const sql = `
-            SELECT u.id, u.email, p.*, ${distanceCalc}
+            SELECT u.id AS user_id, u.email, p.display_name, p.bio, p.location, p.age, p.occupation, p.education, 
+                   p.photos, p.prompts, p.tags, p.spotify, p.instagram, p.intent_mode, p.profile_properties,
+                   p.latitude, p.longitude, ${distanceCalc}
             FROM users u
             LEFT JOIN user_profiles p ON u.id = p.user_id
             WHERE u.id != ?
@@ -171,11 +173,11 @@ AND(6371 * acos(
         // Check if there are more results
         const hasMore = rawResults.length > limit;
         const users = hasMore ? rawResults.slice(0, limit) : rawResults;
-        const nextCursor = hasMore ? users[users.length - 1]?.id : null;
+        const nextCursor = hasMore ? users[users.length - 1]?.user_id : null;
 
         // Map to DTO
         const data: DiscoverUserDto[] = users.map((row) => ({
-            id: row.id,
+            id: row.user_id, // Use user_id alias to avoid collision with profile.id
             display_name: row.display_name || row.email?.split('@')[0] || 'User',
             bio: row.bio,
             location: row.location,
@@ -212,7 +214,9 @@ AND(6371 * acos(
 
         const sql = `
 SELECT
-u.id, u.email, p.*,
+u.id AS user_id, u.email, p.display_name, p.bio, p.location, p.age, p.occupation, p.education, 
+p.photos, p.prompts, p.tags, p.spotify, p.instagram, p.intent_mode, p.profile_properties,
+p.latitude, p.longitude,
     (6371 * acos(
         cos(radians($1)) * cos(radians(p.latitude)) *
         cos(radians(p.longitude) - radians($2)) +
@@ -245,7 +249,7 @@ LIMIT ?
         ]);
 
         const data: DiscoverUserDto[] = rawResults.map((row) => ({
-            id: row.id,
+            id: row.user_id, // Use user_id alias to avoid collision with profile.id
             display_name: row.display_name || row.email?.split('@')[0] || 'User',
             bio: row.bio,
             location: row.location,

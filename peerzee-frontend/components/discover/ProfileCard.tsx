@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { MapPin, Briefcase, GraduationCap, Music, Instagram, MessageSquareText } from 'lucide-react';
+import { MapPin, Briefcase, GraduationCap, Music, Instagram, MessageSquareText, Eye } from 'lucide-react';
 import type { DiscoverUser } from '@/hooks/useDiscover';
 import ProfilePropertiesGrid from './ProfilePropertiesGrid';
 import { getAssetUrl } from '@/lib/api';
@@ -9,13 +9,14 @@ import { getAssetUrl } from '@/lib/api';
 interface ProfileCardProps {
     user: DiscoverUser;
     onContentClick?: (contentId: string, contentType: 'photo' | 'prompt' | 'vibe') => void;
+    onViewProfile?: () => void;
 }
 
 /**
  * ProfileCard - Retro Pixel OS styled profile card
  * Scrollable profile doc with cover image, details, and prompts
  */
-export default function ProfileCard({ user, onContentClick }: ProfileCardProps) {
+export default function ProfileCard({ user, onContentClick, onViewProfile }: ProfileCardProps) {
     const cardRef = useRef<HTMLDivElement>(null);
 
     // Get cover photo or fallback
@@ -36,8 +37,21 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                     className="w-full h-full object-cover"
                     onClick={() => user.photos?.[0]?.id && onContentClick?.(user.photos[0].id, 'photo')}
                 />
+                {/* View Profile Button on Cover */}
+                {onViewProfile && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onViewProfile();
+                        }}
+                        className="absolute top-4 right-4 z-20 px-3 py-2 bg-retro-white/90 backdrop-blur-sm border-2 border-cocoa rounded-lg shadow-pixel-sm flex items-center gap-2 hover:bg-pixel-yellow transition-colors"
+                    >
+                        <Eye className="w-4 h-4 text-cocoa" />
+                        <span className="text-xs font-pixel text-cocoa uppercase tracking-wider">Xem</span>
+                    </button>
+                )}
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-retro-white via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-retro-white via-transparent to-transparent pointer-events-none" />
             </div>
 
             {/* Scrollable Body - 60% */}
@@ -52,7 +66,10 @@ export default function ProfileCard({ user, onContentClick }: ProfileCardProps) 
                         />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h2 className="text-xl font-pixel uppercase tracking-widest text-cocoa truncate">
+                        <h2 
+                            className="text-xl font-pixel uppercase tracking-widest text-cocoa truncate cursor-pointer hover:text-pixel-pink transition-colors"
+                            onClick={() => onViewProfile?.()}
+                        >
                             {user.display_name}
                             {user.age && <span className="ml-2">{user.age}</span>}
                         </h2>

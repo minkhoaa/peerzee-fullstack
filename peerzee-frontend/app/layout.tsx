@@ -3,6 +3,7 @@ import { Nunito } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme";
 import QueryProvider from "@/components/QueryProvider";
 import { MatchProvider } from "@/components/MatchProvider";
+import WingmanWrapper from "@/components/WingmanWrapper";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -34,6 +35,7 @@ export default function RootLayout({
           <ThemeProvider>
             <MatchProvider>
               {children}
+              <WingmanWrapper />
             </MatchProvider>
           </ThemeProvider>
         </QueryProvider>

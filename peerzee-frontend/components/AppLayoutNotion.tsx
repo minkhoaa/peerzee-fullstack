@@ -4,6 +4,7 @@ import React from 'react';
 import TopNavNotion from './TopNavNotion';
 import LeftSidebarNotion from './LeftSidebarNotion';
 import RightSidebarNotion from './RightSidebarNotion';
+import WingmanChat from './wingman/WingmanChat';
 
 interface AppLayoutNotionProps {
     children: React.ReactNode;
@@ -36,6 +37,9 @@ export default function AppLayoutNotion({ children }: AppLayoutNotionProps) {
                     </div>
                 </div>
             </div>
+
+            {/* AI Wingman Chat Widget */}
+            <WingmanChat />
         </div>
     );
 }

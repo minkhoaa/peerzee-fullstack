@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, X, Plus, Trash2, Loader2, MapPin, Ruler, Music, Play, Pause, Frown, FileText, Image, User, Briefcase, Tag, PenLine, Star } from 'lucide-react';
+import { Camera, X, Plus, Trash2, Loader2, MapPin, Ruler, Music, Play, Pause, Frown, FileText, Image, User, Briefcase, Tag, PenLine, Star, Bot, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { profileApi, getAssetUrl } from '@/lib/api';
+import { profileApi, getAssetUrl, ProfileAnalysisResult } from '@/lib/api';
 import { searchLocations } from '@/lib/vietnam-locations';
 import { TagSelector } from '@/components/TagSelector';
 import { ProfileHero } from '@/components/profile/ProfileHero';
@@ -68,6 +68,9 @@ export default function MyProfilePage() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMusicModalOpen, setMusicModalOpen] = useState(false);
     const [isEditingPhotos, setIsEditingPhotos] = useState(false);
+    const [showAIModal, setShowAIModal] = useState(false);
+    const [aiAnalyzing, setAiAnalyzing] = useState(false);
+    const [aiResult, setAiResult] = useState<ProfileAnalysisResult | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     // Cleanup audio on unmount
@@ -239,6 +242,19 @@ export default function MyProfilePage() {
             setMusicModalOpen(false);
         } catch (err) {
             console.error('Failed to set music:', err);
+        }
+    };
+
+    const handleAIAnalyze = async () => {
+        setAiAnalyzing(true);
+        setAiResult(null);
+        try {
+            const res = await profileApi.analyzeProfile();
+            setAiResult(res.data);
+        } catch (err) {
+            console.error('Failed to analyze profile:', err);
+        } finally {
+            setAiAnalyzing(false);
         }
     };
 
@@ -488,6 +504,42 @@ export default function MyProfilePage() {
                             <span className="font-body text-cocoa-light font-bold text-sm">No interests added yet</span>
                         )}
                     </motion.div>
+
+                    {/* AI Profile Doctor Widget */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="bg-gradient-to-br from-pixel-blue/20 to-pixel-pink/20 p-6 border-3 border-cocoa rounded-xl shadow-pixel col-span-1 md:col-span-3"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-pixel-purple border-3 border-cocoa rounded-xl shadow-pixel flex items-center justify-center">
+                                    <Bot className="w-6 h-6 text-cocoa" strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <h3 className="font-pixel text-cocoa uppercase tracking-wider flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4" strokeWidth={2.5} />
+                                        AI Profile Doctor
+                                    </h3>
+                                    <p className="text-xs text-cocoa-light font-body font-bold mt-1">
+                                        Nhận phản hồi chân thực và lời khuyên cải thiện profile
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowAIModal(true);
+                                    if (!aiResult) {
+                                        handleAIAnalyze();
+                                    }
+                                }}
+                                className="px-6 py-3 bg-pixel-purple text-cocoa border-3 border-cocoa rounded-lg shadow-pixel hover:bg-purple-400 active:translate-y-0.5 active:shadow-none transition-all font-pixel uppercase tracking-wider whitespace-nowrap"
+                            >
+                                Phân tích
+                            </button>
+                        </div>
+                    </motion.div>
                 </div>
 
                 {/* Content Tabs & Grid */}
@@ -716,6 +768,127 @@ export default function MyProfilePage() {
                 onClose={() => setMusicModalOpen(false)}
                 onMusicSet={handleSelectMusic}
             />
+
+            {/* AI Profile Analysis Modal */}
+            {showAIModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                    >
+                        {/* Header */}
+                        <div className="sticky top-0 bg-retro-white border-b-3 border-cocoa p-6 flex items-center justify-between z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-pixel-purple border-3 border-cocoa rounded-xl shadow-pixel flex items-center justify-center">
+                                    <Bot className="w-5 h-5 text-cocoa" strokeWidth={2.5} />
+                                </div>
+                                <h2 className="font-pixel text-cocoa uppercase tracking-wider text-lg">
+                                    AI Profile Doctor
+                                </h2>
+                            </div>
+                            <button
+                                onClick={() => setShowAIModal(false)}
+                                className="w-8 h-8 bg-cocoa/10 hover:bg-pixel-red text-cocoa border-2 border-cocoa rounded-lg transition-all flex items-center justify-center"
+                            >
+                                <X className="w-5 h-5" strokeWidth={2.5} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-6">
+                            {aiAnalyzing ? (
+                                <div className="py-12 flex flex-col items-center justify-center">
+                                    <Loader2 className="w-12 h-12 text-pixel-purple animate-spin mb-4" strokeWidth={2.5} />
+                                    <p className="font-pixel text-cocoa uppercase tracking-wider">Analyzing...</p>
+                                    <p className="text-sm text-cocoa-light font-body font-bold mt-2">AI đang phân tích profile của bạn</p>
+                                </div>
+                            ) : aiResult ? (
+                                <>
+                                    {/* Score */}
+                                    <div className="bg-gradient-to-br from-pixel-pink/20 to-pixel-yellow/20 border-3 border-cocoa rounded-xl p-6 text-center shadow-pixel">
+                                        <p className="font-pixel text-cocoa-light uppercase tracking-wider text-sm mb-2">Profile Score</p>
+                                        <div className="text-5xl font-pixel text-cocoa mb-2">{aiResult.score}/100</div>
+                                        <div className="w-full bg-cocoa/20 h-4 border-2 border-cocoa rounded-full overflow-hidden">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${aiResult.score}%` }}
+                                                transition={{ duration: 1, ease: "easeOut" }}
+                                                className="h-full bg-gradient-to-r from-pixel-pink to-pixel-yellow border-r-2 border-cocoa"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Roast */}
+                                    <div className="bg-pixel-red/10 border-3 border-cocoa rounded-xl p-6 shadow-pixel">
+                                        <h3 className="font-pixel text-pixel-red uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            🔥 Roast
+                                        </h3>
+                                        <p className="text-cocoa font-body font-bold leading-relaxed">{aiResult.roast}</p>
+                                    </div>
+
+                                    {/* Advice */}
+                                    <div className="bg-pixel-green/10 border-3 border-cocoa rounded-xl p-6 shadow-pixel">
+                                        <h3 className="font-pixel text-pixel-green uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            💡 Advice
+                                        </h3>
+                                        <p className="text-cocoa font-body font-bold leading-relaxed">{aiResult.advice}</p>
+                                    </div>
+
+                                    {/* Improved Bios */}
+                                    {aiResult.improved_bios && aiResult.improved_bios.length > 0 && (
+                                        <div className="bg-pixel-blue/10 border-3 border-cocoa rounded-xl p-6 shadow-pixel">
+                                            <h3 className="font-pixel text-pixel-blue uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                ✨ Suggested Bios
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {aiResult.improved_bios.map((bio, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="bg-retro-white border-2 border-cocoa rounded-lg p-4 font-body font-bold text-cocoa text-sm cursor-pointer hover:bg-pixel-yellow/20 transition-colors"
+                                                        onClick={() => {
+                                                            setEditForm(prev => ({ ...prev, bio }));
+                                                            setShowAIModal(false);
+                                                            setShowEditModal(true);
+                                                        }}
+                                                    >
+                                                        {bio}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <p className="text-xs text-cocoa-light font-body font-bold mt-3">
+                                                Click vào bio để sử dụng
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Actions */}
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={handleAIAnalyze}
+                                            disabled={aiAnalyzing}
+                                            className="flex-1 py-3 bg-pixel-purple text-cocoa border-3 border-cocoa rounded-lg shadow-pixel hover:bg-purple-400 active:translate-y-0.5 active:shadow-none transition-all font-pixel uppercase tracking-wider disabled:opacity-50"
+                                        >
+                                            🔄 Phân tích lại
+                                        </button>
+                                        <button
+                                            onClick={() => setShowAIModal(false)}
+                                            className="flex-1 py-3 bg-retro-white text-cocoa border-3 border-cocoa rounded-lg shadow-pixel hover:bg-cocoa/10 active:translate-y-0.5 active:shadow-none transition-all font-pixel uppercase tracking-wider"
+                                        >
+                                            Đóng
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="py-12 flex flex-col items-center justify-center">
+                                    <p className="text-cocoa-light font-body font-bold">Không có kết quả</p>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
-import { X, Star } from 'lucide-react';
+import { X, Star, User, Eye } from 'lucide-react';
 import ProfileCard from './ProfileCard';
 import type { DiscoverUser } from '@/hooks/useDiscover';
 
@@ -11,6 +12,7 @@ interface ProfileCardStackProps {
     onSwipe: (userId: string, action: 'LIKE' | 'PASS' | 'SUPER_LIKE', contentId?: string, contentType?: 'photo' | 'prompt' | 'vibe') => void;
     onEmpty?: () => void;
     isLoading?: boolean;
+    onViewProfile?: (userId: string) => void;
 }
 
 const SWIPE_THRESHOLD = 100;
@@ -19,10 +21,20 @@ const SWIPE_THRESHOLD = 100;
  * ProfileCardStack - Retro Pixel OS styled swipeable card stack
  * Framer Motion powered with pixel aesthetics
  */
-export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading }: ProfileCardStackProps) {
+export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading, onViewProfile }: ProfileCardStackProps) {
+    const router = useRouter();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState<'left' | 'right' | null>(null);
     const [selectedContent, setSelectedContent] = useState<{ id: string; type: 'photo' | 'prompt' | 'vibe' } | null>(null);
+
+    // Navigate to full profile page
+    const handleViewProfile = useCallback((userId: string) => {
+        if (onViewProfile) {
+            onViewProfile(userId);
+        } else {
+            router.push(`/profile/${userId}`);
+        }
+    }, [onViewProfile, router]);
 
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-300, 0, 300], [-15, 0, 15]);
@@ -164,13 +176,17 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading }:
                             <span className="text-xl font-pixel uppercase tracking-widest text-cocoa">NOPE</span>
                         </motion.div>
 
-                        <ProfileCard user={currentUser} onContentClick={handleContentClick} />
+                        <ProfileCard 
+                            user={currentUser} 
+                            onContentClick={handleContentClick}
+                            onViewProfile={() => handleViewProfile(currentUser.id)}
+                        />
                     </motion.div>
                 </AnimatePresence>
             </div>
 
             {/* Action Buttons - Pixel OS style */}
-            <div className="absolute bottom-4 inset-x-0 flex justify-center items-center gap-6">
+            <div className="absolute bottom-4 inset-x-0 flex justify-center items-center gap-4">
                 {/* Pass Button */}
                 <button
                     onClick={() => handleButtonSwipe('PASS')}
@@ -178,6 +194,16 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading }:
                     aria-label="Pass"
                 >
                     <X className="w-6 h-6" />
+                </button>
+
+                {/* View Profile Button */}
+                <button
+                    onClick={() => handleViewProfile(currentUser.id)}
+                    className="w-12 h-12 rounded-xl bg-pixel-yellow border-3 border-cocoa text-cocoa shadow-pixel flex items-center justify-center hover:translate-y-0.5 hover:shadow-none transition-all"
+                    aria-label="View Profile"
+                    title="Xem trang cá nhân"
+                >
+                    <Eye className="w-5 h-5" />
                 </button>
 
                 {/* Super Like */}
