@@ -17,23 +17,10 @@ import {
     ApiBearerAuth,
     ApiQuery,
 } from '@nestjs/swagger';
-import { DiscoverService, DiscoverUserDto, SwipeResult } from './discover.service';
+import { DiscoverService, SwipeResult } from './discover.service';
 import { AuthGuard } from '../user/guards/auth.guard';
-
-// DTOs
-export class SwipeDto {
-    targetId: string;
-    action: 'LIKE' | 'PASS' | 'SUPER_LIKE';
-    message?: string;
-    likedContentId?: string;
-    likedContentType?: 'photo' | 'prompt' | 'vibe';
-}
-
-export class PaginatedRecommendationsDto {
-    data: DiscoverUserDto[];
-    nextCursor: string | null;
-    hasMore: boolean;
-}
+import { SwipeDto } from './dto/swipe.dto';
+import { PaginatedRecommendationsDto, DiscoverUserDto } from './dto/recommendations.dto';
 
 @ApiTags('Discover')
 @Controller('discover')

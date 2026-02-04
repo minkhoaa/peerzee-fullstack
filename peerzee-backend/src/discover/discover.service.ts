@@ -4,6 +4,7 @@ import {
     NotFoundException,
     BadRequestException,
     Logger,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
@@ -13,6 +14,8 @@ import { User } from '../user/entities/user.entity';
 import { UserProfile } from '../user/entities/user-profile.entity';
 import { ChatService } from '../chat/chat.service';
 import { AiService, SearchFilters } from '../ai/ai.service';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/entities/notification.entity';
 
 // Types
 export interface ProfilePhoto {
@@ -87,6 +90,7 @@ export class DiscoverService {
         private readonly profileRepo: EntityRepository<UserProfile>,
         private readonly chatService: ChatService,
         private readonly aiService: AiService,
+        private readonly notificationService: NotificationService,
         private readonly em: EntityManager,
     ) { }
 
@@ -121,21 +125,21 @@ export class DiscoverService {
         if (lat && long && radiusInKm) {
             // Haversine formula
             distanceCalc = `
-                (6371 * acos(
-                    cos(radians(${lat})) * cos(radians(p.latitude)) * 
-                    cos(radians(p.longitude) - radians(${long})) + 
-                    sin(radians(${lat})) * sin(radians(p.latitude))
-                )) AS distance
-            `;
+    (6371 * acos(
+        cos(radians(${lat})) * cos(radians(p.latitude)) *
+        cos(radians(p.longitude) - radians(${long})) +
+        sin(radians(${lat})) * sin(radians(p.latitude))
+    )) AS distance
+        `;
             distanceFilter = `
                 AND p.latitude IS NOT NULL 
-                AND p.longitude IS NOT NULL 
-                AND (6371 * acos(
-                    cos(radians(${lat})) * cos(radians(p.latitude)) * 
-                    cos(radians(p.longitude) - radians(${long})) + 
-                    sin(radians(${lat})) * sin(radians(p.latitude))
-                )) <= ${radiusInKm}
-            `;
+                AND p.longitude IS NOT NULL
+AND(6371 * acos(
+    cos(radians(${lat})) * cos(radians(p.latitude)) *
+    cos(radians(p.longitude) - radians(${long})) +
+    sin(radians(${lat})) * sin(radians(p.latitude))
+)) <= ${radiusInKm}
+`;
         }
 
         // Cursor pagination
@@ -150,9 +154,9 @@ export class DiscoverService {
             FROM users u
             LEFT JOIN user_profiles p ON u.id = p.user_id
             WHERE u.id != ?
-            AND u.status = ?
-            AND p.intent_mode = ?
-            AND NOT EXISTS (
+    AND u.status = ?
+        AND p.intent_mode = ?
+            AND NOT EXISTS(
                 SELECT 1 FROM user_swipes s 
                 WHERE s.target_id = u.id AND s.swiper_id = ?
             )
@@ -160,7 +164,7 @@ export class DiscoverService {
             ${cursorFilter}
             ORDER BY ${lat && long && radiusInKm ? 'distance ASC,' : ''} u.id ASC
             LIMIT ${limit + 1}
-        `;
+`;
 
         const rawResults = await this.em.getConnection().execute<any[]>(sql, params);
 
@@ -207,32 +211,32 @@ export class DiscoverService {
         const userIntentMode = currentUser?.profile?.intentMode || 'DATE';
 
         const sql = `
-            SELECT 
-                u.id, u.email, p.*,
-                (6371 * acos(
-                    cos(radians($1)) * cos(radians(p.latitude)) * 
-                    cos(radians(p.longitude) - radians($2)) + 
-                    sin(radians($1)) * sin(radians(p.latitude))
-                )) AS distance
+SELECT
+u.id, u.email, p.*,
+    (6371 * acos(
+        cos(radians($1)) * cos(radians(p.latitude)) *
+        cos(radians(p.longitude) - radians($2)) +
+        sin(radians($1)) * sin(radians(p.latitude))
+    )) AS distance
             FROM users u
             LEFT JOIN user_profiles p ON u.id = p.user_id
             WHERE u.id != ?
-            AND u.status = 'active'
+    AND u.status = 'active'
             AND p.intent_mode = ?
-            AND p.latitude IS NOT NULL 
+    AND p.latitude IS NOT NULL 
             AND p.longitude IS NOT NULL 
-            AND NOT EXISTS (
-                SELECT 1 FROM user_swipes s 
+            AND NOT EXISTS(
+        SELECT 1 FROM user_swipes s 
                 WHERE s.target_id = u.id AND s.swiper_id = ?
             )
-            AND (6371 * acos(
-                cos(radians(?)) * cos(radians(p.latitude)) * 
-                cos(radians(p.longitude) - radians(?)) + 
-                sin(radians(?)) * sin(radians(p.latitude))
-            )) <= ?
-            ORDER BY distance ASC
-            LIMIT ?
-        `;
+AND(6371 * acos(
+    cos(radians(?)) * cos(radians(p.latitude)) *
+    cos(radians(p.longitude) - radians(?)) +
+    sin(radians(?)) * sin(radians(p.latitude))
+)) <= ?
+    ORDER BY distance ASC
+LIMIT ?
+    `;
 
         const rawResults = await this.em.getConnection().execute<any[]>(sql, [
             userId, userIntentMode, userId,
@@ -277,6 +281,12 @@ export class DiscoverService {
         const targetUser = await this.userRepo.findOne({ id: targetId }, { populate: ['profile'] });
         if (!targetUser) {
             throw new NotFoundException('Target user not found');
+        }
+
+        // Get current user for notifications
+        const currentUser = await this.userRepo.findOne({ id: userId }, { populate: ['profile'] });
+        if (!currentUser) {
+            throw new UnauthorizedException('Swiper user not found');
         }
 
         // Check duplicate swipe
@@ -379,7 +389,7 @@ export class DiscoverService {
 
                 // Save icebreaker to conversation
                 await this.chatService.updateConversationIcebreaker(conversation.id, icebreaker);
-                this.logger.log(`Generated icebreaker for match: ${conversation.id}`);
+                this.logger.log(`Generated icebreaker for match: ${conversation.id} `);
             }
         } catch (error) {
             this.logger.error('Failed to generate icebreaker for match', error);
@@ -390,6 +400,33 @@ export class DiscoverService {
         if (message?.trim()) {
             await this.chatService.chatMessage(conversation.id, userId, message.trim());
         }
+
+        // Send notifications to both users
+        await this.notificationService.createAndEmit(
+            userId,
+            NotificationType.MATCH,
+            'New Match! 🌟',
+            `You matched with ${targetUser.profile?.display_name || 'a new villager'} !`,
+            {
+                conversationId: conversation.id,
+                userId: targetUser.id,
+                userName: targetUser.profile?.display_name,
+                userAvatar: targetUser.profile?.photos?.[0]?.url,
+            }
+        );
+
+        await this.notificationService.createAndEmit(
+            targetId,
+            NotificationType.MATCH,
+            'New Match! 🌟',
+            `You matched with ${currentUser.profile?.display_name || 'a new villager'} !`,
+            {
+                conversationId: conversation.id,
+                userId: currentUser.id,
+                userName: currentUser.profile?.display_name,
+                userAvatar: currentUser.profile?.photos?.[0]?.url,
+            }
+        );
 
         return {
             isMatch: true,
@@ -417,11 +454,11 @@ export class DiscoverService {
         filters: SearchFilters;
         results: (DiscoverUserDto & { matchScore: number })[];
     }> {
-        this.logger.log(`Hybrid search: "${query}" by user ${currentUserId}`);
+        this.logger.log(`Hybrid search: "${query}" by user ${currentUserId} `);
 
         // Step 1: Extract structured filters from natural language
         const filters = await this.aiService.extractSearchFilters(query);
-        this.logger.log(`Extracted filters: ${JSON.stringify(filters)}`);
+        this.logger.log(`Extracted filters: ${JSON.stringify(filters)} `);
 
         // Step 2: Generate embedding for semantic search
         let queryEmbedding: number[] = [];
@@ -440,15 +477,15 @@ export class DiscoverService {
 
         if (filters.gender) {
             // params.push(filters.gender);
-            // whereClause += ` AND p.gender = ?`;
+            // whereClause += ` AND p.gender = ? `;
         }
         if (filters.city) {
-            // params.push(`%${filters.city}%`);
+            // params.push(`% ${ filters.city }% `);
             // whereClause += ` AND LOWER(p.city) LIKE LOWER(?)`;
         }
         if (filters.intent) {
             params.push(filters.intent);
-            whereClause += ` AND p.intent_mode = ?`;
+            whereClause += ` AND p.intent_mode = ? `;
         }
 
         // Optional location filter
@@ -456,24 +493,24 @@ export class DiscoverService {
         if (userLat !== undefined && userLong !== undefined && radiusInKm) {
             distanceSelect = `
                 ROUND(
-                    CAST(
-                        (6371 * acos(
-                            cos(radians(${userLat})) * cos(radians(p.latitude)) * 
-                            cos(radians(p.longitude) - radians(${userLong})) + 
-                            sin(radians(${userLat})) * sin(radians(p.latitude))
-                        )) AS numeric
-                    ), 2
-                ) as distance_km
-            `;
+        CAST(
+            (6371 * acos(
+                cos(radians(${userLat})) * cos(radians(p.latitude)) *
+                cos(radians(p.longitude) - radians(${userLong})) +
+                sin(radians(${userLat})) * sin(radians(p.latitude))
+            )) AS numeric
+        ), 2
+    ) as distance_km
+`;
             whereClause += `
                 AND p.latitude IS NOT NULL 
-                AND p.longitude IS NOT NULL 
-                AND (6371 * acos(
-                    cos(radians(${userLat})) * cos(radians(p.latitude)) * 
-                    cos(radians(p.longitude) - radians(${userLong})) + 
-                    sin(radians(${userLat})) * sin(radians(p.latitude))
-                )) <= ${radiusInKm}
-            `;
+                AND p.longitude IS NOT NULL
+AND(6371 * acos(
+    cos(radians(${userLat})) * cos(radians(p.latitude)) *
+    cos(radians(p.longitude) - radians(${userLong})) +
+    sin(radians(${userLat})) * sin(radians(p.latitude))
+)) <= ${radiusInKm}
+`;
         }
 
         let vectorScoreCalc = '0';
@@ -484,57 +521,57 @@ export class DiscoverService {
             const vectorStr = `[${queryEmbedding.join(',')}]`;
 
             vectorScoreCalc = `
-                (
-                    -- 1. Vector Similarity (60% weight)
-                    (1 - (p.bio_embedding <=> '${vectorStr}')) * 0.6 +
-                    -- 2. Activity Recency (20% weight)
-                    (CASE 
+    (
+        --1. Vector Similarity(60 % weight)
+            (1 - (p.bio_embedding <=> '${vectorStr}')) * 0.6 +
+    --2. Activity Recency(20 % weight)
+        (CASE 
                         WHEN p.last_active > NOW() - INTERVAL '1 day' THEN 1
                         WHEN p.last_active > NOW() - INTERVAL '7 days' THEN 0.7
                         WHEN p.last_active > NOW() - INTERVAL '30 days' THEN 0.5
                         ELSE 0.3
                     END) * 0.2 +
-                    -- 3. Profile Completeness (20% weight)
-                    (CASE 
+    --3. Profile Completeness(20 % weight)
+        (CASE 
                         WHEN p.photos IS NOT NULL AND jsonb_array_length(p.photos) > 0 THEN 0.4
                         ELSE 0
                     END +
-                    CASE WHEN p.bio IS NOT NULL AND p.bio != '' THEN 0.3 ELSE 0 END +
-                    CASE WHEN p.tags IS NOT NULL AND jsonb_array_length(p.tags) > 0 THEN 0.3 ELSE 0 END
-                    ) * 0.2
-                )
+            CASE WHEN p.bio IS NOT NULL AND p.bio != '' THEN 0.3 ELSE 0 END +
+        CASE WHEN p.tags IS NOT NULL AND cardinality(p.tags) > 0 THEN 0.3 ELSE 0 END
+        ) * 0.2
+    )
             `;
             whereClause += ` AND p.bio_embedding IS NOT NULL`;
             orderBy = `ORDER BY weighted_score DESC`;
         } else {
             vectorScoreCalc = `
-                (
-                    (CASE 
+    (
+        (CASE 
                         WHEN p."lastActive" > NOW() - INTERVAL '1 day' THEN 1
                         WHEN p."lastActive" > NOW() - INTERVAL '7 days' THEN 0.7
                         ELSE 0.5
                     END) * 0.5 +
-                    (CASE 
+    (CASE 
                         WHEN p.photos IS NOT NULL AND jsonb_array_length(p.photos) > 0 THEN 0.5
                         ELSE 0.25
                     END)
                 )
-            `;
+`;
             orderBy = `ORDER BY weighted_score DESC`;
         }
 
         const sql = `
-            SELECT 
-                p.*, 
-                u.email,
-                ${distanceSelect},
+SELECT
+p.*,
+    u.email,
+    ${distanceSelect},
                 ${vectorScoreCalc} as weighted_score
             FROM user_profiles p
             LEFT JOIN users u ON p.user_id = u.id
             WHERE ${whereClause}
             ${orderBy}
             LIMIT ${limit}
-        `;
+`;
 
         const rawResults = await this.em.getConnection().execute<any[]>(sql, params);
 
@@ -548,7 +585,7 @@ export class DiscoverService {
                     'STUDY': 'Muốn học cùng',
                     'FRIEND': 'Tìm bạn mới',
                 };
-                reasons.push(`🎯 ${intentLabels[searchFilters.intent] || searchFilters.intent}`);
+                reasons.push(`🎯 ${intentLabels[searchFilters.intent] || searchFilters.intent} `);
             }
             // Match by keywords
             if (searchFilters.semantic_text && profile.tags?.length) {
@@ -557,7 +594,7 @@ export class DiscoverService {
                     searchKeywords.some((kw: string) => tag.toLowerCase().includes(kw) || kw.includes(tag.toLowerCase()))
                 );
                 if (matchedTags.length > 0) {
-                    reasons.push(`🏷️ ${matchedTags.slice(0, 2).join(', ')}`);
+                    reasons.push(`🏷️ ${matchedTags.slice(0, 2).join(', ')} `);
                 }
             }
             // Fallback

@@ -14,6 +14,7 @@ import { UserProfile, UserGender } from './entities/user-profile.entity';
 import { UserTag } from './entities/user-tag.entity';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { AddTagDto } from './dto/add-tag.dto';
@@ -291,6 +292,9 @@ export class UserService {
       const numTags = Math.floor(Math.random() * 3) + 3;
       const shuffled = [...tags].sort(() => 0.5 - Math.random());
       profile.tags = shuffled.slice(0, numTags); // Already an array, will be persisted correctly
+      profile.photos = [
+        { id: uuidv4(), url: `https://i.pravatar.cc/150?u=${email}`, isCover: true, order: 0 }
+      ];
       profile.user = user;
 
       this.em.persist(user);

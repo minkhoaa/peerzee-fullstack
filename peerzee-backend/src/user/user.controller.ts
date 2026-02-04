@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Put, Patch, UseGuards, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put, Patch, UseGuards, Query, Logger } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ProfileService } from './profile.service';
 import { RegisterDto } from './dto/register.dto';
@@ -12,6 +12,8 @@ import { CurrentUser } from './decorators/current-user.decorator';
 
 @Controller('user')
 export class UserController {
+  private readonly logger = new Logger(UserController.name);
+
   constructor(
     private readonly userService: UserService,
     private readonly profileService: ProfileService,
@@ -49,14 +51,16 @@ export class UserController {
   getMyProfile(@CurrentUser('user_id') userId: string) {
     return this.userService.getUserProfile(userId);
   }
-  @UseGuards(AuthGuard)
-  @Get('search')
-  searchUsers(@Query('q') query: string, @CurrentUser('user_id') userId: string) {
-    return this.userService.searchUsers(query, userId);
-  }
+
   @UseGuards(AuthGuard)
   @Get('profile/:id')
-  getUserProfile(@Param('id') id: string) {
+  getUserProfile(
+    @Param('id') id: string,
+    @CurrentUser('user_id') currentUserId: string,
+  ) {
+    if (id === 'me' || id === currentUserId) {
+      return this.userService.getUserProfile(currentUserId);
+    }
     return this.userService.getUserProfile(id);
   }
 

@@ -1,5 +1,7 @@
 import { Entity, PrimaryKey, Property, OneToOne, Enum, ArrayType, JsonType } from '@mikro-orm/core';
 import { User } from './user.entity';
+import { VectorType } from '../types/vector.type';
+import { ProfileTag } from './profile-tag.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { v4 as uuid } from 'uuid';
 
@@ -194,9 +196,9 @@ export class UserProfile {
 
   // Vector Embedding for Semantic Search (requires pgvector extension)
   // Using Google Gemini text-embedding-004 (768 dimensions)
-  // CRITICAL: Use columnType to preserve vector type during schema sync
+  // CRITICAL: Use VectorType to handle pgvector formatting [...]
   @ApiProperty({ description: 'Bio embedding vector for semantic search (768 dimensions - Gemini)' })
-  @Property({ columnType: 'vector(768)', nullable: true })
+  @Property({ fieldName: 'bio_embedding', type: VectorType, nullable: true })
   bioEmbedding?: number[];
 
   @ApiProperty({ description: 'Timestamp when embedding was last updated' })

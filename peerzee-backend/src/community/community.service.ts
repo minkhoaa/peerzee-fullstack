@@ -278,7 +278,7 @@ export class CommunityService {
 
         // Load author relation
         await this.em.populate(comment, ['author', 'author.profile']);
-        
+
         // Load post author for notification
         await this.em.populate(post, ['author']);
 
@@ -464,7 +464,7 @@ export class CommunityService {
 
         // Count occurrences of pinned topics (filter empty arrays in memory)
         const countMap = new Map<string, number>();
-        const pinnedTagsSet = new Set(pinnedTopics.map(t => `#${t.slug}`));
+        const pinnedTagsSet = new Set(pinnedTopics.map(t => `#${t.slug} `));
 
         posts.forEach(post => {
             if (post.tags && post.tags.length > 0) {
@@ -525,7 +525,7 @@ export class CommunityService {
             for (const template of templates) {
                 const variation = variations[Math.floor(Math.random() * variations.length)];
                 allPosts.push({
-                    content: round === 0 ? template.content : `${variation} ${template.content}`,
+                    content: round === 0 ? template.content : `${variation} ${template.content} `,
                     tags: template.tags,
                     comments: template.comments,
                 });
@@ -592,6 +592,17 @@ export class CommunityService {
             }
 
             post.score = score;
+        }
+
+        // Add a welcome notification for all users to make Mailbox look non-empty
+        for (const user of users) {
+            await this.notificationService.createAndEmit(
+                user.id,
+                NotificationType.SYSTEM,
+                'Welcome to Peerzee! 🏠',
+                'Your mailbox is ready. Start connecting with other villagers in the Town Square!',
+                { type: 'welcome' }
+            );
         }
 
         // Flush all at once

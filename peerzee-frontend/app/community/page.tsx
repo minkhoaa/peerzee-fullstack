@@ -7,6 +7,7 @@ import type { Post, User as UserType, TrendingTopic, Comment as CommentType } fr
 import { NoteCard, WriteNote, TownCrier, VillageNav } from '@/components/community';
 import { GlobalHeader } from '@/components/layout';
 import { communityApi, SocialPost, TrendingTag, SuggestedUser } from '@/lib/communityApi';
+import { notificationApi } from '@/lib/api';
 
 // ============================================
 // FRESH SAGE & COOL TAUPE PALETTE
@@ -136,6 +137,7 @@ export default function CommunityPage() {
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   // Today's date in village format
   const today = new Date();
@@ -192,14 +194,27 @@ export default function CommunityPage() {
         setSuggestedUsers(response.users.map(u => ({
           id: u.id,
           username: u.display_name || u.email.split('@')[0],
-          avatarUrl: u.avatar || '',
+          // If no avatar, use a consistent pravatar based on ID
+          avatarUrl: u.avatar || `https://i.pravatar.cc/150?u=${u.id}`,
           level: 1,
-          isOnline: false,
+          isOnline: Math.random() > 0.7, // Randomly set some as online for "liveness"
         })));
       }
     } catch (err) {
       console.error('Failed to fetch suggested users:', err);
       // Keep mock data on error
+    }
+  }, []);
+
+  // Fetch unread notification count
+  const fetchNotificationCount = useCallback(async () => {
+    try {
+      const response = await notificationApi.getUnreadCount();
+      if (response.data && typeof response.data.count === 'number') {
+        setNotificationCount(response.data.count);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notification count:', err);
     }
   }, []);
 
@@ -221,10 +236,11 @@ export default function CommunityPage() {
       fetchPosts(),
       fetchTrending(),
       fetchSuggestedUsers(),
+      fetchNotificationCount(),
     ]).finally(() => {
       setIsLoading(false);
     });
-  }, [fetchPosts, fetchTrending, fetchSuggestedUsers]);
+  }, [fetchPosts, fetchTrending, fetchSuggestedUsers, fetchNotificationCount]);
 
   // Handle post creation with real API
   const handleCreatePost = async (payload: { content: string; imageUrls?: string[]; tags?: string[] }) => {
@@ -434,7 +450,7 @@ export default function CommunityPage() {
         {/* ===== LEFT SIDEBAR ===== */}
         <aside className="hidden lg:block w-56 shrink-0">
           <div className="sticky top-20">
-            <VillageNav activeRoute="/community" mailCount={3} />
+            <VillageNav activeRoute="/community" mailCount={notificationCount} />
           </div>
         </aside>
 

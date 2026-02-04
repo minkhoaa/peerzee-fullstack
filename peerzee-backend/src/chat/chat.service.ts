@@ -48,22 +48,23 @@ export class ChatService {
    * Returns the conversation with participant info
    */
   async findOrCreateDMConversation(userId: string, targetUserId: string): Promise<Conversation> {
-    // Find existing DM using ORM (QueryBuilder)
+    // Find existing DM using raw SQL to avoid MikroORM relation join issues
     // We need a conversation that has both participants and isDirect=true
-    const qb = this.em.createQueryBuilder(Conversation, 'c');
-    qb.select('c.*')
-      .join('c.participants', 'p1')
-      .join('c.participants', 'p2')
-      .where({ 'c.isDirect': true })
-      .andWhere({ 'p1.user.id': userId })
-      .andWhere({ 'p2.user.id': targetUserId })
-      .limit(1);
+    const result = await this.em.getConnection().execute<{ id: string }[]>(`
+      SELECT c.id FROM conversation c
+      INNER JOIN participants p1 ON c.id = p1.conversation_id AND p1.user_id = ?
+      INNER JOIN participants p2 ON c.id = p2.conversation_id AND p2.user_id = ?
+      WHERE c.is_direct = true
+      LIMIT 1
+    `, [userId, targetUserId]);
 
-    const existingDM = await qb.getSingleResult();
-
-    if (existingDM) {
-      return existingDM;
+    if (result.length > 0) {
+      const existingDM = await this.convRepo.findOne({ id: result[0].id });
+      if (existingDM) {
+        return existingDM;
+      }
     }
+
 
     // Get target user's display_name for conversation name
     const targetProfile = await this.profileRepo.findOne({

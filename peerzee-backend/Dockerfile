@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies (including dev)
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
@@ -20,11 +20,18 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
+ENV NODE_ENV=production
+
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm install --omit=dev
+# Copy node_modules from builder
+COPY --from=builder /app/node_modules ./node_modules
+
+# Prune dev dependencies to reduce image size
+# Note: npm prune --omit=dev also respects --legacy-peer-deps if needed, 
+# but since node_modules is already built, it should just remove files.
+RUN npm prune --omit=dev --legacy-peer-deps
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist

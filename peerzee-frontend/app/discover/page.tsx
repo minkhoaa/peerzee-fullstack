@@ -2,13 +2,14 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MessageSquareText, Settings, Star, Video, Search, X, Telescope, MapPin, Users, GraduationCap, ListFilter, Target, Loader2, User, Bot } from 'lucide-react';
-import { ProfileCardStack, AgentSearch } from '@/components/discover';
+import { ArrowLeft, MessageSquareText, Settings, Star, Video, Search, X, Telescope, MapPin, Users, GraduationCap, ListFilter, Target, Loader2, User } from 'lucide-react';
+import { ProfileCardStack } from '@/components/discover';
 import ModeSwitcher from '@/components/discover/ModeSwitcher';
 import { LocationRequest } from '@/components/discover/LocationRequest';
 import { useDiscover } from '@/hooks/useDiscover';
 import { useMatchContext } from '@/components/MatchProvider';
 import api, { discoverApi, swipeApi, userApi, SearchResult, SearchResponse, getAssetUrl } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 
@@ -20,6 +21,7 @@ type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 export default function DiscoverPage() {
     const router = useRouter();
     const { isConnected } = useMatchContext();
+    const queryClient = useQueryClient();
 
     // Location state - must be declared before useDiscover hook
     const [hasLocation, setHasLocation] = useState<boolean | null>(null);
@@ -42,9 +44,6 @@ export default function DiscoverPage() {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [searchFilters, setSearchFilters] = useState<SearchResponse['filters'] | null>(null);
     const [isSearching, setIsSearching] = useState(false);
-
-    // RAG Agent state
-    const [showAgent, setShowAgent] = useState(false);
 
     // Sample queries for inspiration
     const sampleQueries = [
@@ -105,12 +104,13 @@ export default function DiscoverPage() {
         }
     }, [refetch]);
 
-    // Handle search
-    const handleSearch = useCallback(async () => {
-        if (!searchQuery.trim()) return;
+    // Handle search - can optionally pass a query directly
+    const handleSearch = useCallback(async (queryOverride?: string) => {
+        const query = queryOverride || searchQuery;
+        if (!query.trim()) return;
         setIsSearching(true);
         try {
-            const response = await discoverApi.search(searchQuery);
+            const response = await discoverApi.search(query);
             setSearchResults(response.data.results);
             setSearchFilters(response.data.filters);
         } catch (err) {
@@ -120,17 +120,26 @@ export default function DiscoverPage() {
         }
     }, [searchQuery]);
 
+    // Handle sample query click - set query and search immediately
+    const handleSampleQueryClick = (query: string) => {
+        setSearchQuery(query);
+        handleSearch(query);
+    };
+
     // Handle search key press
     const handleSearchKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') handleSearch();
     };
 
     // Clear search
-    const clearSearch = () => {
+    const clearSearch = async () => {
         setSearchQuery('');
         setSearchResults([]);
         setSearchFilters(null);
         setShowSearch(false);
+        // Invalidate and refetch recommendations when clearing search
+        await queryClient.invalidateQueries({ queryKey: ['discover', 'recommendations'] });
+        await refetch();
     };
 
     // Handle swipe action
@@ -212,14 +221,15 @@ export default function DiscoverPage() {
                             <Video className="w-5 h-5" />
                         </button>
                         <button
-                            onClick={() => setShowAgent(!showAgent)}
-                            className={`p-2 border-2 transition-all active:translate-y-0.5 active:shadow-none ${showAgent ? 'text-parchment bg-pixel-green border-wood-shadow shadow-pixel-sm' : 'text-parchment bg-wood-medium border-wood-shadow hover:bg-wood-light'}`}
-                            title="🤖 RAG Agent"
-                        >
-                            <Bot className="w-5 h-5" strokeWidth={2.5} />
-                        </button>
-                        <button
-                            onClick={() => setShowSearch(!showSearch)}
+                            onClick={() => {
+                                if (showSearch) {
+                                    // Closing search panel - clear results
+                                    clearSearch();
+                                } else {
+                                    // Opening search panel
+                                    setShowSearch(true);
+                                }
+                            }}
                             className={`p-2 border-2 transition-all active:translate-y-0.5 active:shadow-none ${showSearch ? 'text-parchment bg-pixel-orange border-wood-shadow shadow-pixel-sm' : 'text-parchment bg-wood-medium border-wood-shadow hover:bg-wood-light'}`}
                             title="AI Search"
                         >
@@ -245,18 +255,8 @@ export default function DiscoverPage() {
                 </div>
             </header>
 
-            {/* RAG Agent Panel */}
-            {showAgent && (
-                <div className="max-w-lg mx-auto px-4 py-4">
-                    <AgentSearch
-                        onMatchClick={(userId) => router.push(`/profile/${userId}`)}
-                        onClose={() => setShowAgent(false)}
-                    />
-                </div>
-            )}
-
             {/* AI Search Panel */}
-            {showSearch && !showAgent && (
+            {showSearch && (
                 <div className="max-w-4xl mx-auto px-4 py-4 bg-retro-paper border-b-3 border-cocoa">
                     {/* Search Input */}
                     <div className="relative mb-3">
@@ -270,7 +270,7 @@ export default function DiscoverPage() {
                             className="w-full pl-12 pr-24 py-4 bg-retro-white border-3 border-cocoa rounded-lg font-body font-bold text-cocoa placeholder:text-cocoa-light shadow-pixel-inset focus:outline-none focus:border-pixel-pink transition-colors"
                         />
                         <button
-                            onClick={handleSearch}
+                            onClick={() => handleSearch()}
                             disabled={isSearching || !searchQuery.trim()}
                             className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 font-pixel uppercase tracking-wider text-sm rounded-lg border-3 transition-all active:translate-y-0.5 active:shadow-none ${searchQuery.trim() && !isSearching
                                 ? 'bg-pixel-pink border-cocoa text-cocoa shadow-pixel-sm hover:bg-pixel-pink-dark'
@@ -287,7 +287,7 @@ export default function DiscoverPage() {
                             {sampleQueries.map((q, i) => (
                                 <button
                                     key={i}
-                                    onClick={() => setSearchQuery(q)}
+                                    onClick={() => handleSampleQueryClick(q)}
                                     className="px-3 py-1.5 bg-retro-white border-3 border-cocoa text-cocoa font-body font-bold text-xs rounded-lg shadow-pixel-sm hover:bg-pixel-blue transition-all active:translate-y-0.5 active:shadow-none"
                                 >
                                     {q}

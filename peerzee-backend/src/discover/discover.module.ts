@@ -10,6 +10,7 @@ import { User } from '../user/entities/user.entity';
 import { UserProfile } from '../user/entities/user-profile.entity';
 import { ChatModule } from '../chat/chat.module';
 import { AiModule } from '../ai/ai.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { AiModule } from '../ai/ai.module';
         }),
         forwardRef(() => ChatModule),
         AiModule,
+        NotificationModule,
     ],
     controllers: [DiscoverController],
     providers: [DiscoverService],

@@ -40,7 +40,26 @@ export default function UserProfilePage() {
     const loadProfile = async () => {
         try {
             const res = await userApi.getUserProfile(userId);
-            setProfile(res.data?.profile || res.data);
+            // Backend returns User entity with nested profile object
+            // We need to merge user.id with profile data
+            const userData = res.data;
+            const profileData = userData?.profile || {};
+            setProfile({
+                id: userData.id, // Use user ID, not profile ID
+                email: userData.email,
+                display_name: profileData.display_name,
+                bio: profileData.bio,
+                location: profileData.location,
+                age: profileData.age,
+                occupation: profileData.occupation,
+                education: profileData.education,
+                gender: profileData.gender,
+                intentMode: profileData.intentMode,
+                tags: profileData.tags,
+                photos: profileData.photos,
+                prompts: profileData.prompts,
+                createdAt: userData.created_at,
+            });
         } catch (err) {
             console.error('Failed to load profile:', err);
             setError('Không thể tải profile');
@@ -208,9 +227,11 @@ export default function UserProfilePage() {
                                 {photos.length > 0 ? (
                                     <img src={getAssetUrl(photos[0].url)} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-linear-to-br from-pixel-pink to-pixel-yellow flex items-center justify-center">
-                                        {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
-                                    </div>
+                                    <img
+                                        src={`https://i.pravatar.cc/150?u=${profile.id}`}
+                                        alt={profile.display_name}
+                                        className="w-full h-full object-cover"
+                                    />
                                 )}
                             </div>
                         </div>

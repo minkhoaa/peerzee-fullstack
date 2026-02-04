@@ -48,11 +48,11 @@ export function ProfileHero({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pixel-blue to-pixel-pink">
+          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-pixel-blue to-pixel-pink">
             <div className="text-cocoa/30 text-6xl font-pixel">P</div>
           </div>
         )}
-        
+
         {/* Upload Button - Retro Style */}
         <button
           onClick={onCoverUploadClick}
@@ -69,7 +69,7 @@ export function ProfileHero({
       {/* The Anchor Bar - Avatar & Edit Button */}
       <div className="flex justify-between items-end px-8 -mt-12 mb-4">
         {/* Avatar (Left) - Pixel Style - Clickable for upload */}
-        <div 
+        <div
           onClick={onAvatarUploadClick}
           className="w-32 h-32 rounded-xl border-3 border-cocoa bg-retro-white shadow-pixel z-10 overflow-hidden shrink-0 relative group cursor-pointer hover:shadow-pixel-lg transition-all"
         >
@@ -80,9 +80,11 @@ export function ProfileHero({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-pixel-pink to-pixel-blue flex items-center justify-center text-cocoa font-pixel text-4xl uppercase">
-              {displayName.charAt(0).toUpperCase()}
-            </div>
+            <img
+              src={`https://i.pravatar.cc/150?u=${username}`}
+              alt={displayName}
+              className="w-full h-full object-cover"
+            />
           )}
           {/* Hover overlay for upload */}
           {onAvatarUploadClick && (

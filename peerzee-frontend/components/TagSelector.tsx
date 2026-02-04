@@ -36,7 +36,6 @@ export function TagSelector({ selectedTags, onChange, maxTags = 5 }: TagSelector
                                 onClick={() => toggleTag(tag)}
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-pixel-pink border-2 border-cocoa rounded-lg shadow-pixel-sm text-cocoa font-bold text-sm hover:bg-pixel-pink-dark transition-colors active:translate-y-0.5 active:shadow-none"
                             >
-                                <span>{tagData?.emoji}</span>
                                 <span>{tag}</span>
                                 <X className="w-3 h-3 ml-0.5" />
                             </button>
@@ -57,8 +56,8 @@ export function TagSelector({ selectedTags, onChange, maxTags = 5 }: TagSelector
                         key={cat.name}
                         onClick={() => setActiveCategory(i)}
                         className={`flex items-center gap-1.5 px-3 py-2 text-sm font-pixel uppercase tracking-wider whitespace-nowrap border-2 border-cocoa rounded-lg transition-all ${i === activeCategory
-                                ? 'bg-pixel-blue text-cocoa shadow-pixel-sm'
-                                : 'bg-retro-white text-cocoa-light hover:bg-retro-bg'
+                            ? 'bg-pixel-blue text-cocoa shadow-pixel-sm'
+                            : 'bg-retro-white text-cocoa-light hover:bg-retro-bg'
                             }`}
                     >
                         <span>{cat.emoji}</span>
@@ -78,13 +77,12 @@ export function TagSelector({ selectedTags, onChange, maxTags = 5 }: TagSelector
                             onClick={() => toggleTag(tag.label)}
                             disabled={isDisabled}
                             className={`flex items-center gap-2 px-3 py-2.5 text-sm font-bold border-2 border-cocoa rounded-lg transition-all ${isSelected
-                                    ? 'bg-pixel-green text-cocoa shadow-pixel-sm'
-                                    : isDisabled
-                                        ? 'bg-cocoa-light/20 text-cocoa-light border-cocoa-light cursor-not-allowed'
-                                        : 'bg-retro-white text-cocoa hover:bg-retro-bg shadow-pixel-sm active:translate-y-0.5 active:shadow-none'
+                                ? 'bg-pixel-green text-cocoa shadow-pixel-sm'
+                                : isDisabled
+                                    ? 'bg-cocoa-light/20 text-cocoa-light border-cocoa-light cursor-not-allowed'
+                                    : 'bg-retro-white text-cocoa hover:bg-retro-bg shadow-pixel-sm active:translate-y-0.5 active:shadow-none'
                                 }`}
                         >
-                            <span className="text-base">{tag.emoji}</span>
                             <span className="flex-1 text-left">{tag.label}</span>
                             {isSelected && <Check className="w-4 h-4 text-cocoa" />}
                         </button>

@@ -348,7 +348,7 @@ export default function MyProfilePage() {
                         {musicData ? (
                             <>
                                 {/* Vinyl Disc Container */}
-                                <div className="relative flex-shrink-0">
+                                <div className="relative w-20 h-20 shrink-0">
                                     {/* Outer glow when playing */}
                                     {isPlaying && (
                                         <motion.div
@@ -621,8 +621,8 @@ export default function MyProfilePage() {
                                     />
                                 </div>
                                 {showLocationDropdown && locationSuggestions.length > 0 && (
-                                    <div className="absolute z-10 mt-2 w-full max-h-48 overflow-auto bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel">
-                                        {locationSuggestions.slice(0, 10).map((loc) => (
+                                    <div className="absolute z-10 mt-2 w-full max-h-60 overflow-auto bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel retro-scrollbar">
+                                        {locationSuggestions.map((loc) => (
                                             <button
                                                 key={loc}
                                                 type="button"
@@ -632,7 +632,7 @@ export default function MyProfilePage() {
                                                 }}
                                                 className="w-full px-5 py-3 text-left font-body font-bold text-cocoa hover:bg-pixel-blue transition-colors border-b border-cocoa/20 last:border-b-0 flex items-center gap-2"
                                             >
-                                                <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {loc}
+                                                <MapPin className="w-3 h-3 shrink-0" strokeWidth={2.5} /> {loc}
                                             </button>
                                         ))}
                                     </div>

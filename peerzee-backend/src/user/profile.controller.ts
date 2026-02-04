@@ -12,6 +12,7 @@ import {
     UseGuards,
     UseInterceptors,
     UploadedFile,
+    Logger,
     HttpCode,
     HttpStatus,
 } from '@nestjs/common';
@@ -44,6 +45,8 @@ interface AuthRequest extends Request {
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 export class ProfileController {
+    private readonly logger = new Logger(ProfileController.name); // Added logger instantiation
+
     constructor(
         private readonly profileService: ProfileService,
         private readonly aiService: AiService, // Injected AiService
@@ -58,6 +61,7 @@ export class ProfileController {
     @ApiOperation({ summary: 'Get current user profile with all rich data' })
     @ApiResponse({ status: 200, type: ProfileResponseDto })
     async getMyProfile(@Req() req: AuthRequest): Promise<ProfileResponseDto> {
+        this.logger.log(`GET /profile/me - User: ${req.user?.user_id}`); // Added logging
         return this.profileService.getFullProfile(req.user.user_id);
     }
 

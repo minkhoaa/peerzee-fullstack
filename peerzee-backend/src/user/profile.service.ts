@@ -344,37 +344,29 @@ export class ProfileService {
 
             this.logger.log(`Processing batch ${batchNum}/${totalBatches}`);
 
-            // Process batch in parallel
-            const results = await Promise.allSettled(
-                batch.map(async (profile) => {
+            // Process batch sequentially
+            for (const profile of batch) {
+                try {
                     const embedding = await this.aiService.generateProfileEmbedding(profile);
-                    if (embedding.length > 0) {
+                    if (embedding && embedding.length > 0) {
                         profile.bioEmbedding = embedding;
                         profile.embeddingUpdatedAt = new Date();
                         await this.em.persistAndFlush(profile);
-                        return { userId: profile.user.id, success: true };
+                        success++;
+                    } else {
+                        failed++;
+                        errors.push(`Empty profile for user ${profile.id}`);
                     }
-                    return { userId: profile.user.id, success: false, reason: 'Empty profile' };
-                }),
-            );
-
-            // Count results
-            for (const result of results) {
-                if (result.status === 'fulfilled' && result.value.success) {
-                    success++;
-                } else {
+                } catch (err) {
                     failed++;
-                    const reason = result.status === 'rejected'
-                        ? result.reason?.message || 'Unknown error'
-                        : (result.value as any).reason || 'Failed';
-                    this.logger.error(`Reindex failed: ${reason}`);
-                    errors.push(reason);
+                    this.logger.error(`Reindex failed for user ${profile.id}: ${err.message}`);
+                    errors.push(err.message);
                 }
             }
 
             // Small delay between batches to respect rate limits
             if (i + batchSize < profiles.length) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
         }
 
