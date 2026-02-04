@@ -2,15 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
-import { WingmanConversation } from '../chat/entities/wingman-conversation.entity';
+import { WingmanConversation, WingmanMessage } from '../chat/entities/wingman-conversation.entity';
 import { UserProfile } from '../user/entities/user-profile.entity';
 import { User } from '../user/entities/user.entity';
-
-interface WingmanMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
 
 interface ProfileData {
   display_name?: string;

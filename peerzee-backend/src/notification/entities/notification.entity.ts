@@ -16,6 +16,7 @@ export enum NotificationType {
     SUPER_LIKE = 'SUPER_LIKE',
     MESSAGE = 'MESSAGE',
     SYSTEM = 'SYSTEM',
+    WINGMAN_TIP = 'WINGMAN_TIP',
 }
 
 export interface NotificationData {

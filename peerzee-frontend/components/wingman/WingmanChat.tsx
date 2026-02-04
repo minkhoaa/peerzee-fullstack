@@ -3,15 +3,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    MessageCircle, 
     Send, 
     X, 
-    Sparkles, 
     Lightbulb, 
     MessageSquare,
     Trash2,
-    Loader2,
-    ChevronUp
+    Heart,
+    MapPin,
+    Sparkles,
+    Wand2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -19,18 +19,90 @@ interface WingmanMessage {
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
+    toolsUsed?: string[]; // Tools executed by agentic AI
 }
 
 interface WingmanChatProps {
-    targetUserId?: string; // If chatting about a specific person
-    chatContext?: string;  // Recent chat history for context
+    targetUserId?: string;
+    chatContext?: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api';
+
+// Cute Chibi Cupid SVG Component
+const ChibiCupid = ({ className = "", isHappy = false }: { className?: string; isHappy?: boolean }) => (
+    <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Wings */}
+        <ellipse cx="16" cy="28" rx="10" ry="14" fill="#F5E6C8" stroke="#62544B" strokeWidth="2"/>
+        <ellipse cx="48" cy="28" rx="10" ry="14" fill="#F5E6C8" stroke="#62544B" strokeWidth="2"/>
+        <ellipse cx="14" cy="26" rx="5" ry="8" fill="#FFFFFF" opacity="0.6"/>
+        <ellipse cx="50" cy="26" rx="5" ry="8" fill="#FFFFFF" opacity="0.6"/>
+        
+        {/* Body */}
+        <ellipse cx="32" cy="42" rx="12" ry="10" fill="#FFEEDD" stroke="#62544B" strokeWidth="2"/>
+        
+        {/* Head */}
+        <circle cx="32" cy="26" r="14" fill="#FFEEDD" stroke="#62544B" strokeWidth="2"/>
+        
+        {/* Hair - Cute curly */}
+        <path d="M20 20 Q18 12 24 14 Q22 8 30 10 Q28 6 36 8 Q34 4 42 10 Q48 8 46 16 Q50 14 48 22" 
+              fill="#F5C17A" stroke="#62544B" strokeWidth="1.5"/>
+        
+        {/* Blush */}
+        <ellipse cx="24" cy="28" rx="3" ry="2" fill="#F4AAB9" opacity="0.6"/>
+        <ellipse cx="40" cy="28" rx="3" ry="2" fill="#F4AAB9" opacity="0.6"/>
+        
+        {/* Eyes */}
+        {isHappy ? (
+            <>
+                <path d="M26 24 Q28 22 30 24" stroke="#62544B" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                <path d="M34 24 Q36 22 38 24" stroke="#62544B" strokeWidth="2" strokeLinecap="round" fill="none"/>
+            </>
+        ) : (
+            <>
+                <circle cx="28" cy="24" r="2" fill="#62544B"/>
+                <circle cx="36" cy="24" r="2" fill="#62544B"/>
+                <circle cx="29" cy="23" r="0.8" fill="#FFFFFF"/>
+                <circle cx="37" cy="23" r="0.8" fill="#FFFFFF"/>
+            </>
+        )}
+        
+        {/* Mouth */}
+        <path d={isHappy ? "M29 30 Q32 34 35 30" : "M30 31 Q32 33 34 31"} 
+              stroke="#62544B" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+        
+        {/* Heart on chest */}
+        <path d="M29 42 C29 40 31 38 32 40 C33 38 35 40 35 42 L32 46 Z" fill="#F08080"/>
+        
+        {/* Bow & Arrow */}
+        <path d="M50 44 Q58 38 54 50" stroke="#8B6914" strokeWidth="2" fill="none"/>
+        <line x1="46" y1="40" x2="58" y2="48" stroke="#8B6914" strokeWidth="1.5"/>
+        <polygon points="58,48 60,44 56,46" fill="#F08080"/>
+    </svg>
+);
+
+// Typing indicator with pixel style
+const TypingDots = () => (
+    <div className="flex gap-1 items-center px-3 py-2">
+        {[0, 1, 2].map((i) => (
+            <motion.div
+                key={i}
+                className="w-2 h-2 bg-cocoa rounded-sm"
+                animate={{ y: [0, -4, 0] }}
+                transition={{ 
+                    duration: 0.5, 
+                    repeat: Infinity, 
+                    delay: i * 0.15,
+                    ease: "easeInOut"
+                }}
+            />
+        ))}
+    </div>
+);
 
 /**
- * WingmanChat - AI Dating Coach Chatbot
- * Floating chat widget that helps users with dating advice
+ * WingmanChat - Pixel-style Dating Coach Chatbot
+ * Cute chibi cupid that helps with dating advice
  */
 export default function WingmanChat({ targetUserId, chatContext }: WingmanChatProps) {
     const { token } = useAuth();
@@ -39,19 +111,27 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [isHappy, setIsHappy] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Scroll to bottom on new messages
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // Load history when opened
     useEffect(() => {
         if (isOpen && messages.length === 0) {
             loadHistory();
         }
     }, [isOpen]);
+
+    // Make cupid happy when sending/receiving messages
+    useEffect(() => {
+        if (isLoading) {
+            setIsHappy(true);
+            const timer = setTimeout(() => setIsHappy(false), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoading]);
 
     const loadHistory = async () => {
         if (!token) return;
@@ -91,30 +171,34 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    message,
-                    targetUserId,
-                    chatContext
-                })
+                body: JSON.stringify({ message, targetUserId, chatContext })
             });
 
             if (res.ok) {
                 const data = await res.json();
-                const assistantMessage: WingmanMessage = {
+                setMessages(prev => [...prev, {
                     role: 'assistant',
                     content: data.reply,
-                    timestamp: new Date()
-                };
-                setMessages(prev => [...prev, assistantMessage]);
+                    timestamp: new Date(),
+                    toolsUsed: data.toolsUsed // Capture tools used by agentic AI
+                }]);
                 if (data.suggestions) {
                     setSuggestions(data.suggestions);
                 }
+            } else {
+                const errorText = await res.text();
+                console.error('Wingman chat error:', res.status, errorText);
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `Có lỗi xảy ra (${res.status}). Thử lại nhé! 💔`,
+                    timestamp: new Date()
+                }]);
             }
         } catch (error) {
             console.error('Wingman chat failed:', error);
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: 'Xin lỗi, có lỗi xảy ra. Thử lại nhé! 😅',
+                content: 'Ối! Mình gặp sự cố rồi. Thử lại nhé! 💔',
                 timestamp: new Date()
             }]);
         } finally {
@@ -146,12 +230,12 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
             if (res.ok) {
                 const data = await res.json();
                 const tipsMessage = data.tips
-                    .map((t: any) => `• [${t.priority.toUpperCase()}] ${t.tip}`)
+                    .map((t: any) => `♦ ${t.tip}`)
                     .join('\n');
                 
                 setMessages(prev => [...prev, {
                     role: 'assistant',
-                    content: `📊 Điểm Profile: ${data.overallScore}/100\n\n${tipsMessage}`,
+                    content: `✨ Điểm Profile: ${data.overallScore}/100\n\n${tipsMessage}`,
                     timestamp: new Date()
                 }]);
             }
@@ -176,12 +260,12 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                     .join('\n\n');
                 
                 const hintsText = data.contextHints?.length > 0
-                    ? `\n\n💡 Tips:\n${data.contextHints.map((h: string) => `• ${h}`).join('\n')}`
+                    ? `\n\n💡 Gợi ý:\n${data.contextHints.map((h: string) => `• ${h}`).join('\n')}`
                     : '';
                 
                 setMessages(prev => [...prev, {
                     role: 'assistant',
-                    content: `🧊 Gợi ý mở đầu:\n\n${icebreakersList}${hintsText}`,
+                    content: `💘 Câu mở đầu:\n\n${icebreakersList}${hintsText}`,
                     timestamp: new Date()
                 }]);
             }
@@ -192,22 +276,60 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
         }
     };
 
-    // Quick actions for first-time users
+    const getDateSpots = async () => {
+        if (!token || !targetUserId) return;
+        // Use agentic chat to get date spots
+        await sendMessage('Gợi ý địa điểm hẹn hò cho mình và match này đi!');
+    };
+
+    const getWhoLikedMe = async () => {
+        if (!token) return;
+        await sendMessage('Ai đã like mình vậy?');
+    };
+
     const quickActions = [
-        { icon: Lightbulb, label: 'Profile Tips', action: getProfileTips },
-        ...(targetUserId ? [{ icon: MessageSquare, label: 'Icebreakers', action: getIcebreakers }] : []),
+        { icon: Lightbulb, label: 'Cải thiện Profile', action: getProfileTips },
+        { icon: Sparkles, label: 'Ai like mình?', action: getWhoLikedMe },
+        ...(targetUserId ? [
+            { icon: MessageSquare, label: 'Gợi ý mở đầu', action: getIcebreakers },
+            { icon: MapPin, label: 'Địa điểm hẹn hò', action: getDateSpots },
+        ] : []),
     ];
 
     return (
         <>
-            {/* Floating Button */}
+            {/* Floating Chibi Button */}
             <motion.button
                 onClick={() => setIsOpen(true)}
-                className={`fixed bottom-6 right-6 z-40 p-4 bg-gradient-to-br from-pixel-purple to-pixel-pink text-white rounded-full shadow-lg border-2 border-cocoa hover:scale-110 transition-transform ${isOpen ? 'hidden' : ''}`}
-                whileHover={{ scale: 1.1 }}
+                className={`fixed bottom-6 right-6 z-40 ${isOpen ? 'hidden' : ''}`}
+                whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
                 whileTap={{ scale: 0.95 }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ 
+                    y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                    rotate: { duration: 0.3 }
+                }}
             >
-                <Sparkles className="w-6 h-6" />
+                <div className="relative">
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 bg-pixel-pink rounded-full blur-xl opacity-40 animate-pulse" />
+                    
+                    {/* Chibi container */}
+                    <div className="relative w-16 h-16 bg-retro-paper border-3 border-cocoa rounded-2xl shadow-pixel flex items-center justify-center overflow-visible">
+                        <ChibiCupid className="w-14 h-14 -mt-2" />
+                    </div>
+                    
+                    {/* Speech bubble hint */}
+                    <motion.div 
+                        className="absolute -top-8 -left-2 bg-retro-white border-2 border-cocoa rounded-lg px-2 py-1 shadow-pixel-sm"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: [0, 1, 1, 0], scale: [0.8, 1, 1, 0.8] }}
+                        transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+                    >
+                        <span className="text-xs font-pixel text-cocoa whitespace-nowrap">Cần giúp? 💕</span>
+                        <div className="absolute -bottom-1 left-4 w-2 h-2 bg-retro-white border-r-2 border-b-2 border-cocoa transform rotate-45" />
+                    </motion.div>
+                </div>
             </motion.button>
 
             {/* Chat Panel */}
@@ -217,25 +339,28 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="fixed bottom-6 right-6 z-50 w-[360px] h-[500px] bg-retro-paper border-3 border-cocoa rounded-2xl shadow-pixel-lg flex flex-col overflow-hidden"
+                        className="fixed bottom-6 right-6 z-50 w-[340px] h-[480px] bg-retro-paper border-3 border-cocoa rounded-2xl shadow-pixel-lg flex flex-col overflow-hidden"
                     >
-                        {/* Header */}
-                        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-pixel-purple/20 to-pixel-pink/20 border-b-2 border-cocoa">
-                            <div className="flex items-center gap-2">
-                                <Sparkles className="w-5 h-5 text-pixel-purple" />
-                                <h3 className="font-pixel text-sm text-cocoa">Wingman AI</h3>
+                        {/* Header with Chibi */}
+                        <div className="flex items-center gap-3 px-4 py-3 bg-retro-white border-b-3 border-cocoa">
+                            <div className="w-10 h-10 bg-pixel-pink/30 rounded-xl border-2 border-cocoa flex items-center justify-center">
+                                <ChibiCupid className="w-9 h-9" isHappy={isHappy} />
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex-1">
+                                <h3 className="font-pixel text-base text-cocoa leading-none">Cupid</h3>
+                                <p className="text-[10px] text-cocoa-light">Trợ lý hẹn hò của bạn 💘</p>
+                            </div>
+                            <div className="flex items-center gap-1">
                                 <button 
                                     onClick={clearHistory}
-                                    className="p-1.5 text-cocoa-light hover:text-pixel-red transition-colors"
-                                    title="Clear chat"
+                                    className="p-1.5 text-cocoa-light hover:text-pixel-red hover:bg-pixel-red/10 rounded-lg transition-colors"
+                                    title="Xóa lịch sử"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                                 <button 
                                     onClick={() => setIsOpen(false)}
-                                    className="p-1.5 text-cocoa-light hover:text-cocoa transition-colors"
+                                    className="p-1.5 text-cocoa-light hover:text-cocoa hover:bg-cocoa/10 rounded-lg transition-colors"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -243,13 +368,20 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%222%22%20cy%3D%222%22%20r%3D%221%22%20fill%3D%22%2362544B%22%20opacity%3D%220.1%22%2F%3E%3C%2Fsvg%3E')]">
                             {messages.length === 0 ? (
-                                <div className="text-center py-8">
-                                    <Sparkles className="w-12 h-12 text-pixel-purple/30 mx-auto mb-3" />
-                                    <p className="text-sm text-cocoa-light mb-4">
-                                        Chào! Mình là Wingman AI 👋<br />
-                                        Hỏi mình bất cứ điều gì về dating nhé!
+                                <div className="text-center py-6">
+                                    <motion.div
+                                        animate={{ y: [0, -5, 0] }}
+                                        transition={{ duration: 1.5, repeat: Infinity }}
+                                    >
+                                        <ChibiCupid className="w-20 h-20 mx-auto mb-3 opacity-60" />
+                                    </motion.div>
+                                    <p className="text-sm text-cocoa-light mb-1">
+                                        Chào bạn! Mình là Cupid 💕
+                                    </p>
+                                    <p className="text-xs text-cocoa-light/70 mb-4">
+                                        Hỏi mình bất cứ điều gì về hẹn hò nhé!
                                     </p>
                                     
                                     {/* Quick Actions */}
@@ -259,9 +391,9 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                                                 key={i}
                                                 onClick={action.action}
                                                 disabled={isLoading}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-pixel-purple/10 text-pixel-purple rounded-full border border-pixel-purple/30 hover:bg-pixel-purple/20 transition-colors disabled:opacity-50"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-retro-white text-cocoa rounded-lg border-2 border-cocoa shadow-pixel-sm hover:bg-pixel-pink/20 hover:-translate-y-0.5 hover:shadow-pixel transition-all disabled:opacity-50 font-medium"
                                             >
-                                                <action.icon className="w-3 h-3" />
+                                                <action.icon className="w-3.5 h-3.5" />
                                                 {action.label}
                                             </button>
                                         ))}
@@ -269,25 +401,44 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                                 </div>
                             ) : (
                                 messages.map((msg, i) => (
-                                    <div
+                                    <motion.div
                                         key={i}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
                                         className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                     >
-                                        <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm whitespace-pre-wrap ${
-                                            msg.role === 'user'
-                                                ? 'bg-pixel-purple text-white rounded-br-sm'
-                                                : 'bg-cocoa/10 text-cocoa rounded-bl-sm'
-                                        }`}>
-                                            {msg.content}
+                                        {msg.role === 'assistant' && (
+                                            <div className="w-6 h-6 mr-1.5 flex-shrink-0">
+                                                <ChibiCupid className="w-6 h-6" />
+                                            </div>
+                                        )}
+                                        <div className="max-w-[80%]">
+                                            {/* Tool indicator for agentic actions */}
+                                            {msg.toolsUsed && msg.toolsUsed.length > 0 && (
+                                                <div className="flex items-center gap-1 mb-1 text-[10px] text-pixel-purple">
+                                                    <Wand2 className="w-3 h-3" />
+                                                    <span>Đã thực hiện: {msg.toolsUsed.length} hành động</span>
+                                                </div>
+                                            )}
+                                            <div className={`px-3 py-2 text-sm whitespace-pre-wrap border-2 ${
+                                                msg.role === 'user'
+                                                    ? 'bg-pixel-pink/30 text-cocoa border-cocoa rounded-2xl rounded-br-md shadow-pixel-sm'
+                                                    : 'bg-retro-white text-cocoa border-cocoa rounded-2xl rounded-bl-md shadow-pixel-sm'
+                                            }`}>
+                                                {msg.content}
+                                            </div>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 ))
                             )}
 
                             {isLoading && (
                                 <div className="flex justify-start">
-                                    <div className="px-3 py-2 bg-cocoa/10 rounded-xl rounded-bl-sm">
-                                        <Loader2 className="w-4 h-4 animate-spin text-cocoa-light" />
+                                    <div className="w-6 h-6 mr-1.5">
+                                        <ChibiCupid className="w-6 h-6" isHappy />
+                                    </div>
+                                    <div className="bg-retro-white border-2 border-cocoa rounded-2xl rounded-bl-md shadow-pixel-sm">
+                                        <TypingDots />
                                     </div>
                                 </div>
                             )}
@@ -297,13 +448,13 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
 
                         {/* Suggestions */}
                         {suggestions.length > 0 && (
-                            <div className="px-4 py-2 border-t border-cocoa/10">
+                            <div className="px-3 py-2 border-t-2 border-cocoa/20 bg-retro-white/50">
                                 <div className="flex flex-wrap gap-1.5">
-                                    {suggestions.map((s, i) => (
+                                    {suggestions.slice(0, 3).map((s, i) => (
                                         <button
                                             key={i}
                                             onClick={() => sendMessage(s)}
-                                            className="text-xs px-2.5 py-1 bg-pixel-pink/10 text-cocoa rounded-full border border-pixel-pink/30 hover:bg-pixel-pink/20 transition-colors truncate max-w-full"
+                                            className="text-[11px] px-2 py-1 bg-pixel-yellow/30 text-cocoa rounded-lg border border-cocoa/30 hover:bg-pixel-yellow/50 hover:border-cocoa transition-colors truncate max-w-[120px]"
                                         >
                                             {s}
                                         </button>
@@ -313,7 +464,7 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                         )}
 
                         {/* Input */}
-                        <div className="p-3 border-t-2 border-cocoa/20">
+                        <div className="p-3 border-t-3 border-cocoa bg-retro-white">
                             <form 
                                 onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}
                                 className="flex items-center gap-2"
@@ -322,16 +473,16 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                                     type="text"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
-                                    placeholder="Hỏi Wingman..."
-                                    className="flex-1 px-3 py-2 text-sm bg-white border-2 border-cocoa/30 rounded-xl focus:border-pixel-purple outline-none"
+                                    placeholder="Nhắn gì cho Cupid..."
+                                    className="flex-1 px-3 py-2 text-sm bg-retro-paper border-2 border-cocoa rounded-xl focus:border-pixel-pink focus:bg-retro-white outline-none transition-colors placeholder:text-cocoa-light/50"
                                     disabled={isLoading}
                                 />
                                 <button
                                     type="submit"
                                     disabled={!input.trim() || isLoading}
-                                    className="p-2 bg-pixel-purple text-white rounded-xl border-2 border-cocoa shadow-pixel-sm hover:bg-pixel-purple/80 disabled:opacity-50 transition-colors active:translate-y-0.5 active:shadow-none"
+                                    className="p-2.5 bg-pixel-pink text-cocoa rounded-xl border-2 border-cocoa shadow-pixel-sm hover:bg-pixel-pink-dark disabled:opacity-50 transition-all active:translate-y-0.5 active:shadow-none"
                                 >
-                                    <Send className="w-4 h-4" />
+                                    <Heart className="w-4 h-4 fill-current" />
                                 </button>
                             </form>
                         </div>

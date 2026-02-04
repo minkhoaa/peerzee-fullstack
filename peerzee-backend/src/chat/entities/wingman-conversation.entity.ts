@@ -4,8 +4,14 @@ import { v4 as uuid } from 'uuid';
 
 // Message in wingman conversation
 export interface WingmanMessage {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'tool';
   content: string;
+  toolCalls?: string[]; // Names of tools executed
+  toolResult?: {
+    name: string;
+    args: Record<string, any>;
+    result?: any;
+  };
   timestamp: Date;
 }
 

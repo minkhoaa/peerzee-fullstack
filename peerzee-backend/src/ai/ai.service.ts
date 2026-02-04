@@ -50,6 +50,23 @@ export class AiService {
     }
 
     /**
+     * General purpose content generation with Gemini
+     * @param prompt The prompt text
+     * @param model Optional model name (defaults to gemini-2.5-flash)
+     * @returns Generated text response
+     */
+    async generateContent(prompt: string, modelName: string = 'gemini-2.5-flash'): Promise<string> {
+        try {
+            const model = this.genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent(prompt);
+            return result.response.text().trim();
+        } catch (error) {
+            this.logger.error('Failed to generate content:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Generate a contextual icebreaker for two matched users
      * Uses profile data (bio, tags, intent) to create personalized conversation starter
      */
