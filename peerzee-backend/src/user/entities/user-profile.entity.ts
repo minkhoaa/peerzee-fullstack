@@ -128,11 +128,11 @@ export class UserProfile {
   prompts?: ProfilePrompt[];
 
   @ApiProperty({ description: 'Array of interest tags' })
-  @Property({ type: ArrayType, nullable: true })
+  @Property({ type: 'text[]', nullable: true })
   tags?: string[];
 
   @ApiProperty({ description: 'AI-extracted hidden keywords for enriched vector search' })
-  @Property({ type: ArrayType, nullable: true })
+  @Property({ type: 'text[]', nullable: true })
   hidden_keywords?: string[];
 
   @ApiProperty({ description: 'Discovery preferences' })

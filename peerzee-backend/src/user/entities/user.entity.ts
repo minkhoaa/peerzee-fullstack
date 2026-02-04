@@ -44,7 +44,7 @@ export class User {
 
   // Safety: Blocked user IDs - stored as PostgreSQL text[]
   @ApiProperty({ description: 'List of blocked user IDs' })
-  @Property({ fieldName: 'blocked_user_ids', type: ArrayType, nullable: true, default: [] })
+  @Property({ fieldName: 'blocked_user_ids', type: 'text[]', nullable: true, default: [] })
   blockedUserIds: string[] = [];
 
   @OneToOne(() => UserProfile, (profile) => profile.user, { mappedBy: 'user' })
