@@ -10,7 +10,7 @@ import {
 import { MikroORM, RequestContext } from '@mikro-orm/core';
 import { ChatService } from './chat.service';
 import { UserService } from '../user/user.service';
-import { NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
+import { NotFoundException, UsePipes, ValidationPipe, Inject, forwardRef } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { CreateConversationRoomDto } from './dto/create-conversation-room.dto';
@@ -22,6 +22,9 @@ import { UpdateChatDto } from './dto/update-chat.dto';
 import { PresenceService } from '../redis/presence.service';
 import { NotificationService } from '../notification/notification.service';
 import { VoiceService } from './voice.service';
+import { GamificationService } from '../gamification/gamification.service';
+import { QuestService } from '../gamification/quest.service';
+import { QuestType } from '../gamification/entities/quest.entity';
 
 @WebSocketGateway({
   namespace: '/socket/chat',
@@ -40,6 +43,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly notificationService: NotificationService,
     private readonly voiceService: VoiceService,
     private readonly orm: MikroORM,
+    @Inject(forwardRef(() => GamificationService))
+    private readonly gamificationService: GamificationService,
+    @Inject(forwardRef(() => QuestService))
+    private readonly questService: QuestService,
   ) { }
 
   async handleConnection(client: Socket) {
@@ -212,6 +219,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
             sender_id: msg.replyTo.sender_id,
           } : null,
         });
+
+        // Award XP for sending message (5 XP, max 20 per day)
+        try {
+          await this.gamificationService.addXp(user_id, 5, 'chat_message');
+          await this.questService.updateProgress(user_id, QuestType.CHAT, 1);
+        } catch (xpError) {
+          console.error('[XP] Failed to award XP:', xpError);
+        }
 
         var massages = await this.chatService.getMessages(dto.conversation_id);
 

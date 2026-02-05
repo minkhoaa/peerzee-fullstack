@@ -34,6 +34,33 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # Whisper.cpp Speech-to-Text
+  whisper:
+    build:
+      context: ./whisper-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - peerzee-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
   backend:
     build:
       context: ./peerzee-backend
@@ -46,6 +73,7 @@ services:
       DB_PORT: 5432
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      WHISPER_SERVICE_URL: http://whisper:8080
     ports:
       - "9000:9000"
     volumes:
@@ -54,6 +82,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      whisper:
         condition: service_healthy
     networks:
       - peerzee-network
@@ -80,6 +110,7 @@ services:
 
 volumes:
   pgdata:
+  whisper-models:
   redisdata:
   uploads:
 

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 import { 
     Send, 
     X, 
@@ -106,6 +107,7 @@ const TypingDots = () => (
  */
 export default function WingmanChat({ targetUserId, chatContext }: WingmanChatProps) {
     const { token } = useAuth();
+    const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<WingmanMessage[]>([]);
     const [input, setInput] = useState('');
@@ -113,6 +115,13 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isHappy, setIsHappy] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    
+    // Only allow dragging on chat pages
+    const isDraggable = pathname?.startsWith('/chat');
+    
+    // Draggable position state
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const constraintsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -298,48 +307,65 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
 
     return (
         <>
-            {/* Floating Chibi Button */}
-            <motion.button
-                onClick={() => setIsOpen(true)}
-                className={`fixed bottom-6 right-6 z-40 ${isOpen ? 'hidden' : ''}`}
-                whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-                whileTap={{ scale: 0.95 }}
-                animate={{ y: [0, -8, 0] }}
-                transition={{ 
-                    y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-                    rotate: { duration: 0.3 }
-                }}
+            {/* Drag constraints - full screen (only rendered on chat pages) */}
+            {isDraggable && (
+                <div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-30" />
+            )}
+            
+            {/* Cupid Button - Only draggable on chat pages */}
+            <motion.div
+                drag={isDraggable}
+                dragConstraints={isDraggable ? constraintsRef : undefined}
+                dragElastic={0.1}
+                dragMomentum={false}
+                whileDrag={isDraggable ? { scale: 1.1, cursor: 'grabbing' } : undefined}
+                onDragEnd={isDraggable ? (_, info) => {
+                    setPosition({ x: info.offset.x, y: info.offset.y });
+                } : undefined}
+                className={`fixed top-20 right-4 z-40 ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+                style={isDraggable ? { touchAction: 'none' } : undefined}
             >
-                <div className="relative">
-                    {/* Glow effect */}
-                    <div className="absolute inset-0 bg-pixel-pink rounded-full blur-xl opacity-40 animate-pulse" />
-                    
-                    {/* Chibi container */}
-                    <div className="relative w-16 h-16 bg-retro-paper border-3 border-cocoa rounded-2xl shadow-pixel flex items-center justify-center overflow-visible">
-                        <ChibiCupid className="w-14 h-14 -mt-2" />
+                <motion.button
+                    onClick={() => setIsOpen(!isOpen)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                >
+                    <div className="relative">
+                        {/* Drag hint indicator - only show on chat pages */}
+                        {isDraggable && (
+                            <>
+                                <div className="absolute -top-1 -left-1 w-2 h-2 bg-cocoa/30 rounded-full" />
+                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-cocoa/30 rounded-full" />
+                            </>
+                        )}
+                        
+                        {/* Button container */}
+                        <div className={`flex items-center gap-2 px-3 py-2 bg-retro-paper border-2 border-cocoa rounded-xl shadow-pixel transition-all ${isOpen ? 'bg-pixel-pink/30' : 'hover:bg-pixel-pink/20'}`}>
+                            <ChibiCupid className="w-8 h-8" isHappy={isHappy || isOpen} />
+                            <span className="text-xs font-pixel text-cocoa hidden sm:block">Cupid</span>
+                            {!isOpen && (
+                                <motion.span 
+                                    className="text-[10px] text-pixel-pink"
+                                    animate={{ scale: [1, 1.2, 1] }}
+                                    transition={{ duration: 1.5, repeat: Infinity }}
+                                >
+                                    💕
+                                </motion.span>
+                            )}
+                        </div>
                     </div>
-                    
-                    {/* Speech bubble hint */}
-                    <motion.div 
-                        className="absolute -top-8 -left-2 bg-retro-white border-2 border-cocoa rounded-lg px-2 py-1 shadow-pixel-sm"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: [0, 1, 1, 0], scale: [0.8, 1, 1, 0.8] }}
-                        transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-                    >
-                        <span className="text-xs font-pixel text-cocoa whitespace-nowrap">Cần giúp? 💕</span>
-                        <div className="absolute -bottom-1 left-4 w-2 h-2 bg-retro-white border-r-2 border-b-2 border-cocoa transform rotate-45" />
-                    </motion.div>
-                </div>
-            </motion.button>
+                </motion.button>
+            </motion.div>
 
-            {/* Chat Panel */}
+            {/* Side Panel - Slides in from right, doesn't overlay chat */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="fixed bottom-6 right-6 z-50 w-[340px] h-[480px] bg-retro-paper border-3 border-cocoa rounded-2xl shadow-pixel-lg flex flex-col overflow-hidden"
+                        initial={{ x: '100%', opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: '100%', opacity: 0 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        className="fixed top-16 right-0 bottom-0 z-30 w-[320px] bg-retro-paper border-l-3 border-cocoa shadow-pixel-lg flex flex-col overflow-hidden"
                     >
                         {/* Header with Chibi */}
                         <div className="flex items-center gap-3 px-4 py-3 bg-retro-white border-b-3 border-cocoa">
@@ -412,7 +438,7 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                                                 <ChibiCupid className="w-6 h-6" />
                                             </div>
                                         )}
-                                        <div className="max-w-[80%]">
+                                        <div className="max-w-[85%]">
                                             {/* Tool indicator for agentic actions */}
                                             {msg.toolsUsed && msg.toolsUsed.length > 0 && (
                                                 <div className="flex items-center gap-1 mb-1 text-[10px] text-pixel-purple">
@@ -454,7 +480,7 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                                         <button
                                             key={i}
                                             onClick={() => sendMessage(s)}
-                                            className="text-[11px] px-2 py-1 bg-pixel-yellow/30 text-cocoa rounded-lg border border-cocoa/30 hover:bg-pixel-yellow/50 hover:border-cocoa transition-colors truncate max-w-[120px]"
+                                            className="text-[11px] px-2 py-1 bg-pixel-yellow/30 text-cocoa rounded-lg border border-cocoa/30 hover:bg-pixel-yellow/50 hover:border-cocoa transition-colors truncate max-w-[100px]"
                                         >
                                             {s}
                                         </button>

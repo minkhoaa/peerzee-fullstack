@@ -10,6 +10,7 @@ import { Match } from './entities/match.entity';
 import { User } from '../user/entities/user.entity';
 import { ChatModule } from '../chat/chat.module';
 import { NotificationModule } from '../notification/notification.module';
+import { GamificationModule } from '../gamification/gamification.module';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { NotificationModule } from '../notification/notification.module';
         }),
         ChatModule,
         NotificationModule,
+        GamificationModule,
     ],
     controllers: [SwipeController],
     providers: [SwipeService, MatchGateway],

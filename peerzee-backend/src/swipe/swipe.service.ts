@@ -16,6 +16,9 @@ import { SwipeResponseDto, RecommendationUserDto, CreateSwipeDto } from './dto';
 import { MatchGateway } from './match.gateway';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/entities/notification.entity';
+import { GamificationService } from '../gamification/gamification.service';
+import { QuestService } from '../gamification/quest.service';
+import { QuestType } from '../gamification/entities/quest.entity';
 
 @Injectable()
 export class SwipeService {
@@ -31,6 +34,8 @@ export class SwipeService {
         private readonly matchGateway: MatchGateway,
         private readonly notificationService: NotificationService,
         private readonly em: EntityManager,
+        private readonly gamificationService: GamificationService,
+        private readonly questService: QuestService,
     ) { }
 
     /**
@@ -112,6 +117,10 @@ export class SwipeService {
         swipe.liked_content_type = likedContentType || null;
         await this.em.persistAndFlush(swipe);
 
+        // Award XP for swiping (max 10 per day with 2 XP each)
+        await this.gamificationService.addXp(swiperId, 2, 'swipe');
+        await this.questService.updateProgress(swiperId, QuestType.SWIPE, 1);
+
         // If PASS, no match possible
         if (action === SwipeAction.PASS) {
             return { isMatch: false };
@@ -160,6 +169,12 @@ export class SwipeService {
         match.user2 = this.em.getReference(User, user2Id);
         match.conversation = conversation;
         await this.em.persistAndFlush(match);
+
+        // Award XP for getting a match (both users)
+        await this.gamificationService.addXp(swiperId, 20, 'match');
+        await this.gamificationService.addXp(targetId, 20, 'match');
+        await this.questService.updateProgress(swiperId, QuestType.MATCH, 1);
+        await this.questService.updateProgress(targetId, QuestType.MATCH, 1);
 
         // If a message was sent, insert it
         if (message && message.trim()) {

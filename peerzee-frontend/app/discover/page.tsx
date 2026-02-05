@@ -176,7 +176,7 @@ export default function DiscoverPage() {
     return (
         <div className="min-h-screen bg-retro-bg">
             {/* Header - Wooden Beam Style */}
-            <header className="sticky top-0 z-30 bg-wood-dark border-b-4 border-wood-shadow shadow-wood relative">
+            <header className="sticky top-0 z-30 bg-wood-dark border-b-4 border-wood-shadow shadow-wood">
                 {/* Wood grain texture overlay */}
                 <div
                     className="absolute inset-0 opacity-10 pointer-events-none"
@@ -319,7 +319,7 @@ export default function DiscoverPage() {
                             )}
                             {searchFilters.semantic_text && (
                                 <span className="px-2 py-1 bg-pixel-yellow border-2 border-cocoa text-cocoa font-body font-bold text-xs rounded-lg shadow-pixel-sm truncate max-w-[150px] flex items-center gap-1">
-                                    <Search className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {searchFilters.semantic_text}
+                                    <Search className="w-3 h-3 shrink-0" strokeWidth={2.5} /> {searchFilters.semantic_text}
                                 </span>
                             )}
                             <button onClick={clearSearch} className="ml-auto p-1.5 text-cocoa hover:text-pixel-red border-2 border-transparent hover:border-cocoa hover:bg-pixel-red/20 rounded-lg transition-all">

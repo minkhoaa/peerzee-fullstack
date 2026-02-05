@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, X, Plus, Trash2, Loader2, MapPin, Ruler, Music, Play, Pause, Frown, FileText, Image, User, Briefcase, Tag, PenLine, Star, Bot, Sparkles } from 'lucide-react';
+import { Camera, X, Plus, Trash2, Loader2, MapPin, Ruler, Music, Play, Pause, Frown, FileText, Image, User, Briefcase, Tag, PenLine, Star, Bot, Sparkles, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { profileApi, getAssetUrl, ProfileAnalysisResult } from '@/lib/api';
 import { searchLocations } from '@/lib/vietnam-locations';
@@ -11,6 +11,8 @@ import { ProfileHero } from '@/components/profile/ProfileHero';
 import { MusicSearchModal } from '@/components/profile/MusicSearchModal';
 import ProfilePhotos from '@/components/profile/ProfilePhotos';
 import { ZODIAC_SIGNS, getTagDisplay } from '@/lib/profile-tags';
+import { LevelBadge, ShareProfileModal } from '@/components/rpg';
+import { useGamification } from '@/hooks/useGamification';
 
 interface MusicData {
     trackId?: string;
@@ -50,6 +52,7 @@ export default function MyProfilePage() {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ matches: 0, likes: 0, views: 0 });
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     const [editForm, setEditForm] = useState({
         display_name: '',
         bio: '',
@@ -72,6 +75,9 @@ export default function MyProfilePage() {
     const [aiAnalyzing, setAiAnalyzing] = useState(false);
     const [aiResult, setAiResult] = useState<ProfileAnalysisResult | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    // Gamification data
+    const { data: gamification } = useGamification();
 
     // Cleanup audio on unmount
     useEffect(() => {
@@ -349,6 +355,40 @@ export default function MyProfilePage() {
                     onCoverUploadClick={() => coverInputRef.current?.click()}
                     onAvatarUploadClick={() => coverInputRef.current?.click()}
                 />
+
+                {/* Level & Share Row */}
+                {gamification && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center justify-between bg-retro-white p-4 border-3 border-cocoa rounded-xl shadow-pixel"
+                    >
+                        <div className="flex items-center gap-4">
+                            <LevelBadge
+                                level={gamification.level}
+                                xp={gamification.xp}
+                                xpProgress={gamification.xpProgress}
+                                xpNeeded={gamification.xpNeeded}
+                                progressPercent={gamification.progressPercent}
+                                currentStreak={gamification.currentStreak}
+                                size="md"
+                            />
+                            <div>
+                                <p className="font-pixel text-cocoa">Level {gamification.level}</p>
+                                <p className="text-xs text-cocoa-light">
+                                    {gamification.xpProgress} / {gamification.xpNeeded} XP to next level
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setShowShareModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-pixel-pink text-cocoa font-pixel text-sm rounded-xl border-2 border-cocoa shadow-pixel-sm hover:bg-pixel-pink-dark transition-all active:translate-y-0.5 active:shadow-none"
+                        >
+                            <Share2 className="w-4 h-4" />
+                            Share Card
+                        </button>
+                    </motion.div>
+                )}
 
                 {/* Retro Widgets Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
@@ -768,6 +808,24 @@ export default function MyProfilePage() {
                 onClose={() => setMusicModalOpen(false)}
                 onMusicSet={handleSelectMusic}
             />
+
+            {/* Share Profile Modal */}
+            {profile && gamification && (
+                <ShareProfileModal
+                    isOpen={showShareModal}
+                    onClose={() => setShowShareModal(false)}
+                    profile={{
+                        id: profile.id,
+                        displayName: profile.display_name || 'Anonymous',
+                        age: profile.age,
+                        bio: profile.bio,
+                        photos: profile.photos?.map(p => ({ url: getAssetUrl(p.url) })),
+                        tags: profile.tags,
+                        level: gamification.level,
+                        occupation: profile.occupation,
+                    }}
+                />
+            )}
 
             {/* AI Profile Analysis Modal */}
             {showAIModal && (

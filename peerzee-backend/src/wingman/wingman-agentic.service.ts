@@ -107,7 +107,6 @@ export class WingmanAgenticService {
                         toolsUsed.push(fc.name);
                         const execResult = await this.executeTool(userId, fc.name, fc.args || {}, context);
                         actions.push({ tool: fc.name, result: execResult.data });
-                        
                         return {
                             functionResponse: {
                                 name: fc.name,
@@ -199,11 +198,15 @@ export class WingmanAgenticService {
                 case 'generate_icebreaker':
                     return await this.toolGenerateIcebreaker(userId, args.matchUserId || context?.targetUserId);
 
+                case 'search_match_by_name':
+                    return await this.toolSearchMatchByName(userId, args.name);
+
                 case 'suggest_date_spots':
                     return await this.toolSuggestDateSpots(
                         userId, 
                         args.matchUserId || context?.targetUserId,
                         args.preferences,
+                        args.matchName,
                     );
 
                 case 'analyze_profile_strength':
@@ -416,26 +419,175 @@ Trả về JSON: { "icebreakers": ["...", "...", "..."] }`;
         };
     }
 
+    /**
+     * Search matches/conversations by name
+     * Returns list of matching users for selection if multiple found
+     */
+    private async toolSearchMatchByName(userId: string, name: string): Promise<ToolExecutionResult> {
+        if (!name || name.trim().length < 1) {
+            return { success: false, error: 'Cần nhập tên để tìm kiếm' };
+        }
+
+        const searchName = name.trim().toLowerCase();
+        this.logger.log(`[SEARCH] Looking for "${searchName}" for user ${userId}`);
+
+        // First, debug: list all conversations for this user
+        const debugConversations = await this.em.getConnection().execute<any[]>(`
+            SELECT 
+                par1.conversation_id,
+                par2.user_id as "otherUserId",
+                COALESCE(up.display_name, u.email) as "otherUserName"
+            FROM participants par1
+            INNER JOIN participants par2 ON par1.conversation_id = par2.conversation_id AND par1.user_id != par2.user_id
+            INNER JOIN users u ON u.id = par2.user_id
+            LEFT JOIN user_profiles up ON up.user_id = par2.user_id
+            WHERE par1.user_id = $1
+            LIMIT 20
+        `, [userId]);
+        this.logger.log(`[DEBUG] User ${userId} has ${debugConversations.length} conversations:`);
+        debugConversations.forEach((c) => {
+            this.logger.log(`  - ${c.otherUserName} (${c.otherUserId})`);
+        });
+
+        // Search with better aliasing (fixed: using up instead of p for user_profiles)
+        const matches = await this.em.getConnection().execute<any[]>(`
+            SELECT DISTINCT
+                u.id as "userId",
+                COALESCE(up.display_name, u.email) as "displayName",
+                up.photos,
+                up.bio,
+                up.occupation,
+                c.last_message_at as "lastChatAt"
+            FROM participants par1
+            INNER JOIN participants par2 ON par1.conversation_id = par2.conversation_id AND par1.user_id != par2.user_id
+            INNER JOIN conversation c ON c.id = par1.conversation_id
+            INNER JOIN users u ON u.id = par2.user_id
+            LEFT JOIN user_profiles up ON up.user_id = u.id
+            WHERE par1.user_id = $1
+            AND LOWER(COALESCE(up.display_name, u.email)) LIKE $2
+            ORDER BY c.last_message_at DESC NULLS LAST
+            LIMIT 10
+        `, [userId, `%${searchName}%`]);
+
+        this.logger.log(`[SEARCH] Found ${matches.length} results for "${searchName}"`);
+        if (matches.length > 0) {
+            this.logger.log(`[SEARCH] First result: ${JSON.stringify(matches[0])}`);
+        }
+
+        if (matches.length === 0) {
+            return {
+                success: true,
+                data: {
+                    found: false,
+                    message: `Không tìm thấy ai tên "${name}" trong danh sách match/chat của bạn.`,
+                    suggestions: ['Kiểm tra lại tên', 'Xem danh sách matches bằng cách hỏi "Ai đã match với tôi?"'],
+                },
+            };
+        }
+
+        if (matches.length === 1) {
+            const match = matches[0];
+            return {
+                success: true,
+                data: {
+                    found: true,
+                    single: true,
+                    match: {
+                        userId: match.userId,
+                        displayName: match.displayName,
+                        bio: match.bio,
+                        occupation: match.occupation,
+                        hasPhoto: match.photos?.length > 0,
+                    },
+                    message: `Tìm thấy ${match.displayName}!`,
+                },
+            };
+        }
+
+        // Multiple matches - return list for selection
+        return {
+            success: true,
+            data: {
+                found: true,
+                single: false,
+                matches: matches.map((m, i) => ({
+                    index: i + 1,
+                    userId: m.userId,
+                    displayName: m.displayName,
+                    occupation: m.occupation,
+                    bio: m.bio?.substring(0, 50) + (m.bio?.length > 50 ? '...' : ''),
+                    lastChatAt: m.lastChatAt,
+                })),
+                message: `Tìm thấy ${matches.length} người có tên "${name}". Bạn muốn chọn ai?`,
+            },
+        };
+    }
+
     private async toolSuggestDateSpots(
         userId: string,
         matchUserId?: string,
         preferences?: string[],
+        matchName?: string,
     ): Promise<ToolExecutionResult> {
-        if (!matchUserId) {
-            return { success: false, error: 'Cần chọn người muốn hẹn' };
+        try {
+            // If matchName is provided but not matchUserId, search for the match first
+            if (!matchUserId && matchName) {
+                const searchResult = await this.toolSearchMatchByName(userId, matchName);
+                
+                if (!searchResult.success) {
+                    return searchResult;
+                }
+
+                if (!searchResult.data.found) {
+                    return {
+                        success: false,
+                        error: `Không tìm thấy ai tên "${matchName}". Hãy kiểm tra lại tên hoặc xem danh sách matches.`,
+                    };
+                }
+
+                // If multiple matches, return selection options
+                if (!searchResult.data.single) {
+                    return {
+                        success: true,
+                        data: {
+                            needsSelection: true,
+                            matches: searchResult.data.matches,
+                            message: searchResult.data.message + '\n\nHãy chọn số thứ tự hoặc nói rõ hơn để tôi gợi ý địa điểm hẹn hò.',
+                        },
+                    };
+                }
+
+                // Single match found, use their ID
+                matchUserId = searchResult.data.match.userId;
+            }
+
+            if (!matchUserId) {
+                return { success: false, error: 'Cần chọn người muốn hẹn. Bạn muốn hẹn ai?' };
+            }
+
+            const spots = await this.placesService.findDateSpots(userId, matchUserId, preferences);
+
+            // Get match name for personalized response
+            const matchProfile = await this.profileRepo.findOne({ user: { id: matchUserId } });
+            const matchDisplayName = matchProfile?.display_name || 'bạn ấy';
+
+            return {
+                success: true,
+                data: {
+                    spots,
+                    matchName: matchDisplayName,
+                    message: spots.length > 0 
+                        ? `Tìm thấy ${spots.length} địa điểm phù hợp để hẹn hò với ${matchDisplayName}!`
+                        : `Hãy cập nhật vị trí để nhận gợi ý địa điểm hẹn hò với ${matchDisplayName}.`,
+                },
+            };
+        } catch (error) {
+            this.logger.error(`toolSuggestDateSpots error: ${error.message}`, error.stack);
+            return {
+                success: false,
+                error: `Có lỗi khi tìm địa điểm: ${error.message}`,
+            };
         }
-
-        const spots = await this.placesService.findDateSpots(userId, matchUserId, preferences);
-
-        return {
-            success: true,
-            data: {
-                spots,
-                message: spots.length > 0 
-                    ? `Tìm thấy ${spots.length} địa điểm phù hợp!`
-                    : 'Hãy set vị trí để nhận gợi ý địa điểm.',
-            },
-        };
     }
 
     private async toolAnalyzeProfileStrength(userId: string): Promise<ToolExecutionResult> {

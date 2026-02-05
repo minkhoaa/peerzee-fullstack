@@ -20,6 +20,9 @@ import { AgentsModule } from './agents/agents.module';
 import { WingmanModule } from './wingman/wingman.module';
 import config from './mikro-orm.config';
 
+import { GamificationModule } from './gamification/gamification.module';
+import { WhisperModule } from './whisper/whisper.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -46,6 +49,8 @@ import config from './mikro-orm.config';
     AiModule,
     AgentsModule,
     WingmanModule,
+    GamificationModule,
+    WhisperModule,
   ],
   controllers: [AppController],
   providers: [AppService],

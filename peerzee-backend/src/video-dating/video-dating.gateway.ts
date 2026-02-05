@@ -14,6 +14,8 @@ import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { VideoDatingService } from './video-dating.service';
+import { TranslationService } from './translation.service';
+import { TopicGeneratorService } from './topic-generator.service';
 import { JoinQueueDto } from './dto/join-queue.dto';
 import { AiService } from '../ai/ai.service';
 import { UserProfile } from '../user/entities/user-profile.entity';
@@ -47,6 +49,8 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
     constructor(
         private readonly jwtService: JwtService,
         private readonly videoDatingService: VideoDatingService,
+        private readonly translationService: TranslationService,
+        private readonly topicGenerator: TopicGeneratorService,
         private readonly aiService: AiService,
         private readonly matchWorkflow: MatchWorkflow,
         @InjectRepository(UserProfile)
@@ -816,6 +820,10 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         this.userSessions.set(user1Id, session.id);
         this.userSessions.set(user2Id, session.id);
 
+        // 🌍 Start AI features for this session
+        this.topicGenerator.startTracking(session.id);
+        this.logger.log(`🤖 AI features initialized for session ${session.id}`);
+
         // 🚀 OPTIMIZATION: Send match notification immediately with default messages
         // Initialize blind session with placeholders
         const defaultIntro = 'Chào mừng đến với Peerzee! Hãy bắt đầu trò chuyện! 👋';
@@ -961,7 +969,157 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
             this.userSessions.delete(session.user1Id);
             this.userSessions.delete(session.user2Id);
             this.activeSessions.delete(sessionId);
+            
+            // Stop translation and topic tracking
+            this.translationService.stopTranslation(sessionId, session.user1Id);
+            this.translationService.stopTranslation(sessionId, session.user2Id);
+            this.topicGenerator.stopTracking(sessionId);
         }
+    }
+
+    // =====================================================
+    // 🌍 AI TRANSLATION HANDLERS
+    // =====================================================
+
+    /**
+     * Enable translation for the call
+     */
+    @SubscribeMessage('translation:enable')
+    async handleEnableTranslation(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { sourceLanguage: string; targetLanguage: string },
+    ) {
+        const userId = (client as any).userId;
+        const sessionId = this.userSessions.get(userId);
+
+        if (!sessionId) {
+            return { error: 'Not in a call' };
+        }
+
+        await this.translationService.startTranslation(
+            sessionId,
+            userId,
+            data.sourceLanguage,
+            data.targetLanguage,
+        );
+
+        this.logger.log(`Translation enabled: ${data.sourceLanguage} → ${data.targetLanguage} for user ${userId}`);
+        return { success: true };
+    }
+
+    /**
+     * Process audio chunk for translation
+     */
+    @SubscribeMessage('translation:audio')
+    async handleTranslationAudio(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { audio: Buffer; sourceLanguage: string; targetLanguage: string },
+    ) {
+        const userId = (client as any).userId;
+        const sessionId = this.userSessions.get(userId);
+
+        if (!sessionId) return;
+
+        // Transcribe audio
+        const text = await this.translationService.processAudioChunk(
+            sessionId,
+            userId,
+            data.audio,
+        );
+
+        if (!text) return; // Not enough audio yet
+
+        // Record activity (speaking detected)
+        this.topicGenerator.recordActivity(sessionId);
+
+        // Translate
+        const translation = await this.translationService.translate(
+            text,
+            data.sourceLanguage,
+            data.targetLanguage,
+        );
+
+        if (translation) {
+            // Send to other user
+            const session = this.activeSessions.get(sessionId);
+            if (session) {
+                const otherUserId = userId === session.user1Id ? session.user2Id : session.user1Id;
+                const otherSocketId = userId === session.user1Id ? session.user2 : session.user1;
+
+                this.server.to(otherSocketId).emit('translation:subtitle', {
+                    text: translation.translatedText,
+                    originalText: translation.originalText,
+                    sourceLanguage: translation.sourceLanguage,
+                    targetLanguage: translation.targetLanguage,
+                });
+            }
+        }
+    }
+
+    /**
+     * Disable translation
+     */
+    @SubscribeMessage('translation:disable')
+    async handleDisableTranslation(@ConnectedSocket() client: Socket) {
+        const userId = (client as any).userId;
+        const sessionId = this.userSessions.get(userId);
+
+        if (!sessionId) return;
+
+        await this.translationService.stopTranslation(sessionId, userId);
+        return { success: true };
+    }
+
+    // =====================================================
+    // 💬 AI TOPIC GENERATOR HANDLERS
+    // =====================================================
+
+    /**
+     * Record activity (speaking, laughing, etc.)
+     */
+    @SubscribeMessage('activity:record')
+    handleRecordActivity(@ConnectedSocket() client: Socket) {
+        const userId = (client as any).userId;
+        const sessionId = this.userSessions.get(userId);
+
+        if (!sessionId) return;
+
+        this.topicGenerator.recordActivity(sessionId);
+    }
+
+    /**
+     * Check for silence and get topic suggestions
+     * Called periodically by frontend
+     */
+    @SubscribeMessage('topics:check')
+    async handleCheckTopics(@ConnectedSocket() client: Socket) {
+        const userId = (client as any).userId;
+        const sessionId = this.userSessions.get(userId);
+
+        if (!sessionId) return { shouldSuggest: false };
+
+        const session = this.activeSessions.get(sessionId);
+        if (!session) return { shouldSuggest: false };
+
+        const result = await this.topicGenerator.checkSilence(
+            sessionId,
+            session.user1Id,
+            session.user2Id,
+        );
+
+        if (result.shouldSuggest && result.suggestions) {
+            // Broadcast to both users
+            this.server.to(session.user1).emit('topics:suggest', {
+                suggestions: result.suggestions,
+                silenceDuration: result.silenceDuration,
+            });
+            this.server.to(session.user2).emit('topics:suggest', {
+                suggestions: result.suggestions,
+                silenceDuration: result.silenceDuration,
+            });
+        }
+
+        return result;
     }
 
     /**

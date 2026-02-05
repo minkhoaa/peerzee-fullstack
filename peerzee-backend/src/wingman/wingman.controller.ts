@@ -191,6 +191,26 @@ export class WingmanController {
   }
 
   /**
+   * DEBUG: Test search by name
+   * GET /wingman/debug/search?name=xxx
+   */
+  @Get('debug/search')
+  async debugSearch(
+    @Req() req: AuthenticatedRequest,
+    @Query('name') name: string,
+  ) {
+    const userId = req.user.sub;
+    this.logger.log(`[DEBUG SEARCH] userId=${userId}, name=${name}`);
+    
+    // Call agentic service directly to test search
+    const result = await this.agenticService.chat(
+      userId,
+      `tìm người tên ${name}`,
+    );
+    return { result };
+  }
+
+  /**
    * Search places by query
    * GET /wingman/places/search
    */

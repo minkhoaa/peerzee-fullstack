@@ -18,6 +18,7 @@ import { UserProfile } from '../user/entities/user-profile.entity';
 import { AiModule } from '../ai/ai.module';
 import { NotificationModule } from '../notification/notification.module';
 import { VoiceService } from './voice.service';
+import { GamificationModule } from '../gamification/gamification.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { VoiceService } from './voice.service';
     UserModule,
     AiModule,
     forwardRef(() => NotificationModule),
+    forwardRef(() => GamificationModule),
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',
@@ -33,7 +35,7 @@ import { VoiceService } from './voice.service';
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, uniqueSuffix + extname(file.originalname));
         },
-      })
+      }),
     }),
   ],
   controllers: [UploadController, ChatController],

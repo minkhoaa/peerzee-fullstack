@@ -80,14 +80,32 @@ export const WINGMAN_TOOLS = [
         },
     },
     {
+        name: 'search_match_by_name',
+        description: 'Tìm người đang chat/match theo tên. Dùng khi user nhắc đến tên người muốn hẹn thay vì ID. Trả về danh sách matches có tên phù hợp để user chọn nếu có nhiều người trùng tên.',
+        parameters: {
+            type: 'object',
+            properties: {
+                name: {
+                    type: 'string',
+                    description: 'Tên hoặc một phần tên của người muốn tìm (ví dụ: "Linh", "Mai", "Hùng")',
+                },
+            },
+            required: ['name'],
+        },
+    },
+    {
         name: 'suggest_date_spots',
-        description: 'Gợi ý địa điểm hẹn hò gần cả 2 người (quán cà phê, nhà hàng, công viên)',
+        description: 'Gợi ý địa điểm hẹn hò gần cả 2 người (quán cà phê, nhà hàng, công viên). Có thể dùng matchUserId hoặc matchName.',
         parameters: {
             type: 'object',
             properties: {
                 matchUserId: {
                     type: 'string',
-                    description: 'ID của người muốn hẹn',
+                    description: 'ID của người muốn hẹn (nếu đã biết ID)',
+                },
+                matchName: {
+                    type: 'string',
+                    description: 'Tên của người muốn hẹn (nếu chưa biết ID, sẽ tự động tìm kiếm)',
                 },
                 preferences: {
                     type: 'array',
@@ -95,7 +113,7 @@ export const WINGMAN_TOOLS = [
                     description: 'Loại địa điểm mong muốn: cafe, restaurant, park, bar',
                 },
             },
-            required: ['matchUserId'],
+            required: [],
         },
     },
     {
