@@ -6,6 +6,7 @@ import { VideoStage } from "@/components/match/VideoStage";
 import { ChatPanel } from "@/components/match/ChatPanel";
 import { ModeSelector } from "@/components/match/ModeSelector";
 import { useVideoDating } from "@/hooks/useVideoDating";
+import { useSubtitle } from "@/hooks/useSubtitle";
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 type GenderPref = 'male' | 'female' | 'all';
@@ -47,6 +48,16 @@ export default function MatchPage() {
     acceptReveal,
     joinRoom,
   } = useVideoDating();
+
+  const isCallActive = state === 'matched' || state === 'connected';
+
+  // ── Real-time subtitles ─────────────────────────────────────────────────────
+  const { localInterim, remoteSubtitle } = useSubtitle({
+    socket,
+    sessionId: matchInfo?.sessionId ?? null,
+    language: 'vi-VN',
+    enabled: isCallActive && !isMuted,
+  });
 
   // Connect on mount
   useEffect(() => {
@@ -196,6 +207,9 @@ export default function MatchPage() {
           onToggleMute={handleToggleMute}
           onToggleCamera={handleToggleCamera}
           onReport={() => setShowReportModal(true)}
+          // Subtitles
+          remoteSubtitle={remoteSubtitle}
+          localInterim={localInterim}
           // Blind Date features
           blindDate={blindDate}
           onRequestTopic={requestNewTopic}

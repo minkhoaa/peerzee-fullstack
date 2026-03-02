@@ -1122,6 +1122,38 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         return result;
     }
 
+    // =====================================================
+    // 💬 REAL-TIME SUBTITLES (Web Speech API relay)
+    // =====================================================
+
+    /**
+     * Client emits speech-to-text results; server relays them to the partner.
+     *
+     * Payload: { text: string; isFinal: boolean; sessionId?: string }
+     * Emits to partner: 'subtitle:receive' { text, isFinal, userId }
+     */
+    @SubscribeMessage('subtitle:send')
+    handleSubtitleSend(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { text: string; isFinal: boolean },
+    ) {
+        const userId = client.data.userId as string;
+        const sessionId = this.userSessions.get(userId);
+        if (!sessionId) return;
+
+        const session = this.activeSessions.get(sessionId);
+        if (!session) return;
+
+        const targetSocketId =
+            session.user1 === client.id ? session.user2 : session.user1;
+
+        this.server.to(targetSocketId).emit('subtitle:receive', {
+            text: data.text,
+            isFinal: data.isFinal,
+            userId,
+        });
+    }
+
     /**
      * Broadcast current queue size to all connected clients
      */

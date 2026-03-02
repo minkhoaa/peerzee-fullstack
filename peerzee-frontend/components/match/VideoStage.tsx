@@ -4,6 +4,8 @@ import { useRef, useEffect } from "react";
 import { Video, VideoOff, Mic, MicOff, Loader2, User, MessageSquareText, Flag } from "lucide-react";
 import { VideoDatingState, BlindDateState } from "@/hooks/useVideoDating";
 import { BlindDateOverlay } from "@/components/match/BlindDateOverlay";
+import SubtitleOverlay from "@/components/video/SubtitleOverlay";
+import type { RemoteSubtitle } from "@/hooks/useSubtitle";
 
 interface VideoStageProps {
   mode: "text" | "video";
@@ -20,6 +22,10 @@ interface VideoStageProps {
   onToggleMute: () => void;
   onToggleCamera: () => void;
   onReport?: () => void;
+  /** Subtitle received from the remote partner */
+  remoteSubtitle?: RemoteSubtitle | null;
+  /** Local speech interim transcript (while user is speaking) */
+  localInterim?: string;
   // Blind Date features
   blindDate?: BlindDateState | null;
   onRequestTopic?: () => void;
@@ -42,6 +48,8 @@ export function VideoStage({
   onToggleMute,
   onToggleCamera,
   onReport,
+  remoteSubtitle,
+  localInterim,
   // Blind Date features
   blindDate,
   onRequestTopic,
@@ -108,6 +116,12 @@ export function VideoStage({
                       </div>
                     </div>
                   )}
+                  {/* ── Remote subtitle (RPG dialog box) ── */}
+                  <SubtitleOverlay
+                    text={remoteSubtitle?.text ?? null}
+                    isFinal={remoteSubtitle?.isFinal ?? false}
+                  />
+
                   {/* Status indicator */}
                   {state === 'matched' && (
                     <div className="absolute top-3 left-3 px-3 py-1.5 bg-pixel-yellow border-2 border-cocoa rounded-lg text-xs text-cocoa font-pixel uppercase tracking-wider shadow-pixel-sm">
@@ -150,6 +164,10 @@ export function VideoStage({
                 <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-cocoa border border-retro-white rounded text-xs text-retro-white font-pixel">
                   You
                 </div>
+                {/* ── Local subtitle (interim only) ── */}
+                {localInterim && (
+                  <SubtitleOverlay text={localInterim} isFinal={false} />
+                )}
               </div>
             )}
           </>
