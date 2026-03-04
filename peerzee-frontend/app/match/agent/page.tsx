@@ -41,8 +41,8 @@ export default function AgentMatchPage() {
 
     // Initialize Socket.IO connection
     useEffect(() => {
-        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:9000';
-        const newSocket = io(`${socketUrl}/match-queue`, {
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:9898';
+        const newSocket = io(`${socketUrl}/socket/match-queue`, {
             withCredentials: true,
             transports: ['websocket', 'polling'],
         });
@@ -62,16 +62,16 @@ export default function AgentMatchPage() {
             console.error('❌ Socket connection error:', error);
         });
 
-        // Event 1: QUEUE_UPDATE - Live position updates
-        newSocket.on('QUEUE_UPDATE', (data: { myPosition: number; totalInQueue: number; estimatedWait: string }) => {
+        // Event 1: queue:update - Live position updates
+        newSocket.on('queue:update', (data: { myPosition: number; totalInQueue: number; estimatedWait: string }) => {
             console.log('📊 Queue update:', data);
             setQueuePosition(data.myPosition);
             setTotalInQueue(data.totalInQueue);
             setEstimatedWait(data.estimatedWait);
         });
 
-        // Event 2: MATCH_PROPOSED - Dual notification
-        newSocket.on('MATCH_PROPOSED', (data: { role: 'INITIATOR' | 'RECEIVER'; partner: MatchPartner; reasoning: string; roomId: string }) => {
+        // Event 2: match:proposed - Dual notification
+        newSocket.on('match:proposed', (data: { role: 'INITIATOR' | 'RECEIVER'; partner: MatchPartner; reasoning: string; roomId: string }) => {
             console.log('🎉 Match proposed!', data);
             setRole(data.role);
             setMatchPartner(data.partner);
@@ -80,8 +80,8 @@ export default function AgentMatchPage() {
             setConsoleMode('REVIEWING');
         });
 
-        // Event 3: GO_TO_ROOM - Synchronized navigation
-        newSocket.on('GO_TO_ROOM', (data: { roomId: string; url: string }) => {
+        // Event 3: match:go-to-room - Synchronized navigation
+        newSocket.on('match:go-to-room', (data: { roomId: string; url: string }) => {
             console.log('🚀 Navigating to room:', data);
             setConsoleMode('NAVIGATING');
 
@@ -98,8 +98,8 @@ export default function AgentMatchPage() {
             }, 1000);
         });
 
-        // Event 4: PARTNER_DISCONNECTED - Partner left
-        newSocket.on('PARTNER_DISCONNECTED', (data: { message: string }) => {
+        // Event 4: match:partner-disconnected - Partner left
+        newSocket.on('match:partner-disconnected', (data: { message: string }) => {
             console.log('😢 Partner disconnected:', data);
             setConsoleMode('WAITING');
             setMatchPartner(null);
@@ -163,14 +163,14 @@ export default function AgentMatchPage() {
         }
 
         const userId = localStorage.getItem('userId');
-        console.log('🚀 Emitting ACCEPT_MATCH:', { userId, roomId });
-        socket.emit('ACCEPT_MATCH', { userId, roomId });
+        console.log('🚀 Emitting match:accept:', { userId, roomId });
+        socket.emit('match:accept', { userId, roomId });
     };
 
     const handleReroll = () => {
         if (socket) {
             const userId = localStorage.getItem('userId');
-            socket.emit('REROLL', userId);
+            socket.emit('match:reroll', userId);
         }
         reset();
         setConsoleMode('IDLE');

@@ -19,6 +19,15 @@ export class NotificationService {
         this.socketServer = server;
     }
 
+    /**
+     * Emit a raw socket event directly to a user's room (no DB persistence)
+     */
+    emitToUser(userId: string, event: string, payload: Record<string, unknown>) {
+        if (this.socketServer) {
+            this.socketServer.to(userId).emit(event, payload);
+        }
+    }
+
     async createAndEmit(
         userId: string,
         type: NotificationType,

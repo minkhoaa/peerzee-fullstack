@@ -11,7 +11,8 @@ const config: Options = {
     entities: ['dist/**/*.entity.js'],
     entitiesTs: ['src/**/*.entity.ts'],
     migrations: {
-        path: 'migrations',
+        path: 'dist/src/migrations',
+        pathTs: 'src/migrations',
     },
     debug: process.env.NODE_ENV !== 'production',
 };

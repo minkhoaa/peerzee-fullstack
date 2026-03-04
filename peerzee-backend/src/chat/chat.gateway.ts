@@ -25,6 +25,9 @@ import { VoiceService } from './voice.service';
 import { GamificationService } from '../gamification/gamification.service';
 import { QuestService } from '../gamification/quest.service';
 import { QuestType } from '../gamification/entities/quest.entity';
+import { WingmanService } from '../wingman/wingman.service';
+
+const WINGMAN_SENDER_ID = '00000000-0000-0000-0000-000000000001';
 
 @WebSocketGateway({
   namespace: '/socket/chat',
@@ -47,6 +50,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly gamificationService: GamificationService,
     @Inject(forwardRef(() => QuestService))
     private readonly questService: QuestService,
+    @Inject(forwardRef(() => WingmanService))
+    private readonly wingmanService: WingmanService,
   ) { }
 
   async handleConnection(client: Socket) {
@@ -228,6 +233,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
           console.error('[XP] Failed to award XP:', xpError);
         }
 
+        // Detect @Wingman mention - fire-and-forget async
+        if (dto.body && /@wingman/i.test(dto.body)) {
+          console.log(`[WINGMAN] @Wingman detected in conversation ${dto.conversation_id}`);
+          this.handleWingmanMention(dto.conversation_id, user_id, dto.body).catch((err) =>
+            console.error('[WINGMAN] Failed:', err),
+          );
+        }
+
         var massages = await this.chatService.getMessages(dto.conversation_id);
 
         return massages;
@@ -260,7 +273,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
         return { ok: false, message: 'Not a participant of this conversation' };
       }
 
-      const messages = await this.chatService.getMessages(dto.conversation_id);
+      const messages = await this.chatService.getMessages(
+        dto.conversation_id,
+        dto.limit,
+        dto.before_seq,
+      );
       return { ok: true, messages };
     });
   }
@@ -502,9 +519,62 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @MessageBody() data: { conversation_id: string }
   ) {
     const userId = client.data.user_id;
-    this.server.to(data.conversation_id).emit('call:end', {
+    this.server.to(data.conversation_id).emit('call:ended', {
       user_id: userId,
+    });
+  }
 
+  // ==================== @WINGMAN HANDLER ====================
+
+  private async handleWingmanMention(conversationId: string, userId: string, triggerMessage: string) {
+    await RequestContext.create(this.orm.em, async () => {
+      // Show "🤖 Wingman is typing..." indicator immediately
+      this.server.to(conversationId).emit('typing:update', {
+        conversation_id: conversationId,
+        user_id: 'SYSTEM_WINGMAN',
+        display_name: '🤖 Wingman',
+        isTyping: true,
+      });
+
+      try {
+        const ITINERARY_KEYWORDS = [
+          'kế hoạch', 'lịch trình', 'plan', 'thứ 7', 'thứ bảy',
+          'cuối tuần', 'schedule', 'itinerary', 'buổi hẹn',
+        ];
+        const isItinerary = ITINERARY_KEYWORDS.some(kw =>
+          triggerMessage.toLowerCase().includes(kw),
+        );
+
+        const result = isItinerary
+          ? { type: 'itinerary', ...(await this.wingmanService.generateItinerary(userId, triggerMessage)) }
+          : { type: 'venues', ...(await this.wingmanService.handleWingmanMention(conversationId, userId, triggerMessage)) };
+
+        // Save AI response as a system message
+        const wingmanMsg = await this.chatService.chatMessage(
+          conversationId,
+          WINGMAN_SENDER_ID,
+          JSON.stringify(result),
+        );
+
+        // Broadcast to conversation room
+        this.server.to(conversationId).emit('message:new', {
+          id: wingmanMsg.id,
+          conversation_id: conversationId,
+          sender_id: WINGMAN_SENDER_ID,
+          body: wingmanMsg.body,
+          seq: wingmanMsg.seq,
+          createdAt: wingmanMsg.createdAt,
+          updatedAt: wingmanMsg.updatedAt,
+        });
+      } finally {
+        // Always clear the typing indicator (even if Gemini fails)
+        this.server.to(conversationId).emit('typing:update', {
+          conversation_id: conversationId,
+          user_id: 'SYSTEM_WINGMAN',
+          display_name: '🤖 Wingman',
+          isTyping: false,
+        });
+      }
     });
   }
 

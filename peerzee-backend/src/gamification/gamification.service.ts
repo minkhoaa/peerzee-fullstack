@@ -36,6 +36,8 @@ export class GamificationService {
                 badges: [],
                 currentStreak: 0,
                 lastActionAt: new Date(),
+                reputationPoints: 100,
+                violationCount: 0,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });

@@ -40,7 +40,7 @@ COPY --from=builder /app/dist ./dist
 RUN mkdir -p uploads
 
 # Expose port
-EXPOSE 9000
+EXPOSE 9898
 
 # Start the app
 CMD ["node", "dist/src/main"]

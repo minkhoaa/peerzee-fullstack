@@ -8,3 +8,6 @@ export { NoteCard } from './NoteCard';
 export { WriteNote } from './WriteNote';
 export { TownCrier } from './TownCrier';
 export { VillageNav } from './VillageNav';
+
+// Moderation
+export { default as GuardModal } from './GuardModal';

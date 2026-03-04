@@ -32,6 +32,8 @@ export interface SocialPost {
     createdAt: string;
     updatedAt: string;
     author: PostAuthor;
+    /** Moderation status — 'pending' while guard is checking, 'approved' when visible, 'rejected' when removed */
+    status?: 'pending' | 'approved' | 'rejected';
 }
 
 export interface FeedResponse {

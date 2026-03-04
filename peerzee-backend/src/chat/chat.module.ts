@@ -19,6 +19,7 @@ import { AiModule } from '../ai/ai.module';
 import { NotificationModule } from '../notification/notification.module';
 import { VoiceService } from './voice.service';
 import { GamificationModule } from '../gamification/gamification.module';
+import { WingmanModule } from '../wingman/wingman.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { GamificationModule } from '../gamification/gamification.module';
     AiModule,
     forwardRef(() => NotificationModule),
     forwardRef(() => GamificationModule),
+    forwardRef(() => WingmanModule),
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',

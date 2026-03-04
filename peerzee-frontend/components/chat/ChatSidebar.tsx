@@ -222,7 +222,7 @@ export default function ChatSidebar({
                                 {/* Avatar */}
                                 <div className="relative shrink-0">
                                     <div className={`w-12 h-12 border-2 border-cocoa rounded-lg bg-pixel-pink flex items-center justify-center text-cocoa font-pixel text-sm shadow-pixel-sm`}>
-                                        {conv.name?.slice(0, 1)?.toUpperCase() || '?'}
+                                        {(userNames[otherUserId] || conv.name)?.slice(0, 1)?.toUpperCase() || '?'}
                                     </div>
                                     {/* Online indicator */}
                                     {isOnline && (
@@ -234,7 +234,7 @@ export default function ChatSidebar({
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2">
                                         <span className={`font-bold text-sm truncate ${isActive ? 'text-cocoa' : 'text-cocoa'}`}>
-                                            {conv.name || 'Unknown'}
+                                            {userNames[otherUserId] || conv.name || 'Unknown'}
                                         </span>
                                         <span className="text-[10px] text-cocoa-light shrink-0 font-bold">
                                             {formatTime(conv.lastMessageAt)}

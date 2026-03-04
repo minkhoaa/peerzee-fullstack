@@ -160,14 +160,17 @@ export class ChatService {
     });
   }
 
-  async getMessages(conversation_id: string) {
-    return this.msgRepo.find(
-      { conversation: { id: conversation_id } },
-      {
-        populate: ['replyTo'],
-        orderBy: { seq: 'ASC' },
-      }
-    );
+  async getMessages(conversation_id: string, limit?: number, before_seq?: string) {
+    const where: any = { conversation: { id: conversation_id } };
+    if (before_seq) {
+      where.seq = { $lt: before_seq };
+    }
+
+    return this.msgRepo.find(where, {
+      populate: ['replyTo'],
+      orderBy: { seq: 'ASC' },
+      ...(limit ? { limit } : {}),
+    });
   }
 
   async searchMessages(conversation_id: string, query: string) {

@@ -129,9 +129,9 @@
         return;
       }
 
-      log('Connecting to ws://localhost:9000...', 'info');
+      log('Connecting to ws://localhost:9898...', 'info');
       
-      socket = io('http://localhost:9000', {
+      socket = io('http://localhost:9898', {
         auth: { token: token },
         transports: ['websocket']
       });

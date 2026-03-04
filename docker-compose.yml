@@ -40,7 +40,7 @@ services:
       context: ./whisper-service
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8181:8080"
     networks:
       - peerzee-network
     healthcheck:
@@ -75,7 +75,7 @@ services:
       REDIS_PORT: 6379
       WHISPER_SERVICE_URL: http://whisper:8080
     ports:
-      - "9000:9000"
+      - "9898:9898"
     volumes:
       - uploads:/app/uploads
     depends_on:
@@ -96,8 +96,8 @@ services:
       args:
         # For LOCAL: set these in .env file or pass via command line
         # For PRODUCTION with nginx: use empty string
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:9000/api}
-        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:9000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:9898/api}
+        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:9898}
     environment:
       NODE_ENV: production
     ports:

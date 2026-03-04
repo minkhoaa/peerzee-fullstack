@@ -40,6 +40,12 @@ export function useVideoDating() {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
+      // TURN server for users behind symmetric NAT
+      ...(process.env.NEXT_PUBLIC_TURN_URL ? [{
+        urls: process.env.NEXT_PUBLIC_TURN_URL,
+        username: process.env.NEXT_PUBLIC_TURN_USERNAME || '',
+        credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL || '',
+      }] : []),
     ],
   };
 
@@ -79,8 +85,45 @@ export function useVideoDating() {
       }
     };
 
+    let iceCheckingTimeout: ReturnType<typeof setTimeout> | null = null;
+    let iceDisconnectedTimeout: ReturnType<typeof setTimeout> | null = null;
+
     pc.oniceconnectionstatechange = () => {
       console.log('[WebRTC] ICE connection state:', pc.iceConnectionState);
+
+      // Clear any existing timeouts on state change
+      if (iceCheckingTimeout) { clearTimeout(iceCheckingTimeout); iceCheckingTimeout = null; }
+      if (iceDisconnectedTimeout) { clearTimeout(iceDisconnectedTimeout); iceDisconnectedTimeout = null; }
+
+      if (pc.iceConnectionState === 'checking') {
+        // Timeout if still checking after 15s — connection likely failed
+        iceCheckingTimeout = setTimeout(() => {
+          if (pc.iceConnectionState === 'checking') {
+            console.error('[WebRTC] ICE checking timeout — connection failed');
+            setError('Connection timed out. Please try again.');
+            cleanup();
+            setState('ended');
+          }
+        }, 15000);
+      }
+
+      if (pc.iceConnectionState === 'disconnected') {
+        // Give 5s grace period for ICE reconnection
+        iceDisconnectedTimeout = setTimeout(() => {
+          if (pc.iceConnectionState === 'disconnected') {
+            console.error('[WebRTC] ICE disconnected — connection lost');
+            setError('Connection lost. Please try again.');
+            cleanup();
+            setState('ended');
+          }
+        }, 5000);
+      }
+
+      if (pc.iceConnectionState === 'failed') {
+        setError('Connection failed. Please try again.');
+        cleanup();
+        setState('ended');
+      }
     };
 
     // Add local tracks if we have them
@@ -177,7 +220,7 @@ export function useVideoDating() {
   // 📡 Signal Buffering: Store signals if pc is not ready
   const signalBufferRef = useRef<{ sessionId: string; type: 'offer' | 'answer' | 'ice'; data: any }[]>([]);
 
-  const processBufferedSignals = useCallback((sessionId: string) => {
+  const processBufferedSignals = useCallback(async (sessionId: string) => {
     const pc = peerConnectionRef.current;
     if (!pc) return;
 
@@ -187,7 +230,8 @@ export function useVideoDating() {
     const signals = signalBufferRef.current.filter(s => s.sessionId === sessionId);
     signalBufferRef.current = signalBufferRef.current.filter(s => s.sessionId !== sessionId);
 
-    signals.forEach(async signal => {
+    // Process sequentially — offer must complete before ICE candidates
+    for (const signal of signals) {
       try {
         if (signal.type === 'offer') {
           console.log('[WebRTC] Processing buffered offer');
@@ -205,7 +249,7 @@ export function useVideoDating() {
       } catch (err) {
         console.error(`[WebRTC] Failed to process buffered signal (${signal.type}):`, err);
       }
-    });
+    }
   }, []);
 
   const connect = useCallback(() => {
@@ -279,7 +323,19 @@ export function useVideoDating() {
       setupPeerConnection(socket, data.sessionId, data.isInitiator);
 
       // Process any signals that arrived before match:found
-      setTimeout(() => processBufferedSignals(data.sessionId), 100);
+      // Retry until peer connection is ready (max 5 attempts, 200ms apart)
+      let attempts = 0;
+      const tryProcessSignals = () => {
+        if (peerConnectionRef.current) {
+          processBufferedSignals(data.sessionId);
+        } else if (attempts < 5) {
+          attempts++;
+          setTimeout(tryProcessSignals, 200);
+        } else {
+          console.warn('[WebRTC] Peer connection not ready after 5 attempts, dropping buffered signals');
+        }
+      };
+      tryProcessSignals();
     });
 
     // 🎬 AI DATING HOST: Blur update event

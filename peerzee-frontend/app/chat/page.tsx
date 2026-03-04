@@ -14,6 +14,9 @@ import { MessageSquareText, Loader2 } from "lucide-react";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatWindow from "@/components/chat/ChatWindow";
 import ChatInput from "@/components/chat/ChatInput";
+import DateIdeasModal from "@/components/chat/DateIdeasModal";
+import WingmanSidebar from "@/components/chat/WingmanSidebar";
+import { useWingman, type DateIdeasResult } from "@/hooks/useWingman";
 
 interface Message {
     id: string;
@@ -66,6 +69,7 @@ export default function ChatPage() {
     const [isConnected, setIsConnected] = useState(false);
 
     // UI state
+    const [isAIOpen, setIsAIOpen] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [newUserId, setNewUserId] = useState("");
     const [newConvName, setNewConvName] = useState("");
@@ -85,6 +89,12 @@ export default function ChatPage() {
     // File upload
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    // Date ideas
+    const [dateIdeas, setDateIdeas] = useState<DateIdeasResult | null>(null);
+    const [showDateIdeasModal, setShowDateIdeasModal] = useState(false);
+    const [dateIdeasLoading, setDateIdeasLoading] = useState(false);
+    const { getDateIdeas } = useWingman();
 
     // Refs
     const socketRef = useRef<Socket | null>(null);
@@ -347,7 +357,7 @@ export default function ChatPage() {
             await handleIceCandidate(data.candidate);
         });
 
-        socket.on("call:end", () => {
+        socket.on("call:ended", () => {
             endCall();
             setIncomingCall(null);
         });
@@ -622,6 +632,18 @@ export default function ChatPage() {
         });
     };
 
+    const handleGetDateIdeas = async () => {
+        if (!activeConversation || !userId) return;
+        const partnerId = activeConversation.participantIds?.find(id => id !== userId);
+        if (!partnerId) return;
+
+        setDateIdeasLoading(true);
+        setShowDateIdeasModal(true);
+        const result = await getDateIdeas(partnerId, activeConversation.id);
+        setDateIdeas(result);
+        setDateIdeasLoading(false);
+    };
+
     // ============== RENDER ==============
     if (loading) {
         return (
@@ -658,55 +680,71 @@ export default function ChatPage() {
                 onLogout={handleLogout}
             />
 
-            {/* Main Chat Area */}
-            <div className="flex-1 h-full bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel flex flex-col relative overflow-hidden">
-                {activeConversation ? (
-                    <>
-                        <ChatWindow
-                            conversation={activeConversation}
-                            messages={messages}
-                            userId={userId}
-                            isOnline={isOtherOnline}
-                            userNames={userNames}
-                            typingUsers={typingUsers[activeConversation.id] || []}
-                            highlightedMessageId={highlightedMessageId}
-                            onStartAudioCall={handleStartAudioCall}
-                            onStartVideoCall={handleStartVideoCall}
-                            onEndCall={handleEndCall}
-                            onEditMessage={handleEditMessage}
-                            onDeleteMessage={handleDeleteMessage}
-                            onReaction={handleReaction}
-                            onReply={setReplyingTo}
-                            onSearchMessage={handleSearchMessage}
-                            callState={callState}
-                            onSendIcebreaker={handleSendIcebreaker}
-                        />
+            {/* Main Chat Area + AI Sidebar (split view) */}
+            <div className="flex-1 h-full flex overflow-hidden min-w-0">
 
-                        <ChatInput
-                            value={newMessage}
-                            onChange={handleInputChange}
-                            onSend={handleSend}
-                            onFileSelect={handleFileSelect}
-                            onVoiceMessage={handleVoiceMessage}
-                            replyingTo={replyingTo}
-                            onCancelReply={() => setReplyingTo(null)}
-                            selectedFile={selectedFile}
-                            previewUrl={previewUrl}
-                            onClearFile={handleClearFile}
-                            disabled={!activeConversation}
-                            userId={userId}
-                            conversationId={activeConversation?.id || null}
-                        />
-                    </>
-                ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className="w-24 h-24 border-3 border-cocoa rounded-xl bg-pixel-blue flex items-center justify-center mb-5 shadow-pixel">
-                            <MessageSquareText className="w-12 h-12 text-cocoa" strokeWidth={2.5} />
+                {/* Chat panel */}
+                <div className="flex-1 h-full bg-retro-white border-3 border-cocoa rounded-xl shadow-pixel flex flex-col relative overflow-hidden transition-all duration-300 ease-in-out min-w-0">
+                    {activeConversation ? (
+                        <>
+                            <ChatWindow
+                                conversation={activeConversation}
+                                messages={messages}
+                                userId={userId}
+                                isOnline={isOtherOnline}
+                                userNames={userNames}
+                                typingUsers={typingUsers[activeConversation.id] || []}
+                                highlightedMessageId={highlightedMessageId}
+                                onStartAudioCall={handleStartAudioCall}
+                                onStartVideoCall={handleStartVideoCall}
+                                onEndCall={handleEndCall}
+                                onEditMessage={handleEditMessage}
+                                onDeleteMessage={handleDeleteMessage}
+                                onReaction={handleReaction}
+                                onReply={setReplyingTo}
+                                onSearchMessage={handleSearchMessage}
+                                callState={callState}
+                                onSendIcebreaker={handleSendIcebreaker}
+                                onGetDateIdeas={handleGetDateIdeas}
+                                dateIdeasLoading={dateIdeasLoading}
+                                isAIOpen={isAIOpen}
+                                onToggleAI={() => setIsAIOpen(v => !v)}
+                            />
+
+                            <ChatInput
+                                value={newMessage}
+                                onChange={handleInputChange}
+                                onSend={handleSend}
+                                onFileSelect={handleFileSelect}
+                                onVoiceMessage={handleVoiceMessage}
+                                replyingTo={replyingTo}
+                                onCancelReply={() => setReplyingTo(null)}
+                                selectedFile={selectedFile}
+                                previewUrl={previewUrl}
+                                onClearFile={handleClearFile}
+                                disabled={!activeConversation}
+                                userId={userId}
+                                conversationId={activeConversation?.id || null}
+                            />
+                        </>
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                            <div className="w-24 h-24 border-3 border-cocoa rounded-xl bg-pixel-blue flex items-center justify-center mb-5 shadow-pixel">
+                                <MessageSquareText className="w-12 h-12 text-cocoa" strokeWidth={2.5} />
+                            </div>
+                            <h3 className="font-pixel text-cocoa text-xl uppercase tracking-widest mb-2">NO CHAT SELECTED</h3>
+                            <p className="text-cocoa-light font-bold">Select a conversation to start chatting</p>
                         </div>
-                        <h3 className="font-pixel text-cocoa text-xl uppercase tracking-widest mb-2">NO CHAT SELECTED</h3>
-                        <p className="text-cocoa-light font-bold">Select a conversation to start chatting</p>
-                    </div>
-                )}
+                    )}
+                </div>
+
+                {/* Wingman AI Sidebar */}
+                <WingmanSidebar
+                    isOpen={isAIOpen}
+                    onClose={() => setIsAIOpen(false)}
+                    messages={messages}
+                />
+
             </div>
 
             {/* New Chat Modal */}
@@ -812,6 +850,14 @@ export default function ChatPage() {
                     withVideo={withVideo}
                 />
             )}
+
+            {/* Date Ideas Modal */}
+            <DateIdeasModal
+                isOpen={showDateIdeasModal}
+                onClose={() => setShowDateIdeasModal(false)}
+                data={dateIdeas}
+                isLoading={dateIdeasLoading}
+            />
         </div>
     );
 }

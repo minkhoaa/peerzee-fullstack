@@ -25,6 +25,18 @@ export class UserGamification {
     @Property({ default: 0 })
     currentStreak: number = 0;
 
+    // Moderation: Reputation points (can go negative from violations)
+    @Property({ default: 100 })
+    reputationPoints: number = 100;
+
+    // Moderation: Number of content violations recorded
+    @Property({ default: 0 })
+    violationCount: number = 0;
+
+    // Moderation: If set, user is silenced until this timestamp
+    @Property({ type: 'timestamptz', nullable: true })
+    mutedUntil?: Date;
+
     @Property({ onCreate: () => new Date() })
     createdAt: Date = new Date();
 

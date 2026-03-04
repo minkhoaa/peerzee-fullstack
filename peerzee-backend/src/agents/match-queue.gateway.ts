@@ -16,7 +16,7 @@ import { AgentMatchQueueService, QueuedUser } from './agent-match-queue.service'
         credentials: true,
     },
     transports: ['websocket', 'polling'],
-    namespace: '/match-queue',
+    namespace: '/socket/match-queue',
 })
 export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
     @WebSocketServer()
@@ -74,7 +74,7 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
         // Send immediate queue update
         const stats = this.queueService.getQueueStats(userId);
         if (stats.position > 0) {
-            this.server.to(client.id).emit('QUEUE_UPDATE', stats);
+            this.server.to(client.id).emit('queue:update', stats);
         }
     }
 
@@ -90,11 +90,11 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
     /**
      * Handle user accepting match (clicking Connect)
      */
-    @SubscribeMessage('ACCEPT_MATCH')
+    @SubscribeMessage('match:accept')
     handleAcceptMatch(client: Socket, data: { userId: string; roomId: string }) {
         const { userId, roomId } = data;
 
-        this.logger.log(`📨 ACCEPT_MATCH received from ${userId} for room ${roomId}`);
+        this.logger.log(`📨 match:accept received from ${userId} for room ${roomId}`);
         this.logger.log(`Socket mapping for ${userId}: ${this.userSockets.get(userId)}`);
 
         const pair = this.queueService.getMatchPair(userId);
@@ -108,10 +108,10 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
         this.logger.log(`Socket mapping for partner ${pair.partnerId}: ${this.userSockets.get(pair.partnerId)}`);
 
         // Send GO_TO_ROOM to both users
-        this.logger.log(`🚀 Sending GO_TO_ROOM to ${userId}`);
+        this.logger.log(`🚀 Sending match:go-to-room to ${userId}`);
         this.emitGoToRoom(userId, roomId);
 
-        this.logger.log(`🚀 Sending GO_TO_ROOM to partner ${pair.partnerId}`);
+        this.logger.log(`🚀 Sending match:go-to-room to partner ${pair.partnerId}`);
         this.emitGoToRoom(pair.partnerId, roomId);
 
         // Clean up queue after navigation
@@ -124,7 +124,7 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
     /**
      * Handle user clicking Reroll
      */
-    @SubscribeMessage('REROLL')
+    @SubscribeMessage('match:reroll')
     handleReroll(client: Socket, userId: string) {
         const pair = this.queueService.getMatchPair(userId);
 
@@ -152,7 +152,7 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
             const socketId = this.userSockets.get(user.userId);
             if (socketId) {
                 const stats = this.queueService.getQueueStats(user.userId);
-                this.server.to(socketId).emit('QUEUE_UPDATE', {
+                this.server.to(socketId).emit('queue:update', {
                     myPosition: stats.position,
                     totalInQueue: stats.total,
                     estimatedWait: stats.estimatedWait,
@@ -173,13 +173,13 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
         const socketA = this.userSockets.get(userA.userId);
         const socketB = this.userSockets.get(userB.userId);
 
-        this.logger.log(`🎉 Emitting MATCH_PROPOSED to both users`);
+        this.logger.log(`🎉 Emitting match:proposed to both users`);
         this.logger.log(`User A: ${userA.userId}, Socket: ${socketA || 'NOT FOUND'}`);
         this.logger.log(`User B: ${userB.userId}, Socket: ${socketB || 'NOT FOUND'}`);
 
         // To User A (RECEIVER - was waiting in queue)
         if (socketA) {
-            this.server.to(socketA).emit('MATCH_PROPOSED', {
+            this.server.to(socketA).emit('match:proposed', {
                 role: 'RECEIVER',
                 partner: {
                     id: userB.userId,
@@ -189,14 +189,14 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
                 reasoning: 'Someone matched your search! 🎉',
                 roomId,
             });
-            this.logger.log(`✅ Sent MATCH_PROPOSED to ${userA.userId} (RECEIVER)`);
+            this.logger.log(`✅ Sent match:proposed to ${userA.userId} (RECEIVER)`);
         } else {
             this.logger.error(`❌ Socket not found for User A: ${userA.userId}`);
         }
 
         // To User B (INITIATOR - just searched)
         if (socketB) {
-            this.server.to(socketB).emit('MATCH_PROPOSED', {
+            this.server.to(socketB).emit('match:proposed', {
                 role: 'INITIATOR',
                 partner: {
                     id: userA.userId,
@@ -206,7 +206,7 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
                 reasoning,
                 roomId,
             });
-            this.logger.log(`✅ Sent MATCH_PROPOSED to ${userB.userId} (INITIATOR)`);
+            this.logger.log(`✅ Sent match:proposed to ${userB.userId} (INITIATOR)`);
         } else {
             this.logger.error(`❌ Socket not found for User B: ${userB.userId}`);
         }
@@ -218,17 +218,17 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
     emitGoToRoom(userId: string, roomId: string) {
         const socketId = this.userSockets.get(userId);
 
-        this.logger.log(`🎯 Emitting GO_TO_ROOM to ${userId}, socketId: ${socketId}`);
+        this.logger.log(`🎯 Emitting match:go-to-room to ${userId}, socketId: ${socketId}`);
 
         if (socketId) {
-            this.server.to(socketId).emit('GO_TO_ROOM', {
+            this.server.to(socketId).emit('match:go-to-room', {
                 roomId,
                 mode: 'video',
                 url: `/match?session=${roomId}&mode=video`,
             });
-            this.logger.log(`✅ Sent GO_TO_ROOM to ${userId} (socket: ${socketId})`);
+            this.logger.log(`✅ Sent match:go-to-room to ${userId} (socket: ${socketId})`);
         } else {
-            this.logger.error(`❌ Cannot send GO_TO_ROOM: Socket not found for user ${userId}`);
+            this.logger.error(`❌ Cannot send match:go-to-room: Socket not found for user ${userId}`);
             this.logger.log(`Current socket mappings:`, Array.from(this.userSockets.entries()));
         }
     }
@@ -239,10 +239,10 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
     private emitPartnerDisconnected(userId: string) {
         const socketId = this.userSockets.get(userId);
         if (socketId) {
-            this.server.to(socketId).emit('PARTNER_DISCONNECTED', {
+            this.server.to(socketId).emit('match:partner-disconnected', {
                 message: 'Partner disconnected. Searching again...',
             });
-            this.logger.log(`Sent PARTNER_DISCONNECTED to ${userId}`);
+            this.logger.log(`Sent match:partner-disconnected to ${userId}`);
         }
     }
 
@@ -252,7 +252,7 @@ export class MatchQueueGateway implements OnGatewayConnection, OnGatewayDisconne
     emitWaiting(userId: string, position: number, totalInQueue: number) {
         const socketId = this.userSockets.get(userId);
         if (socketId) {
-            this.server.to(socketId).emit('QUEUE_UPDATE', {
+            this.server.to(socketId).emit('queue:update', {
                 myPosition: position,
                 totalInQueue,
                 estimatedWait: position === 1 ? '< 1 min' : `${position} mins`,

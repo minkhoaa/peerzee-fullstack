@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9898/api';
 
 interface ProfileTip {
     category: string;
@@ -19,6 +19,25 @@ interface IcebreakerResult {
 interface SuggestReplyResult {
     suggestions: string[];
     analysis: string;
+}
+
+export interface DateIdeaLocation {
+    place_name: string;
+    address: string;
+    google_maps_url: string;
+}
+
+export interface DateIdea {
+    title: string;
+    location: DateIdeaLocation;
+    description: string;
+    why_it_matches: string;
+}
+
+export interface DateIdeasResult {
+    host_message: string;
+    date_ideas: DateIdea[];
+    ice_breaker_offline?: string;
 }
 
 /**
@@ -129,6 +148,33 @@ export function useWingman() {
         }
     }, [token]);
 
+    const getDateIdeas = useCallback(async (
+        targetUserId: string,
+        conversationId: string
+    ): Promise<DateIdeasResult | null> => {
+        if (!token) return null;
+        setIsLoading(true);
+        try {
+            const res = await fetch(`${API_BASE}/wingman/date-ideas`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ targetUserId, conversationId })
+            });
+            if (res.ok) {
+                return await res.json();
+            }
+            return null;
+        } catch (error) {
+            console.error('Failed to get date ideas:', error);
+            return null;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [token]);
+
     const clearHistory = useCallback(async (): Promise<boolean> => {
         if (!token) return false;
         try {
@@ -147,6 +193,7 @@ export function useWingman() {
         chat,
         getProfileTips,
         getIcebreakers,
+        getDateIdeas,
         suggestReply,
         clearHistory,
         isLoading

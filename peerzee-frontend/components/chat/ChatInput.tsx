@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Paperclip, Mic, Wand2, ArrowUp, X, MicOff, Loader2, MessageSquareText, RefreshCw } from 'lucide-react';
+import { Paperclip, Mic, Wand2, ArrowUp, X, MicOff, Loader2, MessageSquareText, RefreshCw, Sparkles, CalendarDays, MapPin } from 'lucide-react';
 import { chatApi } from '@/lib/api';
 
 interface Message {
@@ -59,6 +59,10 @@ export default function ChatInput({
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
     const [suggestionError, setSuggestionError] = useState<string | null>(null);
     const [lastSuggestionTime, setLastSuggestionTime] = useState(0);
+
+    // @Mention popup state
+    const [showMentionPopup, setShowMentionPopup] = useState(false);
+    const [mentionStartIndex, setMentionStartIndex] = useState(-1);
 
     // Auto-resize textarea
     useEffect(() => {
@@ -146,8 +150,60 @@ export default function ChatInput({
         onSend();
     };
 
+    // Handle input change with @mention detection
+    const handleInputChange = (newValue: string) => {
+        onChange(newValue);
+
+        // Detect @ mention
+        const cursorPos = textareaRef.current?.selectionStart ?? newValue.length;
+        const textBeforeCursor = newValue.slice(0, cursorPos);
+        const atMatch = textBeforeCursor.match(/@(\w*)$/);
+
+        if (atMatch) {
+            const query = atMatch[1].toLowerCase();
+            const isMatch = 'wingman'.startsWith(query);
+            setShowMentionPopup(isMatch);
+            setMentionStartIndex(cursorPos - atMatch[0].length);
+        } else {
+            setShowMentionPopup(false);
+            setMentionStartIndex(-1);
+        }
+    };
+
+    // Select @Wingman from mention popup
+    const handleMentionSelect = (suffix = '') => {
+        if (mentionStartIndex < 0) return;
+        const cursorPos = textareaRef.current?.selectionStart ?? value.length;
+        const before = value.slice(0, mentionStartIndex);
+        const after = value.slice(cursorPos);
+        const inserted = `@Wingman${suffix ? ' ' + suffix : ' '}`;
+        const newValue = `${before}${inserted}${after}`;
+        onChange(newValue);
+        setShowMentionPopup(false);
+        setMentionStartIndex(-1);
+        setTimeout(() => {
+            const pos = mentionStartIndex + inserted.length;
+            textareaRef.current?.focus();
+            textareaRef.current?.setSelectionRange(pos, pos);
+        }, 0);
+    };
+
     // Handle key press
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        // If mention popup is open, handle Enter/Tab/Escape (selects first option = venue)
+        if (showMentionPopup) {
+            if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault();
+                handleMentionSelect('');
+                return;
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                setShowMentionPopup(false);
+                return;
+            }
+        }
+
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSubmit(e);
@@ -247,6 +303,23 @@ export default function ChatInput({
                 </div>
             )}
 
+            {/* @Wingman active badge */}
+            {/@wingman/i.test(value) && (() => {
+                const ITINERARY_KEYWORDS = ['kế hoạch', 'lịch trình', 'plan', 'thứ 7', 'thứ bảy', 'cuối tuần', 'schedule', 'itinerary', 'buổi hẹn'];
+                const isItinerary = ITINERARY_KEYWORDS.some(kw => value.toLowerCase().includes(kw));
+                return (
+                    <div className="mb-2 mx-2 px-3 py-1.5 bg-pixel-purple/15 border-2 border-pixel-purple/40 rounded-lg flex items-center gap-2">
+                        {isItinerary
+                            ? <CalendarDays className="w-3.5 h-3.5 text-pixel-purple shrink-0" />
+                            : <Sparkles className="w-3.5 h-3.5 text-pixel-purple shrink-0" />
+                        }
+                        <span className="text-xs font-pixel text-pixel-purple uppercase tracking-wider">
+                            {isItinerary ? '@Wingman sẽ lên kế hoạch hẹn hò sau khi gửi' : '@Wingman sẽ gợi ý địa điểm sau khi gửi'}
+                        </span>
+                    </div>
+                );
+            })()}
+
             {/* Recording UI */}
             {isRecording ? (
                 <div className="mx-2 mb-2 p-3 bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel flex items-center gap-4">
@@ -305,17 +378,56 @@ export default function ChatInput({
                         </button>
                     </div>
 
-                    {/* Textarea */}
-                    <textarea
-                        ref={textareaRef}
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder={replyingTo ? '✍️ Type your reply...' : '✍️ Type a message...'}
-                        className="flex-1 bg-transparent text-cocoa placeholder-cocoa-light text-sm resize-none focus:outline-none min-h-[36px] max-h-[150px] py-2 font-bold"
-                        rows={1}
-                        disabled={disabled}
-                    />
+                    {/* Textarea with @mention popup */}
+                    <div className="flex-1 relative">
+                        <textarea
+                            ref={textareaRef}
+                            value={value}
+                            onChange={(e) => handleInputChange(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={replyingTo ? '✍️ Type your reply...' : '✍️ Type a message...'}
+                            className="w-full bg-transparent text-cocoa placeholder-cocoa-light text-sm resize-none focus:outline-none min-h-[36px] max-h-[150px] py-2 font-bold"
+                            rows={1}
+                            disabled={disabled}
+                        />
+
+                        {/* @Mention Popup */}
+                        {showMentionPopup && (
+                            <div className="absolute bottom-full left-0 mb-2 bg-retro-paper border-3 border-cocoa rounded-xl shadow-pixel overflow-hidden min-w-[260px] z-50">
+                                <div className="px-3 pt-2 pb-1">
+                                    <p className="text-[10px] font-pixel text-cocoa-light uppercase tracking-widest">@Wingman</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleMentionSelect('')}
+                                    className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-pixel-purple/15 transition-colors text-left"
+                                >
+                                    <div className="w-8 h-8 bg-pixel-purple border-2 border-cocoa rounded-lg flex items-center justify-center shadow-pixel-sm shrink-0">
+                                        <MapPin className="w-4 h-4 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-cocoa">Gợi ý địa điểm</p>
+                                        <p className="text-xs text-cocoa-light">Wingman tìm quán, café, nhà hàng...</p>
+                                    </div>
+                                </button>
+                                <div className="mx-3 border-t border-cocoa/10" />
+                                <button
+                                    type="button"
+                                    onClick={() => handleMentionSelect('lên kế hoạch')}
+                                    className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-pixel-purple/15 transition-colors text-left"
+                                >
+                                    <div className="w-8 h-8 bg-pixel-blue border-2 border-cocoa rounded-lg flex items-center justify-center shadow-pixel-sm shrink-0">
+                                        <CalendarDays className="w-4 h-4 text-cocoa" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-cocoa">Lên kế hoạch hẹn</p>
+                                        <p className="text-xs text-cocoa-light">Tạo lịch trình buổi hẹn hoàn chỉnh</p>
+                                    </div>
+                                </button>
+                                <div className="pb-1" />
+                            </div>
+                        )}
+                    </div>
 
                     {/* Right Icons */}
                     <div className="flex items-center gap-1">

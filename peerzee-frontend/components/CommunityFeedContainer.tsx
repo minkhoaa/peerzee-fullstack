@@ -4,10 +4,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { useDropzone } from 'react-dropzone';
-import { Plus, X, Loader2, ImageIcon, Film, Upload } from 'lucide-react';
+import { Plus, X, Loader2, ImageIcon, Film, Upload, Shield } from 'lucide-react';
 
 import PostCard, { PostCardNotionSkeleton as PostCardSkeleton } from './PostCardNotion';
+import GuardModal from './community/GuardModal';
 import { useCreatePost, usePosts } from '@/hooks/usePosts';
+import { useModerationSocket, type ModerationResultEvent } from '@/hooks/useModerationSocket';
 import { MediaItem, communityApi, CreatePostDto } from '@/lib/communityApi';
 
 // Available tags for selection
@@ -276,6 +278,7 @@ function CreatePostInput() {
 export default function CommunityFeedContainer() {
     const router = useRouter();
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [rejectedEvent, setRejectedEvent] = useState<ModerationResultEvent | null>(null);
 
     // TanStack Query infinite query
     const {
@@ -288,6 +291,12 @@ export default function CommunityFeedContainer() {
         isFetchingNextPage,
         refetch,
     } = usePosts();
+
+    // ── Moderation WebSocket ──────────────────────────────────────────────────
+    useModerationSocket({
+        onRejected: (event) => setRejectedEvent(event),
+        // onApproved: cache is already updated by the hook; no extra action needed
+    });
 
     // Intersection observer for infinite scroll
     const { ref: loadMoreRef, inView } = useInView({
@@ -355,13 +364,34 @@ export default function CommunityFeedContainer() {
             {/* Posts */}
             {!isError && (
                 <div>
-                    {posts.map(post => (
-                        <PostCard
-                            key={post.id}
-                            post={post}
-                            currentUserId={currentUserId || undefined}
-                        />
-                    ))}
+                    {posts.map(post => {
+                        const isPending = post.status === 'pending';
+                        return (
+                            <div key={post.id} className={`relative mb-4 ${isPending ? 'opacity-70' : ''}`}>
+                                {/* PostCard underneath */}
+                                <div className={isPending ? 'pointer-events-none select-none' : ''}>
+                                    <PostCard
+                                        post={post}
+                                        currentUserId={currentUserId || undefined}
+                                    />
+                                </div>
+
+                                {/* Pending overlay */}
+                                {isPending && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-retro-white/60 rounded-xl border-2 border-dashed border-cocoa/50 backdrop-blur-[1px]">
+                                        <div className="flex flex-col items-center gap-2 text-center px-4">
+                                            <div className="flex items-center gap-1.5 bg-retro-white border-2 border-cocoa px-3 py-1.5 shadow-pixel-sm">
+                                                <Shield className="w-3.5 h-3.5 text-cocoa animate-pulse" strokeWidth={2.5} />
+                                                <span className="font-pixel text-[10px] uppercase text-cocoa tracking-wider">
+                                                    Vệ binh đang kiểm tra...
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
 
                     {/* Load More Trigger */}
                     {hasNextPage && (
@@ -394,6 +424,12 @@ export default function CommunityFeedContainer() {
                     )}
                 </div>
             )}
+
+            {/* ── RPG Guard Modal (shown on content rejection) ── */}
+            <GuardModal
+                event={rejectedEvent}
+                onClose={() => setRejectedEvent(null)}
+            />
         </div>
     );
 }

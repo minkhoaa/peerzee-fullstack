@@ -30,6 +30,7 @@ export class AgentMatchQueueService {
     private readonly logger = new Logger(AgentMatchQueueService.name);
     private queue: Map<string, QueuedUser> = new Map();
     private matchPairs: Map<string, MatchPair> = new Map(); // userId -> MatchPair
+    private matchLock = false; // Simple mutex to prevent concurrent match races
 
     constructor(private readonly aiService: AiService) { }
 
@@ -57,6 +58,14 @@ export class AgentMatchQueueService {
      * This should be synchronous if possible to avoid race conditions
      */
     findCompatibleMatchSynchronous(newUser: Omit<QueuedUser, 'status'> & { embedding: number[] }): QueuedUser | null {
+        // Prevent concurrent match races — only one match operation at a time
+        if (this.matchLock) {
+            this.logger.warn(`Match lock held, skipping match attempt for user ${newUser.userId}`);
+            return null;
+        }
+        this.matchLock = true;
+
+        try {
         const waitingUsers = Array.from(this.queue.values())
             .filter(u => u.status === 'WAITING' && u.userId !== newUser.userId)
             .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
@@ -80,10 +89,16 @@ export class AgentMatchQueueService {
                 continue;
             }
 
+            // Skip candidates without embeddings
+            if (!queuedUser.embedding) {
+                this.logger.warn(`     ⚠️ Skipping candidate ${queuedUser.userId}: missing embedding`);
+                continue;
+            }
+
             // Calculate semantic similarity
             const similarity = this.cosineSimilarity(
                 newUser.embedding,
-                queuedUser.embedding!
+                queuedUser.embedding
             );
 
             this.logger.log(`     ✅ Filters OK. Similarity: ${similarity.toFixed(4)} (Threshold: 0.6)`);
@@ -103,6 +118,9 @@ export class AgentMatchQueueService {
         }
 
         return bestMatch;
+        } finally {
+            this.matchLock = false;
+        }
     }
 
     /**

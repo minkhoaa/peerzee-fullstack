@@ -171,10 +171,9 @@ export class UserProfile {
   // ============================================================================
 
   // Gender (hard filter)
-  @ApiProperty({ description: 'User gender for filtering', enum: UserGender })
-  @Enum(() => UserGender)
-  @Property({ nullable: true })
-  gender: UserGender;
+  @ApiProperty({ description: 'User gender for filtering', enum: UserGender, required: false })
+  @Enum({ items: () => UserGender, nullable: true })
+  gender?: UserGender | null;
 
   // Structured Location (hard filters)
   @ApiProperty({ description: 'City name for location filtering' })

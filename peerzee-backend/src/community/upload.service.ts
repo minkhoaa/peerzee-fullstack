@@ -22,7 +22,7 @@ export class UploadService {
 
     constructor() {
         this.uploadDir = join(process.cwd(), 'uploads', 'community');
-        this.baseUrl = process.env.UPLOAD_BASE_URL || 'http://localhost:9000';
+        this.baseUrl = process.env.UPLOAD_BASE_URL || 'http://localhost:9898';
 
         // Ensure upload directory exists
         if (!existsSync(this.uploadDir)) {

@@ -33,6 +33,7 @@ export interface Post {
   tags: string[]; // e.g., ["#Retro", "#Help"]
   isLiked?: boolean; // Current user state
   isSaved?: boolean; // Bookmarked state
+  status?: 'pending' | 'approved' | 'rejected'; // Moderation state
 }
 
 // ============================================

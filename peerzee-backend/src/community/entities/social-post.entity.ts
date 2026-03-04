@@ -1,10 +1,11 @@
 import {
-    Entity,
+Entity,
     PrimaryKey,
     Property,
     ManyToOne,
     OneToMany,
     JsonType,
+    Enum,
 } from '@mikro-orm/core';
 import { User } from '../../user/entities/user.entity';
 import { SocialComment } from './social-comment.entity';
@@ -51,6 +52,9 @@ export class SocialPost {
 
     @Property({ fieldName: 'comments_count', type: 'int', default: 0 })
     commentsCount: number = 0;
+
+    @Enum({ items: ['pending', 'approved', 'rejected'], default: 'approved' })
+    status: 'pending' | 'approved' | 'rejected' = 'approved';
 
     @Property({ fieldName: 'created_at', onCreate: () => new Date() })
     createdAt: Date = new Date();

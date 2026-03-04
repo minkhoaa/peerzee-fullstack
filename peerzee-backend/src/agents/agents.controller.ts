@@ -1,4 +1,5 @@
 import { Controller, Post, Body, UseGuards, Request, Logger } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/core';
 import { UserProfile } from '../user/entities/user-profile.entity';
@@ -36,11 +37,23 @@ export class AgentsController {
      * If no match, add to queue and wait for compatible user
      */
     @Post('match')
+    @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests/min — expensive AI calls
     async runMatchAgent(@Request() req: any, @Body() dto: MatchQueryDto) {
         const userId = req.user?.user_id || req.user?.sub;
 
         // Run workflow to find immediate match in database
         const result = await this.matchWorkflow.runWorkflow(dto.query, userId);
+
+        // Check for workflow errors
+        if (result.error) {
+            this.logger.error(`Workflow failed for user ${userId}: ${result.error}`);
+            return {
+                ok: false,
+                error: result.error,
+                query: dto.query,
+                steps: result.steps || [],
+            };
+        }
 
         // If match found immediately in database via RAG
         if (result.finalMatch) {
@@ -86,7 +99,18 @@ export class AgentsController {
         }
 
         // No immediate match - check queue for compatible waiting user
-        const embedding = await this.aiService.generateEmbedding(dto.query);
+        let embedding: number[];
+        try {
+            embedding = await this.aiService.generateEmbedding(dto.query);
+        } catch (err) {
+            this.logger.error(`Failed to generate embedding for user ${userId}:`, err);
+            return {
+                ok: false,
+                error: 'Failed to process your search query. Please try again.',
+                query: dto.query,
+                steps: result.steps || [],
+            };
+        }
         const userProfile = await this.profileRepo.findOne({ user: { id: userId } });
         const userGender = userProfile?.gender || null;
 

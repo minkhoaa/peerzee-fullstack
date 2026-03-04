@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { Phone, Video, MoreHorizontal, Search, X, Reply, Smile, MoreVertical, Wand2, Pencil, Trash2, Snowflake } from 'lucide-react';
+import { Phone, Video, MoreHorizontal, Search, X, Reply, Smile, MoreVertical, Wand2, Pencil, Trash2, Snowflake, Sparkles, User, Bell, BellOff, Palette, UserX } from 'lucide-react';
 import AudioMessage from './AudioMessage';
+import WingmanMessageCard from './WingmanMessageCard';
 
 interface Message {
     id: string;
@@ -52,6 +53,10 @@ interface ChatWindowProps {
     onSearchMessage: (query: string) => void;
     callState: string;
     onSendIcebreaker: (question: string) => void;
+    onGetDateIdeas?: () => void;
+    dateIdeasLoading?: boolean;
+    isAIOpen?: boolean;
+    onToggleAI?: () => void;
 }
 
 // Icons for message status
@@ -91,6 +96,10 @@ export default function ChatWindow({
     onSearchMessage,
     callState,
     onSendIcebreaker,
+    onGetDateIdeas,
+    dateIdeasLoading,
+    isAIOpen,
+    onToggleAI,
 }: ChatWindowProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [showSearchBar, setShowSearchBar] = React.useState(false);
@@ -99,6 +108,15 @@ export default function ChatWindow({
     const [editContent, setEditContent] = React.useState('');
     const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
     const [openEmojiPickerId, setOpenEmojiPickerId] = React.useState<string | null>(null);
+    const [isOptionsMenuOpen, setIsOptionsMenuOpen] = React.useState(false);
+    const optionsMenuRef = React.useRef<HTMLDivElement>(null);
+    const [isMuted, setIsMuted] = React.useState(false);
+    const [showBlockModal, setShowBlockModal] = React.useState(false);
+    const [chatBackground, setChatBackground] = React.useState<string | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const otherUserId = conversation.participantIds?.find(id => id !== userId) || '';
+    const displayName = userNames[otherUserId] || conversation.name || 'Unknown';
 
     // Scroll to bottom on new messages
     useEffect(() => {
@@ -107,7 +125,10 @@ export default function ChatWindow({
 
     // Close menus on outside click
     useEffect(() => {
-        const handleClickOutside = () => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (optionsMenuRef.current && !optionsMenuRef.current.contains(e.target as Node)) {
+                setIsOptionsMenuOpen(false);
+            }
             if (openEmojiPickerId) setOpenEmojiPickerId(null);
             if (openMenuId) setOpenMenuId(null);
         };
@@ -182,22 +203,80 @@ export default function ChatWindow({
     };
 
     // Typing indicator component
+    const isWingmanThinking = typingUsers.includes('SYSTEM_WINGMAN');
+    const humanTypingUsers = typingUsers.filter(id => id !== 'SYSTEM_WINGMAN');
+
     const TypingIndicator = () => {
-        if (typingUsers.length === 0) return null;
+        if (!isWingmanThinking && humanTypingUsers.length === 0) return null;
         return (
-            <div className="px-5 py-2 flex items-center gap-2">
-                <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-                <span className="text-xs text-cocoa-light font-bold">
-                    {typingUsers.length === 1
-                        ? `${userNames[typingUsers[0]] || 'Someone'} is typing`
-                        : `${typingUsers.length} people typing`}
-                </span>
+            <div className="flex flex-col gap-1 px-5 py-2">
+                {/* Wingman thinking indicator — distinct from normal typing */}
+                {isWingmanThinking && (
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-pixel-purple border-2 border-cocoa rounded-lg flex items-center justify-center shrink-0">
+                            <Snowflake className="w-3 h-3 text-white animate-spin" style={{ animationDuration: '2s' }} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-cocoa font-pixel uppercase tracking-wider">Wingman đang tìm</span>
+                            <span className="flex gap-0.5">
+                                <span className="w-1.5 h-1.5 bg-pixel-purple rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <span className="w-1.5 h-1.5 bg-pixel-purple rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <span className="w-1.5 h-1.5 bg-pixel-purple rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            </span>
+                        </div>
+                    </div>
+                )}
+                {/* Normal user typing indicator */}
+                {humanTypingUsers.length > 0 && (
+                    <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                            <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-2 h-2 bg-pixel-pink border border-cocoa rounded-sm animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                        <span className="text-xs text-cocoa-light font-bold">
+                            {humanTypingUsers.length === 1
+                                ? `${userNames[humanTypingUsers[0]] || 'Someone'} is typing`
+                                : `${humanTypingUsers.length} people typing`}
+                        </span>
+                    </div>
+                )}
             </div>
         );
+    };
+
+    // Dropdown action handlers
+    const handleViewProfile = () => {
+        setIsOptionsMenuOpen(false);
+        window.location.href = `/profile/${otherUserId}`;
+    };
+
+    const handleToggleMute = () => {
+        setIsMuted(prev => !prev);
+        setIsOptionsMenuOpen(false);
+    };
+
+    const handleChangeBackground = () => {
+        setIsOptionsMenuOpen(false);
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        setChatBackground(url);
+        e.target.value = '';
+    };
+
+    const handleBlockUserClick = () => {
+        setIsOptionsMenuOpen(false);
+        setShowBlockModal(true);
+    };
+
+    const confirmBlock = () => {
+        console.log('Blocked user:', otherUserId);
+        setShowBlockModal(false);
     };
 
     // Icebreaker widget when no messages
@@ -243,14 +322,14 @@ export default function ChatWindow({
     };
 
     return (
-        <div className="flex-1 flex flex-col min-w-0 bg-transparent">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-transparent relative">
             {/* Header - Retro Pixel style */}
             <div className="h-18 border-b-3 border-cocoa bg-retro-paper flex items-center px-4 justify-between shrink-0 sticky top-0 z-10">
                 {/* Left - User Info */}
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="w-12 h-12 border-2 border-cocoa rounded-lg bg-pixel-pink flex items-center justify-center text-cocoa font-pixel text-base shadow-pixel-sm">
-                            {conversation.name?.slice(0, 1)?.toUpperCase() || '?'}
+                            {displayName.slice(0, 1).toUpperCase()}
                         </div>
                         {/* Status dot */}
                         {isOnline && (
@@ -258,7 +337,7 @@ export default function ChatWindow({
                         )}
                     </div>
                     <div>
-                        <h2 className="font-pixel text-cocoa text-base uppercase tracking-widest">{conversation.name || 'Unknown'}</h2>
+                        <h2 className="font-pixel text-cocoa text-base uppercase tracking-widest">{displayName}</h2>
                         <p className={`text-xs font-bold ${isOnline ? 'text-pixel-green' : 'text-cocoa-light'}`}>
                             {isOnline ? '● ONLINE' : '○ OFFLINE'}
                         </p>
@@ -317,9 +396,69 @@ export default function ChatWindow({
                         </button>
                     )}
 
-                    <button className="p-2 text-cocoa-light hover:text-cocoa hover:bg-retro-bg border-2 border-transparent hover:border-cocoa rounded-lg transition-colors">
-                        <MoreHorizontal className="w-5 h-5" />
+                    {/* Wingman toggle */}
+                    <button
+                        onClick={onToggleAI}
+                        title={isAIOpen ? 'Đóng Wingman' : 'Mở Wingman AI'}
+                        className={`p-2 border-2 rounded-lg transition-colors ${
+                            isAIOpen
+                                ? 'text-white bg-pixel-purple border-cocoa shadow-pixel-sm'
+                                : 'text-cocoa-light hover:text-cocoa hover:bg-retro-bg border-transparent hover:border-cocoa'
+                        }`}
+                    >
+                        <Sparkles className="w-5 h-5" />
                     </button>
+
+                    <div className="relative" ref={optionsMenuRef}>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setIsOptionsMenuOpen(v => !v); }}
+                            className={`p-2 border-2 rounded-lg transition-colors ${
+                                isOptionsMenuOpen
+                                    ? 'text-cocoa bg-retro-bg border-cocoa'
+                                    : 'text-cocoa-light hover:text-cocoa hover:bg-retro-bg border-transparent hover:border-cocoa'
+                            }`}
+                            title="Tùy chọn"
+                        >
+                            <MoreHorizontal className="w-5 h-5" />
+                        </button>
+
+                        {isOptionsMenuOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-56 bg-[#FFFBF7] border border-[#8B7355]/20 rounded-xl shadow-sm py-2 z-50">
+                                <button
+                                    onClick={handleViewProfile}
+                                    className="w-full text-left px-4 py-2.5 hover:bg-[#F5EDE0] transition-colors flex items-center gap-3 text-sm text-[#5C4A3D] font-bold"
+                                >
+                                    <User className="w-4 h-4 text-[#8B7355] shrink-0" />
+                                    Xem trang cá nhân
+                                </button>
+                                <button
+                                    onClick={handleToggleMute}
+                                    className="w-full text-left px-4 py-2.5 hover:bg-[#F5EDE0] transition-colors flex items-center gap-3 text-sm text-[#5C4A3D] font-bold"
+                                >
+                                    {isMuted
+                                        ? <Bell className="w-4 h-4 text-[#8B7355] shrink-0" />
+                                        : <BellOff className="w-4 h-4 text-[#8B7355] shrink-0" />
+                                    }
+                                    {isMuted ? 'Bật thông báo' : 'Tắt thông báo'}
+                                </button>
+                                <button
+                                    onClick={handleChangeBackground}
+                                    className="w-full text-left px-4 py-2.5 hover:bg-[#F5EDE0] transition-colors flex items-center gap-3 text-sm text-[#5C4A3D] font-bold"
+                                >
+                                    <Palette className="w-4 h-4 text-[#8B7355] shrink-0" />
+                                    Đổi hình nền
+                                </button>
+                                <div className="my-1 border-t border-[#8B7355]/10" />
+                                <button
+                                    onClick={handleBlockUserClick}
+                                    className="w-full text-left px-4 py-2.5 hover:bg-red-50 transition-colors flex items-center gap-3 text-sm text-red-500 font-bold"
+                                >
+                                    <UserX className="w-4 h-4 shrink-0" />
+                                    Chặn người dùng
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -327,8 +466,21 @@ export default function ChatWindow({
             {messages.length === 0 ? (
                 <IcebreakerWidget />
             ) : (
-                <div className="flex-1 overflow-y-auto p-4 bg-retro-bg">
-                    {messages.map((m, index) => (
+                <div
+                    className="flex-1 overflow-y-auto p-4 bg-retro-bg"
+                    style={chatBackground ? {
+                        backgroundImage: `url(${chatBackground})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                    } : undefined}
+                >
+                    {messages.map((m, index) => {
+                        // Wingman system message - render special card
+                        if (m.sender_id === '00000000-0000-0000-0000-000000000001') {
+                            return <WingmanMessageCard key={m.id} body={m.body} />;
+                        }
+
+                        return (
                         <div
                             key={m.id}
                             id={`message-${m.id}`}
@@ -522,13 +674,51 @@ export default function ChatWindow({
                                 </div>
                             )}
                         </div>
-                    ))}
+                    );
+                    })}
                     <div ref={messagesEndRef} />
                 </div>
             )}
 
             {/* Typing Indicator */}
             <TypingIndicator />
+
+            {/* Hidden file input for background change */}
+            <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+            />
+
+            {/* Block User Confirmation Modal */}
+            {showBlockModal && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]">
+                    <div className="bg-[#FFFBF7] border border-[#8B7355]/20 rounded-2xl shadow-md p-6 w-80 flex flex-col gap-4">
+                        <div>
+                            <h3 className="font-pixel text-cocoa text-base uppercase tracking-widest mb-2">Chặn người dùng?</h3>
+                            <p className="text-sm text-cocoa-light font-bold leading-relaxed">
+                                Người này sẽ không thể nhắn tin hay xem trang cá nhân của bạn nữa.
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowBlockModal(false)}
+                                className="flex-1 py-2.5 text-sm font-bold text-cocoa border border-[#8B7355]/30 rounded-xl hover:bg-[#F5EDE0] transition-colors"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={confirmBlock}
+                                className="flex-1 py-2.5 text-sm font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors"
+                            >
+                                Chặn
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

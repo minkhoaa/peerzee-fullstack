@@ -4,17 +4,17 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 import { MikroORM } from '@mikro-orm/core';
 import { seedIceBreakers } from './seeds/ice-breakers.seed';
 
 async function bootstrap() {
+  if (!process.env.JWT_SECRET) {
+    console.error('FATAL: JWT_SECRET environment variable is not set. Exiting.');
+    process.exit(1);
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   
-  // Serve uploaded files - path relative to project root /app/uploads
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
-    prefix: '/uploads/',
-  });
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -48,10 +48,15 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
 
-  const port = process.env.SERVER_PORT || process.env.PORT || 9000;
+  const port = process.env.SERVER_PORT || process.env.PORT || 9898;
 
   app.enableCors({
-    origin: ['http://localhost:3001', 'http://localhost:3000', 'https://peerzee.centralindia.cloudapp.azure.com'],
+    origin: [
+      'http://localhost:3001',
+      'http://localhost:3000',
+      'https://demo-peerzee.centralindia.cloudapp.azure.com',
+      'https://peerzee.centralindia.cloudapp.azure.com',
+    ],
     credentials: true,
   });
   await app.listen(port);

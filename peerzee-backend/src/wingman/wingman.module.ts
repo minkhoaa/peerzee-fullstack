@@ -8,6 +8,9 @@ import { WingmanSchedulerService } from './wingman-scheduler.service';
 import { PlacesService } from './places.service';
 import { WingmanController } from './wingman.controller';
 import { WingmanConversation } from '../chat/entities/wingman-conversation.entity';
+import { Message } from '../chat/entities/message.entity';
+import { Conversation } from '../chat/entities/conversation.entity';
+import { Participant } from '../chat/entities/participants.entity';
 import { UserProfile } from '../user/entities/user-profile.entity';
 import { User } from '../user/entities/user.entity';
 import { UserModule } from '../user/user.module';
@@ -16,7 +19,7 @@ import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
-    MikroOrmModule.forFeature([WingmanConversation, UserProfile, User]),
+    MikroOrmModule.forFeature([WingmanConversation, Message, Conversation, Participant, UserProfile, User]),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '7d' },

@@ -16,11 +16,27 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
+interface ItineraryStep {
+    time: string;
+    activity: string;
+    locationName: string;
+    locationUrl: string;
+    description: string;
+}
+
+interface ItineraryPlan {
+    title: string;
+    date: string;
+    steps: ItineraryStep[];
+}
+
 interface WingmanMessage {
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
-    toolsUsed?: string[]; // Tools executed by agentic AI
+    toolsUsed?: string[];
+    type?: 'text' | 'itinerary';
+    itinerary?: ItineraryPlan;
 }
 
 interface WingmanChatProps {
@@ -28,9 +44,9 @@ interface WingmanChatProps {
     chatContext?: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9898/api';
 
-// Cute Chibi Cupid SVG Component
+// Cute Chibi Wingman SVG Component
 const ChibiCupid = ({ className = "", isHappy = false }: { className?: string; isHappy?: boolean }) => (
     <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
         {/* Wings */}
@@ -296,12 +312,62 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
         await sendMessage('Ai đã like mình vậy?');
     };
 
+    const sendItinerary = async (userMsg: string) => {
+        if (!token) return;
+
+        const userMessage: WingmanMessage = {
+            role: 'user',
+            content: userMsg,
+            timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, userMessage]);
+        setIsLoading(true);
+        setSuggestions([]);
+
+        try {
+            const res = await fetch(`${API_BASE}/wingman/itinerary`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ message: userMsg, targetUserId }),
+            });
+
+            if (res.ok) {
+                const data: ItineraryPlan = await res.json();
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: data.title,
+                    timestamp: new Date(),
+                    type: 'itinerary',
+                    itinerary: data,
+                }]);
+            } else {
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: 'Không thể tạo lịch trình. Thử lại nhé! 💔',
+                    timestamp: new Date(),
+                }]);
+            }
+        } catch (error) {
+            console.error('Itinerary failed:', error);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'Ối! Mình gặp sự cố. Thử lại nhé! 💔',
+                timestamp: new Date(),
+            }]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const quickActions = [
         { icon: Lightbulb, label: 'Cải thiện Profile', action: getProfileTips },
         { icon: Sparkles, label: 'Ai like mình?', action: getWhoLikedMe },
+        { icon: MapPin, label: 'Lên kế hoạch hẹn', action: () => sendItinerary('Lên kế hoạch buổi hẹn hò lý tưởng cho 2 người ở TP.HCM') },
         ...(targetUserId ? [
             { icon: MessageSquare, label: 'Gợi ý mở đầu', action: getIcebreakers },
-            { icon: MapPin, label: 'Địa điểm hẹn hò', action: getDateSpots },
         ] : []),
     ];
 
@@ -312,7 +378,7 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                 <div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-30" />
             )}
             
-            {/* Cupid Button - Only draggable on chat pages */}
+            {/* Wingman Button - Only draggable on chat pages */}
             <motion.div
                 drag={isDraggable}
                 dragConstraints={isDraggable ? constraintsRef : undefined}
@@ -342,7 +408,7 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                         {/* Button container */}
                         <div className={`flex items-center gap-2 px-3 py-2 bg-retro-paper border-2 border-cocoa rounded-xl shadow-pixel transition-all ${isOpen ? 'bg-pixel-pink/30' : 'hover:bg-pixel-pink/20'}`}>
                             <ChibiCupid className="w-8 h-8" isHappy={isHappy || isOpen} />
-                            <span className="text-xs font-pixel text-cocoa hidden sm:block">Cupid</span>
+                            <span className="text-xs font-pixel text-cocoa hidden sm:block">Wingman</span>
                             {!isOpen && (
                                 <motion.span 
                                     className="text-[10px] text-pixel-pink"
@@ -373,8 +439,8 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                                 <ChibiCupid className="w-9 h-9" isHappy={isHappy} />
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-pixel text-base text-cocoa leading-none">Cupid</h3>
-                                <p className="text-[10px] text-cocoa-light">Trợ lý hẹn hò của bạn 💘</p>
+                                <h3 className="font-pixel text-base text-cocoa leading-none">Wingman</h3>
+                                <p className="text-[10px] text-cocoa-light">Trợ lý kỹ thuật và Code của bạn</p>
                             </div>
                             <div className="flex items-center gap-1">
                                 <button 
@@ -404,7 +470,7 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                                         <ChibiCupid className="w-20 h-20 mx-auto mb-3 opacity-60" />
                                     </motion.div>
                                     <p className="text-sm text-cocoa-light mb-1">
-                                        Chào bạn! Mình là Cupid 💕
+                                        Chào bạn! Mình là Wingman 💕
                                     </p>
                                     <p className="text-xs text-cocoa-light/70 mb-4">
                                         Hỏi mình bất cứ điều gì về hẹn hò nhé!
@@ -446,12 +512,52 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                                                     <span>Đã thực hiện: {msg.toolsUsed.length} hành động</span>
                                                 </div>
                                             )}
-                                            <div className={`px-3 py-2 text-sm whitespace-pre-wrap border-2 ${
+                                            <div className={`border-2 ${
                                                 msg.role === 'user'
-                                                    ? 'bg-pixel-pink/30 text-cocoa border-cocoa rounded-2xl rounded-br-md shadow-pixel-sm'
-                                                    : 'bg-retro-white text-cocoa border-cocoa rounded-2xl rounded-bl-md shadow-pixel-sm'
+                                                    ? 'px-3 py-2 text-sm bg-pixel-pink/30 text-cocoa border-cocoa rounded-2xl rounded-br-md shadow-pixel-sm'
+                                                    : msg.type === 'itinerary'
+                                                    ? 'p-3 bg-retro-white text-cocoa border-cocoa rounded-2xl rounded-bl-md shadow-pixel-sm'
+                                                    : 'px-3 py-2 text-sm bg-retro-white text-cocoa border-cocoa rounded-2xl rounded-bl-md shadow-pixel-sm'
                                             }`}>
-                                                {msg.content}
+                                                {msg.type === 'itinerary' && msg.itinerary ? (
+                                                    <div className="min-w-0 w-full">
+                                                        {/* Itinerary header */}
+                                                        <div className="mb-3 pb-2 border-b border-cocoa/20">
+                                                            <p className="font-pixel text-[10px] text-cocoa-light uppercase tracking-widest">{msg.itinerary.date}</p>
+                                                            <h4 className="font-bold text-cocoa text-sm mt-0.5">📅 {msg.itinerary.title}</h4>
+                                                        </div>
+                                                        {/* Timeline steps */}
+                                                        <div className="flex flex-col">
+                                                            {msg.itinerary.steps.map((step, si) => (
+                                                                <div key={si} className="flex gap-2.5">
+                                                                    {/* Time column + connector line */}
+                                                                    <div className="flex flex-col items-center w-10 shrink-0">
+                                                                        <span className="text-[10px] font-pixel text-cocoa-light whitespace-nowrap mt-1">{step.time}</span>
+                                                                        {si < msg.itinerary!.steps.length - 1 && (
+                                                                            <div className="w-px flex-1 bg-cocoa/20 my-1" />
+                                                                        )}
+                                                                    </div>
+                                                                    {/* Step card */}
+                                                                    <div className="flex-1 bg-retro-bg border border-cocoa/20 rounded-lg p-2 mb-2">
+                                                                        <p className="text-xs font-bold text-cocoa">{step.activity}</p>
+                                                                        <p className="text-[11px] text-cocoa-light mt-0.5">📍 {step.locationName}</p>
+                                                                        <p className="text-[11px] text-cocoa/70 mt-1 leading-relaxed">{step.description}</p>
+                                                                        <a
+                                                                            href={step.locationUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-bold text-pixel-blue hover:underline"
+                                                                        >
+                                                                            🗺 Xem bản đồ
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <span className="whitespace-pre-wrap">{msg.content}</span>
+                                                )}
                                             </div>
                                         </div>
                                     </motion.div>
@@ -499,7 +605,7 @@ export default function WingmanChat({ targetUserId, chatContext }: WingmanChatPr
                                     type="text"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
-                                    placeholder="Nhắn gì cho Cupid..."
+                                    placeholder="Nhắn gì cho Wingman..."
                                     className="flex-1 px-3 py-2 text-sm bg-retro-paper border-2 border-cocoa rounded-xl focus:border-pixel-pink focus:bg-retro-white outline-none transition-colors placeholder:text-cocoa-light/50"
                                     disabled={isLoading}
                                 />

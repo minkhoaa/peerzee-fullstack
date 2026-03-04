@@ -8,6 +8,8 @@ import { NoteCard, WriteNote, TownCrier, VillageNav } from '@/components/communi
 import { GlobalHeader } from '@/components/layout';
 import { communityApi, SocialPost, TrendingTag, SuggestedUser } from '@/lib/communityApi';
 import { notificationApi } from '@/lib/api';
+import { useModerationSocket, type ModerationResultEvent } from '@/hooks/useModerationSocket';
+import { GuardModal } from '@/components/community';
 
 // ============================================
 // FRESH SAGE & COOL TAUPE PALETTE
@@ -49,6 +51,7 @@ const convertToUIPost = (apiPost: SocialPost): Post => ({
   },
   tags: apiPost.tags || [],
   isLiked: apiPost.isLiked || apiPost.userVote === 1,
+  status: apiPost.status,
 });
 
 // Fallback mock data when API fails
@@ -138,6 +141,24 @@ export default function CommunityPage() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [rejectedEvent, setRejectedEvent] = useState<ModerationResultEvent | null>(null);
+
+  // Moderation WebSocket — update local post state when backend signals result
+  useModerationSocket({
+    onApproved: (event) => {
+      if (event.contentType !== 'post') return;
+      setPosts(prev =>
+        prev.map(p => p.id === event.contentId ? { ...p, status: 'approved' as const } : p),
+      );
+    },
+    onRejected: (event) => {
+      if (event.contentType !== 'post') return;
+      // Remove the rejected post from the feed immediately
+      setPosts(prev => prev.filter(p => p.id !== event.contentId));
+      // Show the RPG Guard Modal
+      setRejectedEvent(event);
+    },
+  });
 
   // Today's date in village format
   const today = new Date();
@@ -283,26 +304,15 @@ export default function CommunityPage() {
         const newPost = convertToUIPost(response.post);
         setPosts(prev => [newPost, ...prev]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to create post:', err);
-      setError('Không thể đăng bài. Vui lòng thử lại.');
-
-      // Fallback: Add locally if API fails (for demo)
-      const newPost: Post = {
-        id: `local-${Date.now()}`,
-        content: payload.content,
-        imageUrls: payload.imageUrls,
-        author: {
-          id: currentUserId || 'guest',
-          username: 'You',
-          avatarUrl: '',
-          level: 1,
-        },
-        createdAt: new Date().toISOString(),
-        stats: { likes: 0, comments: 0, shares: 0 },
-        tags: payload.tags || [],
-      };
-      setPosts(prev => [newPost, ...prev]);
+      // Show the actual server error message (e.g. Cấm Ngôn) if available
+      const apiMessage = err?.response?.data?.message;
+      const displayMessage = typeof apiMessage === 'string'
+        ? apiMessage
+        : 'Không thể đăng bài. Vui lòng thử lại.';
+      setError(displayMessage);
+      // Do NOT add a local fallback post — it would bypass moderation UI
     } finally {
       setIsSubmitting(false);
     }
@@ -535,16 +545,24 @@ export default function CommunityPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {posts.map((post, index) => (
-                    <NoteCard
-                      key={post.id}
-                      post={post}
-                      currentUserId={currentUserId || undefined}
-                      onLike={handleLike}
-                      onDelete={handleDelete}
-                      onComment={handleComment}
-                      onFetchComments={handleFetchComments}
-                      pinColor={PIN_COLORS[index % PIN_COLORS.length]}
-                    />
+                    <div key={post.id} className="relative">
+                      {post.status === 'pending' && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center rounded bg-black/40 backdrop-blur-[2px]">
+                          <p className="font-pixel text-xs text-retro-white animate-pulse px-3 py-1 bg-black/60 rounded border border-retro-white/40">
+                            ⏳ Đang kiểm duyệt...
+                          </p>
+                        </div>
+                      )}
+                      <NoteCard
+                        post={post}
+                        currentUserId={currentUserId || undefined}
+                        onLike={handleLike}
+                        onDelete={handleDelete}
+                        onComment={handleComment}
+                        onFetchComments={handleFetchComments}
+                        pinColor={PIN_COLORS[index % PIN_COLORS.length]}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
@@ -586,6 +604,12 @@ export default function CommunityPage() {
           </div>
         </aside>
       </div>
+
+      {/* RPG Guard Modal — shown when a post is rejected by moderation */}
+      <GuardModal
+        event={rejectedEvent}
+        onClose={() => setRejectedEvent(null)}
+      />
     </div>
   );
 }

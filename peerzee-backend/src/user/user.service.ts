@@ -56,6 +56,8 @@ export class UserService {
     profile.display_name = dto.display_name;
     profile.bio = dto.bio;
     profile.location = dto.location;
+    // Map DTO gender (UserGenderDto) to entity enum (UserGender) – same string values
+    profile.gender = (dto.gender as unknown as UserGender) ?? null;
     this.em.persist(profile);
 
     await this.em.flush();

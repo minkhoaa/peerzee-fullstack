@@ -49,6 +49,15 @@ class ChatMessageDto {
   content: string;
 }
 
+class ItineraryDto {
+  @IsString()
+  message: string;
+
+  @IsOptional()
+  @IsString()
+  targetUserId?: string;
+}
+
 class SuggestReplyDto {
   @IsArray()
   @ValidateNested({ each: true })
@@ -68,6 +77,14 @@ class DateSpotsDto {
   @IsArray()
   @IsString({ each: true })
   preferences?: string[];
+}
+
+class DateIdeasDto {
+  @IsString()
+  targetUserId: string;
+
+  @IsString()
+  conversationId: string;
 }
 
 @Controller('wingman')
@@ -188,6 +205,34 @@ export class WingmanController {
       dto.preferences,
     );
     return { spots };
+  }
+
+  /**
+   * Generate AI date ideas for a matched pair
+   * POST /wingman/date-ideas
+   */
+  @Post('date-ideas')
+  async getDateIdeas(@Req() req: AuthenticatedRequest, @Body() dto: DateIdeasDto) {
+    const userId = req.user.sub;
+    return this.wingmanService.generateDateIdeas(
+      userId,
+      dto.targetUserId,
+      dto.conversationId,
+    );
+  }
+
+  /**
+   * Generate a structured dating itinerary
+   * POST /wingman/itinerary
+   */
+  @Post('itinerary')
+  @UseGuards(AuthGuard)
+  async generateItinerary(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: ItineraryDto,
+  ) {
+    const userId = req.user.sub;
+    return this.wingmanService.generateItinerary(userId, dto.message, dto.targetUserId);
   }
 
   /**

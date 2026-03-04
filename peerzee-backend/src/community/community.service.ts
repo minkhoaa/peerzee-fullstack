@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
 import { SocialPost, SocialComment, SocialLike, SocialVote } from './entities';
@@ -6,6 +6,7 @@ import { CreatePostDto, CreateCommentDto, GetFeedDto } from './dto';
 import { User } from '../user/entities/user.entity';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/entities/notification.entity';
+import { ModerationService } from './moderation.service';
 
 // Response interfaces
 export interface PostWithMeta {
@@ -17,6 +18,9 @@ export interface PostWithMeta {
     commentsCount: number;
     createdAt: Date;
     updatedAt: Date;
+    /** Moderation status — only 'approved' posts appear in public feed.
+     *  'pending' is returned for the author's own freshly-created post. */
+    status: 'pending' | 'approved' | 'rejected';
     author: {
         id: string;
         email: string;
@@ -53,14 +57,27 @@ export class CommunityService {
         private readonly em: EntityManager,
         @Inject(forwardRef(() => NotificationService))
         private readonly notificationService: NotificationService,
+        @Inject(forwardRef(() => ModerationService))
+        private readonly moderationService: ModerationService,
     ) { }
 
     /**
-     * Create a new post
+     * Create a new post — saves as 'pending', triggers async moderation
      */
     async createPost(userId: string, dto: CreatePostDto): Promise<SocialPost> {
         const author = await this.userRepo.findOne({ id: userId });
         if (!author) throw new Error('User not found');
+
+        // Block muted users
+        const muteCheck = await this.moderationService.isUserMuted(userId);
+        if (muteCheck.muted) {
+            const until = muteCheck.mutedUntil
+                ? `đến ${muteCheck.mutedUntil.toLocaleString('vi-VN')}`
+                : '24 giờ';
+            throw new ForbiddenException(
+                `Tài khoản của bạn đang bị Cấm Ngôn ${until} do vi phạm nội quy cộng đồng.`,
+            );
+        }
 
         const post = new SocialPost();
         post.content = dto.content;
@@ -70,7 +87,12 @@ export class CommunityService {
         post.score = 0;
         post.likesCount = 0;
         post.commentsCount = 0;
+        post.status = 'pending'; // Start as pending until moderation passes
         await this.em.persistAndFlush(post);
+
+        // Fire-and-forget async moderation (does NOT block the response)
+        this.moderationService.moderatePost(post.id, userId).catch(() => {});
+
         return post;
     }
 
@@ -84,6 +106,9 @@ export class CommunityService {
 
         // Build filter conditions
         const where: any = {};
+
+        // Public feed shows only approved posts
+        where.status = 'approved';
 
         // Filter by tag if provided
         if (dto.tag) {
@@ -143,6 +168,7 @@ export class CommunityService {
             commentsCount: post.commentsCount,
             createdAt: post.createdAt,
             updatedAt: post.updatedAt,
+            status: post.status,
             author: {
                 id: post.author.id,
                 email: post.author.email,
@@ -262,6 +288,17 @@ export class CommunityService {
             throw new NotFoundException('Post not found');
         }
 
+        // Block muted users
+        const muteCheck = await this.moderationService.isUserMuted(userId);
+        if (muteCheck.muted) {
+            const until = muteCheck.mutedUntil
+                ? `đến ${muteCheck.mutedUntil.toLocaleString('vi-VN')}`
+                : '24 giờ';
+            throw new ForbiddenException(
+                `Tài khoản của bạn đang bị Cấm Ngôn ${until} do vi phạm nội quy cộng đồng.`,
+            );
+        }
+
         const author = await this.userRepo.findOne({ id: userId });
         const postEntity = await this.postRepo.findOne({ id: postId });
         if (!author || !postEntity) throw new Error('User or Post not found');
@@ -270,11 +307,15 @@ export class CommunityService {
         comment.content = dto.content;
         comment.author = author;
         comment.post = postEntity;
+        comment.status = 'pending'; // Hold for moderation
         this.em.persist(comment);
 
         // Update comments count
         post.commentsCount += 1;
         await this.em.flush();
+
+        // Fire-and-forget async moderation (does NOT block the response)
+        this.moderationService.moderateComment(comment.id, userId).catch(() => {});
 
         // Load author relation
         await this.em.populate(comment, ['author', 'author.profile']);
@@ -301,13 +342,13 @@ export class CommunityService {
      * Get comments for a post
      */
     async getComments(postId: string, limit: number = 20, cursor?: string) {
-        let whereCondition: any = { post_id: postId };
-
+        let whereCondition: any = { post_id: postId, status: 'approved' };
         if (cursor) {
             const cursorComment = await this.commentRepo.findOne({ id: cursor });
             if (cursorComment) {
                 whereCondition = {
                     post_id: postId,
+                    status: 'approved',
                     createdAt: { $gt: cursorComment.createdAt },
                 };
             }
@@ -366,6 +407,7 @@ export class CommunityService {
             commentsCount: post.commentsCount,
             createdAt: post.createdAt,
             updatedAt: post.updatedAt,
+            status: post.status,
             author: {
                 id: post.author?.id,
                 email: post.author?.email || '',

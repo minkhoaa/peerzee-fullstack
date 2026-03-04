@@ -1,10 +1,8 @@
 import { IsEmail, IsEnum, IsOptional, IsString } from "class-validator";
+import { UserGender } from "../entities/user-profile.entity";
 
-export enum UserGenderDto {
-    MALE = 'MALE',
-    FEMALE = 'FEMALE',
-    OTHER = 'OTHER',
-}
+/** @deprecated Use UserGender from the entity directly */
+export { UserGender as UserGenderDto };
 
 export class RegisterDto {
     @IsEmail()
@@ -21,7 +19,7 @@ export class RegisterDto {
     @IsString()
     bio: string;
     @IsOptional()
-    @IsEnum(UserGenderDto)
-    gender?: UserGenderDto;
+    @IsEnum(UserGender)
+    gender?: UserGender;
 }
 
