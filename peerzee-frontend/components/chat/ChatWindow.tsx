@@ -423,32 +423,32 @@ export default function ChatWindow({
                         </button>
 
                         {isOptionsMenuOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-56 bg-[#FFFBF7] border border-[#8B7355]/20 rounded-xl shadow-sm py-2 z-50">
+                            <div className="absolute right-0 top-full mt-2 w-56 bg-retro-white border border-cocoa-light/20 rounded-xl shadow-sm py-2 z-50">
                                 <button
                                     onClick={handleViewProfile}
-                                    className="w-full text-left px-4 py-2.5 hover:bg-[#F5EDE0] transition-colors flex items-center gap-3 text-sm text-[#5C4A3D] font-bold"
+                                    className="w-full text-left px-4 py-2.5 hover:bg-parchment transition-colors flex items-center gap-3 text-sm text-cocoa font-bold"
                                 >
-                                    <User className="w-4 h-4 text-[#8B7355] shrink-0" />
+                                    <User className="w-4 h-4 text-cocoa-light shrink-0" />
                                     Xem trang cá nhân
                                 </button>
                                 <button
                                     onClick={handleToggleMute}
-                                    className="w-full text-left px-4 py-2.5 hover:bg-[#F5EDE0] transition-colors flex items-center gap-3 text-sm text-[#5C4A3D] font-bold"
+                                    className="w-full text-left px-4 py-2.5 hover:bg-parchment transition-colors flex items-center gap-3 text-sm text-cocoa font-bold"
                                 >
                                     {isMuted
-                                        ? <Bell className="w-4 h-4 text-[#8B7355] shrink-0" />
-                                        : <BellOff className="w-4 h-4 text-[#8B7355] shrink-0" />
+                                        ? <Bell className="w-4 h-4 text-cocoa-light shrink-0" />
+                                        : <BellOff className="w-4 h-4 text-cocoa-light shrink-0" />
                                     }
                                     {isMuted ? 'Bật thông báo' : 'Tắt thông báo'}
                                 </button>
                                 <button
                                     onClick={handleChangeBackground}
-                                    className="w-full text-left px-4 py-2.5 hover:bg-[#F5EDE0] transition-colors flex items-center gap-3 text-sm text-[#5C4A3D] font-bold"
+                                    className="w-full text-left px-4 py-2.5 hover:bg-parchment transition-colors flex items-center gap-3 text-sm text-cocoa font-bold"
                                 >
-                                    <Palette className="w-4 h-4 text-[#8B7355] shrink-0" />
+                                    <Palette className="w-4 h-4 text-cocoa-light shrink-0" />
                                     Đổi hình nền
                                 </button>
-                                <div className="my-1 border-t border-[#8B7355]/10" />
+                                <div className="my-1 border-t border-cocoa-light/10" />
                                 <button
                                     onClick={handleBlockUserClick}
                                     className="w-full text-left px-4 py-2.5 hover:bg-red-50 transition-colors flex items-center gap-3 text-sm text-red-500 font-bold"
@@ -695,7 +695,7 @@ export default function ChatWindow({
             {/* Block User Confirmation Modal */}
             {showBlockModal && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]">
-                    <div className="bg-[#FFFBF7] border border-[#8B7355]/20 rounded-2xl shadow-md p-6 w-80 flex flex-col gap-4">
+                    <div className="bg-retro-white border border-cocoa-light/20 rounded-2xl shadow-md p-6 w-80 flex flex-col gap-4">
                         <div>
                             <h3 className="font-pixel text-cocoa text-base uppercase tracking-widest mb-2">Chặn người dùng?</h3>
                             <p className="text-sm text-cocoa-light font-bold leading-relaxed">
@@ -705,7 +705,7 @@ export default function ChatWindow({
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowBlockModal(false)}
-                                className="flex-1 py-2.5 text-sm font-bold text-cocoa border border-[#8B7355]/30 rounded-xl hover:bg-[#F5EDE0] transition-colors"
+                                className="flex-1 py-2.5 text-sm font-bold text-cocoa border border-cocoa-light/30 rounded-xl hover:bg-parchment transition-colors"
                             >
                                 Hủy
                             </button>

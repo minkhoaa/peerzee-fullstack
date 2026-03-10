@@ -70,11 +70,11 @@ export default function RightSidebarNotion() {
 
             {/* Footer */}
             <div className="text-xs text-cocoa-light space-x-2 font-bold">
-                <a href="#" className="hover:text-cocoa">Terms</a>
+                <span>Terms</span>
                 <span>·</span>
-                <a href="#" className="hover:text-cocoa">Privacy</a>
+                <span>Privacy</span>
                 <span>·</span>
-                <a href="#" className="hover:text-cocoa">Help</a>
+                <span>Help</span>
             </div>
         </aside>
     );

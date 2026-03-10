@@ -270,9 +270,6 @@ function SearchingPlaceholder({ isSearching, interests, state }: { isSearching: 
           </div>
         )}
       </div>
-
-      {/* Cute Animation */}
-
     </div>
   );
 }
