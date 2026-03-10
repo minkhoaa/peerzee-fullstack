@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw, Loader2, ShoppingBag } from 'lucide-react';
 import type { Post, User as UserType, TrendingTopic, Comment as CommentType } from '@/types/community';
 import { NoteCard, WriteNote, TownCrier, VillageNav } from '@/components/community';
 import { GlobalHeader } from '@/components/layout';
@@ -536,7 +536,7 @@ export default function CommunityPage() {
               {isLoading ? (
                 <div className="flex items-center justify-center py-20">
                   <div className="text-center">
-                    <div className="text-4xl mb-3 animate-bounce"></div>
+                    <Loader2 className="w-10 h-10 text-cocoa animate-spin mx-auto mb-3" />
                     <p className="font-pixel text-sm text-cocoa font-bold">
                       Loading notices...
                     </p>
@@ -575,7 +575,7 @@ export default function CommunityPage() {
                     NEW!
                   </div>
                   <div className="text-center">
-                    <span className="text-3xl">Store</span>
+                    <ShoppingBag className="w-10 h-10 text-cocoa mx-auto mb-2" />
                     <h3 className="font-pixel text-lg mt-2 text-cocoa">
                       GENERAL STORE SALE
                     </h3>
