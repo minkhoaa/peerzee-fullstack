@@ -52,6 +52,7 @@ export default function LoginPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("userId", data.user_id);
+      localStorage.setItem("userEmail", formData.email);
       router.push("/community");
     } catch (err) {
       const axiosError = err as AxiosError<{ message: string }>;

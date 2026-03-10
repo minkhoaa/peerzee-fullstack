@@ -11,8 +11,8 @@ export default function TopNavNotion() {
     const [userInitial, setUserInitial] = useState('?');
 
     useEffect(() => {
-        const uid = localStorage.getItem('userId');
-        setUserInitial(uid ? uid.slice(0, 2).toUpperCase() : '?');
+        const email = localStorage.getItem('userEmail');
+        setUserInitial(email ? email.slice(0, 2).toUpperCase() : '?');
     }, []);
 
     const handleLogout = () => {
