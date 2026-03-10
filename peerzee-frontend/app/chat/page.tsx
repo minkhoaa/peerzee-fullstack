@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Socket } from "socket.io-client";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
@@ -732,8 +733,11 @@ export default function ChatPage() {
                             <div className="w-24 h-24 border-3 border-cocoa rounded-xl bg-pixel-blue flex items-center justify-center mb-5 shadow-pixel">
                                 <MessageSquareText className="w-12 h-12 text-cocoa" strokeWidth={2.5} />
                             </div>
-                            <h3 className="font-pixel text-cocoa text-xl uppercase tracking-widest mb-2">NO CHAT SELECTED</h3>
-                            <p className="text-cocoa-light font-bold">Select a conversation to start chatting</p>
+                            <h3 className="font-pixel text-cocoa text-xl uppercase tracking-widest mb-2">YOUR MESSAGES</h3>
+                            <p className="text-cocoa-light font-bold mb-4">Select a conversation on the left, or discover new people to connect with!</p>
+                            <Link href="/discover" className="mt-4 px-5 py-2.5 bg-pixel-pink border-3 border-cocoa text-cocoa rounded-lg font-pixel uppercase tracking-wider text-sm shadow-pixel-sm hover:bg-pixel-pink-dark transition-all active:translate-y-0.5 active:shadow-none">
+                                Discover People
+                            </Link>
                         </div>
                     )}
                 </div>
