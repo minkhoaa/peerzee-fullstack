@@ -170,11 +170,16 @@ export class ConversationService {
         ...conv,
         icebreaker: icebreakerStatus,
         participantIds: conv.participants?.map((part) => part.user.id) || [],
-        participantInfo: conv.participants?.map((part) => ({
-          user_id: part.user.id,
-          email: part.user?.email,
-          display_name: part.user?.profile?.display_name || part.user?.email?.split('@')[0],
-        })) || [],
+        participantInfo: conv.participants?.map((part) => {
+          const photos: Array<{ id: string; url: string; isCover?: boolean; order?: number }> = part.user?.profile?.photos || [];
+          const cover = photos.find((p) => p.isCover) || photos[0] || null;
+          return {
+            user_id: part.user.id,
+            email: part.user?.email,
+            display_name: part.user?.profile?.display_name || part.user?.email?.split('@')[0],
+            avatarUrl: cover?.url || null,
+          };
+        }) || [],
       };
     });
   }
