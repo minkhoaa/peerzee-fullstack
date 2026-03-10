@@ -42,11 +42,12 @@ export function VillageNav({ activeRoute = '/community', mailCount = 0 }: Villag
             key={item.label}
             onClick={() => router.push(item.href)}
             className={`
-              w-full flex items-center gap-3 px-4 py-3 
+              w-full flex items-center gap-3 px-4 py-3
               border-3 border-cocoa shadow-pixel
               transition-all duration-150
-              ${isActive 
-                ? 'bg-cocoa text-white' 
+              group
+              ${isActive
+                ? 'bg-cocoa text-white'
                 : 'bg-retro-paper text-cocoa hover:bg-retro-white hover:-translate-y-1'
               }
             `}
@@ -66,7 +67,7 @@ export function VillageNav({ activeRoute = '/community', mailCount = 0 }: Villag
             {item.badge && item.badge > 0 && (
               <span className={`
                 px-2 py-0.5 font-pixel text-xs border-2 border-cocoa font-bold
-                ${isActive ? 'bg-pixel-pink text-cocoa' : 'bg-pixel-pink text-cocoa'}
+                ${isActive ? 'bg-retro-white text-cocoa' : 'bg-pixel-pink text-cocoa'}
               `}>
                 {item.badge > 9 ? '9+' : item.badge}
               </span>
