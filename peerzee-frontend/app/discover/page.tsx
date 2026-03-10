@@ -242,7 +242,10 @@ export default function DiscoverPage() {
                         >
                             <MessageSquareText className="w-5 h-5" strokeWidth={2.5} />
                         </button>
-                        <button className="p-2 text-parchment hover:text-pixel-orange bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-all active:translate-y-0.5 active:shadow-none">
+                        <button
+                            onClick={() => router.push('/settings')}
+                            className="p-2 text-parchment hover:text-pixel-orange bg-wood-medium border-2 border-wood-shadow hover:bg-wood-light transition-all active:translate-y-0.5 active:shadow-none"
+                        >
                             <Settings className="w-5 h-5" />
                         </button>
                     </div>
@@ -463,7 +466,6 @@ export default function DiscoverPage() {
                     {/* Show distance info when location enabled */}
                     {hasLocation === true && userCoords && (
                         <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel-sm">
-                            <MapPin className="w-4 h-4 text-pixel-pink-dark" />
                             <span className="font-pixel text-sm text-cocoa uppercase tracking-wider flex items-center gap-1"><MapPin className="w-4 h-4" strokeWidth={2.5} /> Tìm kiếm trong bán kính 50km</span>
                         </div>
                     )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, Plus, ChevronDown, User, Settings, LogOut } from 'lucide-react';
 import NotificationPopover from './NotificationPopover';
@@ -8,6 +8,12 @@ import NotificationPopover from './NotificationPopover';
 export default function TopNavNotion() {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [userInitial, setUserInitial] = useState('?');
+
+    useEffect(() => {
+        const uid = localStorage.getItem('userId');
+        setUserInitial(uid ? uid.slice(0, 2).toUpperCase() : '?');
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -59,7 +65,7 @@ export default function TopNavNotion() {
                             className="flex items-center gap-1.5 p-1.5 hover:bg-pixel-purple/30 border-2 border-transparent hover:border-cocoa rounded-lg transition-colors"
                         >
                             <div className="w-7 h-7 rounded-lg bg-pixel-pink border-2 border-cocoa flex items-center justify-center text-cocoa text-xs font-pixel">
-                                U
+                                {userInitial}
                             </div>
                             <ChevronDown className="w-3 h-3 text-cocoa" />
                         </button>
