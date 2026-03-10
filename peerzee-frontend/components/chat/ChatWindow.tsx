@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { Phone, Video, MoreHorizontal, Search, X, Reply, Smile, MoreVertical, Wand2, Pencil, Trash2, Snowflake, Sparkles, User, Bell, BellOff, Palette, UserX } from 'lucide-react';
 import AudioMessage from './AudioMessage';
 import WingmanMessageCard from './WingmanMessageCard';
+import { getAssetUrl } from '@/lib/api';
 
 interface Message {
     id: string;
@@ -41,6 +42,7 @@ interface ChatWindowProps {
     userId: string | null;
     isOnline: boolean;
     userNames: Record<string, string>;
+    userAvatars: Record<string, string>;
     typingUsers: string[];
     highlightedMessageId: string | null;
     onStartAudioCall: () => void;
@@ -84,6 +86,7 @@ export default function ChatWindow({
     userId,
     isOnline,
     userNames,
+    userAvatars,
     typingUsers,
     highlightedMessageId,
     onStartAudioCall,
@@ -328,8 +331,18 @@ export default function ChatWindow({
                 {/* Left - User Info */}
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <div className="w-12 h-12 border-2 border-cocoa rounded-lg bg-pixel-pink flex items-center justify-center text-cocoa font-pixel text-base shadow-pixel-sm">
-                            {displayName.slice(0, 1).toUpperCase()}
+                        <div className="w-12 h-12 border-2 border-cocoa rounded-lg overflow-hidden bg-pixel-pink flex items-center justify-center shadow-pixel-sm">
+                            {userAvatars[otherUserId] ? (
+                                <img
+                                    src={getAssetUrl(userAvatars[otherUserId])}
+                                    alt={displayName}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span className="text-cocoa font-pixel text-base">
+                                    {displayName.slice(0, 1).toUpperCase()}
+                                </span>
+                            )}
                         </div>
                         {/* Status dot */}
                         {isOnline && (
@@ -525,8 +538,18 @@ export default function ChatWindow({
                                         {m.sender_id !== userId && (
                                             <div className="shrink-0 mb-0.5">
                                                 {shouldShowAvatar(index) ? (
-                                                    <div className="w-9 h-9 border-2 border-cocoa rounded-lg bg-pixel-purple flex items-center justify-center text-cocoa text-xs font-pixel shadow-pixel-sm">
-                                                        {getSenderName(m.sender_id).slice(0, 1).toUpperCase()}
+                                                    <div className="w-9 h-9 border-2 border-cocoa rounded-lg overflow-hidden bg-pixel-purple shadow-pixel-sm flex items-center justify-center">
+                                                        {userAvatars[m.sender_id] ? (
+                                                            <img
+                                                                src={getAssetUrl(userAvatars[m.sender_id])}
+                                                                alt={getSenderName(m.sender_id)}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-cocoa text-xs font-pixel">
+                                                                {getSenderName(m.sender_id).slice(0, 1).toUpperCase()}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div className="w-9 h-9" />

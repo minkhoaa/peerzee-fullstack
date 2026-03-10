@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { PenLine, Search, Sun, Moon, LogOut, IdCard, Wifi, WifiOff, Heart, Users, Video } from 'lucide-react';
+import { getAssetUrl } from '@/lib/api';
 
 interface Conversation {
     id: string;
@@ -24,6 +25,7 @@ interface ChatSidebarProps {
     onlineUsers: Set<string>;
     typingUsers: Record<string, string[]>;
     userNames: Record<string, string>;
+    userAvatars: Record<string, string>;
     onSelectConversation: (conv: Conversation) => void;
     onNewChat: () => void;
     onToggleTheme: () => void;
@@ -46,6 +48,7 @@ export default function ChatSidebar({
     onlineUsers,
     typingUsers,
     userNames,
+    userAvatars,
     onSelectConversation,
     onNewChat,
     onToggleTheme,
@@ -221,10 +224,19 @@ export default function ChatSidebar({
                             >
                                 {/* Avatar */}
                                 <div className="relative shrink-0">
-                                    <div className={`w-12 h-12 border-2 border-cocoa rounded-lg bg-pixel-pink flex items-center justify-center text-cocoa font-pixel text-sm shadow-pixel-sm`}>
-                                        {(userNames[otherUserId] || conv.name)?.slice(0, 1)?.toUpperCase() || '?'}
+                                    <div className="w-12 h-12 border-2 border-cocoa rounded-lg overflow-hidden bg-pixel-pink shadow-pixel-sm flex items-center justify-center">
+                                        {userAvatars[otherUserId] ? (
+                                            <img
+                                                src={getAssetUrl(userAvatars[otherUserId])}
+                                                alt={userNames[otherUserId] || conv.name || '?'}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-cocoa font-pixel text-sm">
+                                                {(userNames[otherUserId] || conv.name)?.slice(0, 1)?.toUpperCase() || '?'}
+                                            </span>
+                                        )}
                                     </div>
-                                    {/* Online indicator */}
                                     {isOnline && (
                                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-pixel-green border-2 border-cocoa rounded" />
                                     )}

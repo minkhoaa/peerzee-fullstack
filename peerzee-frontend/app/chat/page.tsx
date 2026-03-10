@@ -46,6 +46,7 @@ interface Conversation {
     lastMessage?: string;
     participantIds?: string[];
     icebreakerSuggestion?: string; // AI-generated icebreaker
+    participantInfo?: { user_id: string; email?: string; display_name?: string; avatarUrl?: string | null }[];
 }
 
 const setPageTitle = (title: string) => {
@@ -80,6 +81,7 @@ export default function ChatPage() {
     const [searching, setSearching] = useState(false);
     const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
     const [userNames, setUserNames] = useState<Record<string, string>>({});
+    const [userAvatars, setUserAvatars] = useState<Record<string, string>>({});
     const [_userEmails, setUserEmails] = useState<Record<string, string>>({});
 
     // Message editing/replying
@@ -379,7 +381,7 @@ export default function ChatPage() {
         const loadConversations = async () => {
             const res = await api.get<
                 (Conversation & {
-                    participantInfo?: { user_id: string; email?: string; display_name?: string }[];
+                    participantInfo?: { user_id: string; email?: string; display_name?: string; avatarUrl?: string | null }[];
                 })[]
             >(`/conversation`);
             setConversations(res.data);
@@ -388,6 +390,7 @@ export default function ChatPage() {
                     if (p.user_id !== userId) {
                         if (p.display_name) setUserNames((prev) => ({ ...prev, [p.user_id]: p.display_name! }));
                         if (p.email) setUserEmails((prev) => ({ ...prev, [p.user_id]: p.email! }));
+                        if (p.avatarUrl) setUserAvatars((prev) => ({ ...prev, [p.user_id]: p.avatarUrl! }));
                     }
                 });
                 const otherUserId = c.participantIds?.find((id) => id !== userId);
@@ -674,6 +677,7 @@ export default function ChatPage() {
                 onlineUsers={onlineUsers}
                 typingUsers={typingUsers}
                 userNames={userNames}
+                userAvatars={userAvatars}
                 onSelectConversation={handleSelectConversation}
                 onNewChat={() => setShowModal(true)}
                 onToggleTheme={toggleTheme}
@@ -693,6 +697,7 @@ export default function ChatPage() {
                                 userId={userId}
                                 isOnline={isOtherOnline}
                                 userNames={userNames}
+                                userAvatars={userAvatars}
                                 typingUsers={typingUsers[activeConversation.id] || []}
                                 highlightedMessageId={highlightedMessageId}
                                 onStartAudioCall={handleStartAudioCall}
