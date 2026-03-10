@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Image, Smile, Send, Loader2, User, PenLine, X } from 'lucide-react';
+import { Image, Send, Loader2, User, PenLine, X } from 'lucide-react';
 
 interface WriteNoteProps {
   onSubmit: (payload: { content: string; imageUrls?: string[]; tags?: string[] }) => void;
@@ -174,12 +174,6 @@ export function WriteNote({ onSubmit, isSubmitting, userAvatar }: WriteNoteProps
             ) : (
               <Image className="w-5 h-5" strokeWidth={2.5} />
             )}
-          </button>
-          <button
-            className="p-2 rounded hover:bg-cocoa/10 transition-colors text-cocoa-light"
-            title="Add emoji"
-          >
-            <Smile className="w-5 h-5" strokeWidth={2.5} />
           </button>
           {images.length > 0 && (
             <span className="text-xs font-body text-cocoa-light">

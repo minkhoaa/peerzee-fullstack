@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, Users, BookOpen, HelpCircle, Shield, User, Bird } from 'lucide-react';
+import { TrendingUp, Users, BookOpen, HelpCircle, Shield, User } from 'lucide-react';
 import type { User as UserType, TrendingTopic } from '@/types/community';
 import { getAssetUrl } from '@/lib/api';
 
@@ -100,11 +100,6 @@ export function TownCrier({
               </div>
             </button>
           ))}
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="mt-3 p-2 flex items-center justify-center bg-retro-white border-2 border-cocoa">
-          <Bird className="w-6 h-6 text-cocoa" strokeWidth={2.5} />
         </div>
       </div>
 

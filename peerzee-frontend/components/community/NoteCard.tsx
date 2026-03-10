@@ -234,7 +234,7 @@ export function NoteCard({
           </button>
           {post.stats.likes > 50 && (
             <span className="ml-auto text-xs font-pixel text-pixel-pink font-bold">
-              Read More
+              Popular
             </span>
           )}
         </div>
