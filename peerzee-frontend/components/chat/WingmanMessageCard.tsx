@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Sparkles, MapPin, Navigation, MessageCircle, CalendarDays, Clock } from 'lucide-react';
 
 interface WingmanSuggestion {
@@ -75,8 +77,24 @@ export default function WingmanMessageCard({ body, compact = false }: WingmanMes
                 {!compact && <span className="text-xs text-cocoa-light font-bold mb-1 block ml-1">🤖 Wingman</span>}
 
                 {!data ? (
-                    <div className="bg-retro-white border-2 border-cocoa/30 rounded-2xl rounded-tl-sm px-4 py-2 text-sm text-cocoa-light italic">
-                        Wingman gặp sự cố...
+                    <div className="bg-retro-white border-2 border-cocoa rounded-2xl rounded-tl-sm px-4 py-3">
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                p:      ({ children }) => <p className="text-cocoa text-sm leading-relaxed mb-2 last:mb-0">{children}</p>,
+                                strong: ({ children }) => <strong className="font-bold text-cocoa">{children}</strong>,
+                                em:     ({ children }) => <em className="italic text-cocoa-light">{children}</em>,
+                                ul:     ({ children }) => <ul className="list-disc list-inside space-y-1 my-1.5 text-sm text-cocoa">{children}</ul>,
+                                ol:     ({ children }) => <ol className="list-decimal list-inside space-y-1 my-1.5 text-sm text-cocoa">{children}</ol>,
+                                li:     ({ children }) => <li className="text-cocoa leading-relaxed">{children}</li>,
+                                code:   ({ children }) => <code className="bg-pixel-pink/20 text-cocoa px-1 py-0.5 rounded text-xs font-mono border border-pixel-pink/30">{children}</code>,
+                                h1:     ({ children }) => <h1 className="font-pixel text-base text-cocoa font-bold mt-3 mb-1.5">{children}</h1>,
+                                h2:     ({ children }) => <h2 className="font-pixel text-sm text-cocoa font-bold mt-2.5 mb-1">{children}</h2>,
+                                h3:     ({ children }) => <h3 className="font-bold text-sm text-cocoa mt-2 mb-0.5">{children}</h3>,
+                            }}
+                        >
+                            {body}
+                        </ReactMarkdown>
                     </div>
 
                 ) : data.type === 'itinerary' ? (
@@ -188,7 +206,16 @@ export default function WingmanMessageCard({ body, compact = false }: WingmanMes
                     /* ── VENUE SUGGESTIONS ── */
                     <div className="bg-retro-paper border-2 border-cocoa rounded-2xl rounded-tl-sm overflow-hidden shadow-pixel-sm">
                         <div className="px-4 pt-3 pb-3">
-                            <p className="text-cocoa text-sm font-bold leading-relaxed">{data.wingman_message}</p>
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    p: ({ children }) => <p className="text-cocoa text-sm font-bold leading-relaxed">{children}</p>,
+                                    strong: ({ children }) => <strong className="font-bold text-cocoa">{children}</strong>,
+                                    em: ({ children }) => <em className="italic text-cocoa-light">{children}</em>,
+                                }}
+                            >
+                                {data.wingman_message}
+                            </ReactMarkdown>
                         </div>
 
                         <div className="px-3 pb-3 grid grid-cols-2 gap-2">
