@@ -1,7 +1,7 @@
 
 const axios = require('axios');
 
-const API_URL = 'http://localhost:9898/api';
+const API_URL = 'http://192.168.1.9:9898/api';
 const CREDENTIALS = {
     email: 'test1@gmail.com',
     password: 'Khoa040505@',

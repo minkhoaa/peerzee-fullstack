@@ -44,7 +44,7 @@ interface WingmanChatProps {
     chatContext?: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9898/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.9:9898/api';
 
 // Cute Chibi Wingman SVG Component
 const ChibiCupid = ({ className = "", isHappy = false }: { className?: string; isHappy?: boolean }) => (

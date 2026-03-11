@@ -62,6 +62,7 @@ export interface ItineraryStep {
   endTime: string;
   activityType: 'dining' | 'cafe' | 'entertainment' | 'travel';
   locationName: string;
+  locationAddress?: string;
   locationUrl: string;
   description: string;
   estimatedCost: number;
@@ -623,13 +624,19 @@ Yêu cầu:
 
     const prompt = `Bạn là "@Wingman" - trợ lý AI ghép đôi trên ứng dụng Peerzee.
 Nhiệm vụ: Đọc Lịch sử trò chuyện, hiểu ngữ cảnh và đề xuất đúng 2 địa điểm CÓ THẬT, CỤ THỂ tại TP.HCM. Tự động tạo link tìm kiếm Google Maps.
+
+Yêu cầu về độ tin cậy địa điểm:
+- Ưu tiên chuỗi lớn (The Coffee House, Phúc Long, Highland, Gong Cha...), địa điểm nổi tiếng 5+ năm, hoặc landmark công cộng
+- Tránh quán indie/pop-up có nguy cơ đóng cửa cao
+- Gợi ý giờ phù hợp: cafe 7h–22h, nhà hàng tối 17h–22h, bar/rooftop từ 17h
+
 TRẢ VỀ STRICTLY JSON FORMAT, NO MARKDOWN:
 {
   "wingman_message": "Câu nói duyên dáng khi xuất hiện trong chat.",
   "suggestions": [
     {
       "place_name": "Tên địa điểm (VD: Ốc Oanh)",
-      "address": "Địa chỉ, Quận",
+      "address": "Địa chỉ đầy đủ, Quận",
       "google_maps_url": "https://www.google.com/maps/search/?api=1&query={Ten_quan_va_Dia_chi_viet_lien_nhau_bang_dau_cong}",
       "reason": "Giải thích chi tiết lý do chọn quán này, BẮT BUỘC phải nhắc lại một chi tiết họ vừa nói trong lịch sử chat."
     }
@@ -708,8 +715,8 @@ ${triggerMessage}`;
         params: {
           query,
           near: 'Ho Chi Minh City, Vietnam',
-          limit: 1,
-          fields: 'name,geocodes,location',
+          limit: 3,
+          fields: 'name,geocodes,location,closed_bucket',
         },
         timeout: 6000,
       });
@@ -720,7 +727,16 @@ ${triggerMessage}`;
         return null;
       }
 
-      const place = results[0];
+      // Skip permanently closed venues — find first non-closed result
+      const place = results.find(
+        (r: any) => r.closed_bucket !== 'VeryLikelyClosed' && r.closed_bucket !== 'LikelyClosed',
+      ) ?? results[0];
+
+      if (place.closed_bucket === 'VeryLikelyClosed') {
+        this.logger.warn(`[FSQ] "${query}" appears permanently closed, skipping`);
+        return null;
+      }
+
       const lat = place.geocodes?.main?.latitude;
       const lon = place.geocodes?.main?.longitude;
       const address = place.location?.formatted_address || place.location?.locality || '';
@@ -749,6 +765,7 @@ ${triggerMessage}`;
 Từ yêu cầu của người dùng, hãy trích xuất:
 - Khung giờ (startTime / endTime). Nếu không có, mặc định 17:00–22:00.
 - Ngân sách tối đa (totalBudgetLimit, VND). Nếu không có, dùng 500000.
+- Khu vực / quận cụ thể (nếu user đề cập). Nếu có, TẤT CẢ địa điểm hoạt động PHẢI nằm trong khu vực/quận đó.
 
 QUAN TRỌNG: Chỉ trả về một JSON object hợp lệ — không markdown, không giải thích, không dấu \`\`\`.
 Schema bắt buộc:
@@ -765,6 +782,7 @@ Schema bắt buộc:
       "endTime": "19:30",
       "activityType": "cafe",
       "locationName": "The Workshop Coffee",
+      "locationAddress": "40A Tôn Thất Thiệp, Quận 1, TP. HCM",
       "locationUrl": "https://www.google.com/maps/search/?api=1&query=The+Workshop+Coffee+Ho+Chi+Minh+City",
       "description": "Lý do ngắn gọn phù hợp vibe",
       "estimatedCost": 120000,
@@ -775,6 +793,7 @@ Schema bắt buộc:
       "endTime": "19:45",
       "activityType": "travel",
       "locationName": "Di chuyển",
+      "locationAddress": "",
       "locationUrl": "",
       "description": "~10 phút di chuyển bằng Grab",
       "estimatedCost": 0,
@@ -792,7 +811,22 @@ Quy tắc bắt buộc:
 6. locationUrl là Google Maps search URL, "" nếu là bước travel.
 7. Toàn bộ tiếng Việt (trừ tên địa điểm tiếng Anh).
 8. activityType chỉ được là: "dining", "cafe", "entertainment", "travel".
-9. recommendedItems: với dining và cafe, gợi ý 1–2 món/đồ uống đặc trưng phù hợp vibe và ngân sách. Travel steps để mảng rỗng [].`;
+9. recommendedItems: với dining và cafe, gợi ý 1–2 món/đồ uống đặc trưng phù hợp vibe và ngân sách. Travel steps để mảng rỗng [].
+10. locationAddress: địa chỉ đầy đủ bao gồm số nhà, tên đường, quận (ví dụ "40A Tôn Thất Thiệp, Quận 1, TP. HCM"). Để rỗng "" cho bước travel.
+11. NẾU user yêu cầu khu vực/quận cụ thể (VD: "quận 3", "Bình Thạnh"), TẤT CẢ locationAddress của bước hoạt động phải chứa quận/khu vực đó.
+12. GIẢM THIỂU RỦI RO ĐỊA ĐIỂM ĐÓNG CỬA — ưu tiên theo thứ tự sau:
+    a. Chuỗi lớn uy tín (The Coffee House, Phúc Long, Highland, Gong Cha, CGV, Lotteria...)
+    b. Địa điểm nổi tiếng từ 5+ năm, nhiều chi nhánh
+    c. Landmark công cộng (công viên, phố đi bộ, bờ sông...)
+    d. Tránh quán indie/pop-up dễ đóng cửa.
+13. GIẢM THIỂU RỦI RO SAI GIỜ — PHẢI đảm bảo giờ mở cửa phù hợp với startTime:
+    - Cafe / trà sữa: thường mở 7h–22h (không đặt trước 7h hoặc sau 22h)
+    - Nhà hàng ăn tối / bữa tối: 17h–22h (không đặt trước 17h nếu activityType="dining" ban đêm)
+    - Nhà hàng ăn trưa: thường nghỉ 14h–17h (tránh đặt 14h–17h)
+    - Bar / Rooftop / Skybar: thường chỉ mở từ 17h (không đặt trước 17h)
+    - Rạp chiếu phim / Arcade: 9h–23h
+    - Công viên / ngoài trời: 6h–21h
+    - Massage / Spa: 9h–22h`;
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
@@ -822,14 +856,21 @@ Quy tắc bắt buộc:
           step.locationUrl = '';
           return;
         }
-        const fsq = await this.searchPlacesFoursquare(step.locationName);
+        // Include locationAddress in query so Foursquare respects the district
+        const fsqQuery = step.locationAddress
+          ? `${step.locationName} ${step.locationAddress}`
+          : step.locationName;
+        const fsq = await this.searchPlacesFoursquare(fsqQuery);
         if (fsq) {
           const q = encodeURIComponent(`${fsq.name} ${fsq.address}`);
           step.locationUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
-          this.logger.log(`[Itinerary] ✅ FSQ pin for "${step.locationName}" → "${fsq.name}"`);
+          this.logger.log(`[Itinerary] ✅ FSQ pin for "${step.locationName}" → "${fsq.name}" | ${fsq.address}`);
         } else {
           // Reliable text-search fallback built by us, not the LLM
-          const q = encodeURIComponent(`${step.locationName}, Ho Chi Minh City`);
+          const fallbackQuery = step.locationAddress
+            ? `${step.locationName} ${step.locationAddress}`
+            : `${step.locationName}, Ho Chi Minh City`;
+          const q = encodeURIComponent(fallbackQuery);
           step.locationUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
           this.logger.warn(`[Itinerary] ⚠️ FSQ miss for "${step.locationName}", using text-search fallback`);
         }

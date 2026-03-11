@@ -96,8 +96,8 @@ services:
       args:
         # For LOCAL: set these in .env file or pass via command line
         # For PRODUCTION with nginx: use empty string
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:9898/api}
-        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:9898}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://192.168.1.9:9898/api}
+        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://192.168.1.9:9898}
     environment:
       NODE_ENV: production
     ports:

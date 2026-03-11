@@ -139,7 +139,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     const set = new Set(dto.participantUserIds);
     set.add(userId);
 
-    const conv = await this.chatService.createConversation(dto.type, [...set], dto.name);
+    // For private/direct chats, reuse existing conversation to prevent duplicates
+    const otherUserId = [...set].find(id => id !== userId);
+    const conv = (dto.type === 'private' || dto.type === 'direct') && otherUserId
+      ? await this.chatService.findOrCreateDMConversation(userId, otherUserId)
+      : await this.chatService.createConversation(dto.type, [...set], dto.name);
     for (const participantId of set) {
       this.server.to(participantId).emit('conversation:new', {
         id: conv.id,

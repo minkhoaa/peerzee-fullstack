@@ -41,7 +41,7 @@ export default function AgentMatchPage() {
 
     // Initialize Socket.IO connection
     useEffect(() => {
-        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:9898';
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://192.168.1.9:9898';
         const newSocket = io(`${socketUrl}/socket/match-queue`, {
             withCredentials: true,
             transports: ['websocket', 'polling'],

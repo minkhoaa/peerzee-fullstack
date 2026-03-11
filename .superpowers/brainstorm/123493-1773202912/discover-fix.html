@@ -1,0 +1,162 @@
+<h2>Discover — Vấn đề và hướng fix</h2>
+<p class="subtitle">Card hiện tại có <code>h-[calc(100vh-200px)]</code> — cố định theo viewport. Khi user thiếu bio/tags/prompts, phần body trắng rỗng. Fix: co card về content-height + cải thiện layout.</p>
+
+<div class="split">
+
+  <!-- CURRENT STATE -->
+  <div class="mockup">
+    <div class="mockup-header">Hiện tại — card quá cao, trống bên dưới</div>
+    <div class="mockup-body" style="background:#e8f5e9;padding:0;">
+      <div style="font-family:monospace;font-size:11px;color:#3d2c1e;display:flex;flex-direction:column;height:520px;">
+
+        <!-- Header -->
+        <div style="background:#3d2c1e;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+          <span style="color:#faf7f2;font-size:11px;font-weight:bold;">DISCOVER</span>
+          <div style="display:flex;gap:6px;">
+            <span style="background:#f5d76e;border-radius:4px;padding:2px 6px;font-size:9px;">DATE</span>
+            <span style="color:#faf7f2;font-size:9px;border:1px solid #faf7f2;border-radius:4px;padding:2px 6px;">STUDY</span>
+          </div>
+        </div>
+
+        <!-- Location banner -->
+        <div style="background:#d4f0e8;border-bottom:1px solid #b0d8c8;padding:6px 14px;flex-shrink:0;font-size:10px;display:flex;justify-content:space-between;">
+          <span>Bật định vị để tìm gần bạn</span>
+          <span style="background:#7c3aed;color:white;border-radius:4px;padding:1px 6px;">BẬT</span>
+        </div>
+
+        <!-- BIG EMPTY CARD -->
+        <div style="flex:1;display:flex;justify-content:center;align-items:flex-start;padding:8px;overflow:hidden;">
+          <div style="width:240px;background:#fff;border:2px solid #3d2c1e;border-radius:10px;height:420px;display:flex;flex-direction:column;box-shadow:3px 3px 0 #3d2c1e;">
+            <!-- Cover photo -->
+            <div style="background:linear-gradient(180deg,#c8b8a0,#a89078);height:168px;border-radius:8px 8px 0 0;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;">Ảnh bìa (40%)</div>
+            <!-- Avatar + name -->
+            <div style="padding:8px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0e8e0;">
+              <div style="width:44px;height:44px;background:#d4c4b0;border:2px solid #3d2c1e;border-radius:8px;flex-shrink:0;"></div>
+              <div>
+                <div style="font-weight:bold;font-size:12px;">User 2</div>
+              </div>
+            </div>
+            <!-- EMPTY BODY — this is the problem -->
+            <div style="flex:1;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <div style="color:#ccc;font-size:10px;text-align:center;border:1px dashed #ccc;border-radius:6px;padding:20px;width:90%;">
+                ← Khoảng trắng rỗng<br>khi user thiếu bio/<br>tags/prompts
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="padding:6px;display:flex;justify-content:center;gap:10px;flex-shrink:0;background:#faf7f2;border-top:1px solid #e0d8d0;">
+          <div style="width:40px;height:40px;border:2px solid #3d2c1e;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;">✗</div>
+          <div style="width:36px;height:36px;border:2px solid #3d2c1e;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;">👁</div>
+          <div style="width:36px;height:36px;border:2px solid #3d2c1e;border-radius:50%;background:#f5d76e;display:flex;align-items:center;justify-content:center;">⭐</div>
+          <div style="width:40px;height:40px;border:2px solid #3d2c1e;border-radius:50%;background:#d4f0e8;display:flex;align-items:center;justify-content:center;">♡</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROPOSED FIX -->
+  <div class="mockup">
+    <div class="mockup-header">Sau fix — card compact, thông tin đầy đủ</div>
+    <div class="mockup-body" style="background:#e8f5e9;padding:0;">
+      <div style="font-family:monospace;font-size:11px;color:#3d2c1e;display:flex;flex-direction:column;height:520px;">
+
+        <!-- Header same -->
+        <div style="background:#3d2c1e;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+          <span style="color:#faf7f2;font-size:11px;font-weight:bold;">DISCOVER</span>
+          <div style="display:flex;gap:6px;">
+            <span style="background:#f5d76e;border-radius:4px;padding:2px 6px;font-size:9px;">DATE</span>
+            <span style="color:#faf7f2;font-size:9px;border:1px solid #faf7f2;border-radius:4px;padding:2px 6px;">STUDY</span>
+          </div>
+        </div>
+
+        <!-- Location banner (chỉ hiện khi chưa có location) -->
+        <div style="background:#d4f0e8;border-bottom:1px solid #b0d8c8;padding:6px 14px;flex-shrink:0;font-size:10px;display:flex;justify-content:space-between;">
+          <span>Bật định vị để tìm gần bạn</span>
+          <span style="background:#7c3aed;color:white;border-radius:4px;padding:1px 6px;">BẬT</span>
+        </div>
+
+        <!-- COMPACT CARD — content-driven height -->
+        <div style="flex:1;display:flex;justify-content:center;align-items:flex-start;padding:8px;overflow-y:auto;">
+          <div style="width:240px;background:#fff;border:2px solid #3d2c1e;border-radius:10px;box-shadow:3px 3px 0 #3d2c1e;">
+
+            <!-- Cover photo — name/age/loc OVERLAID -->
+            <div style="position:relative;height:160px;border-radius:8px 8px 0 0;overflow:hidden;flex-shrink:0;">
+              <div style="background:linear-gradient(180deg,#c8b8a0,#a89078);height:100%;display:flex;align-items:center;justify-content:center;color:#fff8;font-size:10px;">Ảnh bìa</div>
+              <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(0,0,0,0.6),transparent);padding:8px 10px;">
+                <div style="color:white;font-weight:bold;font-size:13px;">Linh, 24 · 3.2km</div>
+                <div style="color:rgba(255,255,255,0.8);font-size:9px;">Ho Chi Minh City</div>
+              </div>
+            </div>
+
+            <!-- Compact content -->
+            <div style="padding:10px;">
+              <!-- Occupation + education inline -->
+              <div style="font-size:10px;color:#6b5244;margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;">
+                <span>💼 UI/UX Designer</span>
+                <span>🎓 RMIT</span>
+              </div>
+
+              <!-- Bio short -->
+              <div style="background:#fdf0f5;border-left:3px solid #f0a0c0;border-radius:4px;padding:5px 7px;font-size:10px;margin-bottom:7px;line-height:1.5;">"Thích cà phê, phim indie và mèo 🐱"</div>
+
+              <!-- Tags -->
+              <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:7px;">
+                <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:8px;padding:2px 6px;font-size:9px;">cafe</span>
+                <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:8px;padding:2px 6px;font-size:9px;">phim indie</span>
+                <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:8px;padding:2px 6px;font-size:9px;">mèo</span>
+              </div>
+
+              <!-- Profile properties mini -->
+              <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px;">
+                <span style="background:#ede9f8;border:1px solid #c4b5e8;border-radius:6px;padding:2px 6px;font-size:9px;">♊ Song Tử</span>
+                <span style="background:#ede9f8;border:1px solid #c4b5e8;border-radius:6px;padding:2px 6px;font-size:9px;">INFJ</span>
+                <span style="background:#ede9f8;border:1px solid #c4b5e8;border-radius:6px;padding:2px 6px;font-size:9px;">1m65</span>
+              </div>
+
+              <!-- Prompt -->
+              <div style="background:#f5f0e8;border:1px solid #d4c4b0;border-radius:6px;padding:6px 8px;font-size:10px;">
+                <div style="opacity:0.6;margin-bottom:2px;font-size:9px;">Điều tôi muốn tìm</div>
+                "Ai đó thích đi cà phê buổi sáng và xem phim tối cuối tuần"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons same -->
+        <div style="padding:8px;display:flex;justify-content:center;gap:10px;flex-shrink:0;background:#faf7f2;border-top:2px solid #3d2c1e;">
+          <div style="width:44px;height:44px;border:2px solid #3d2c1e;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 #3d2c1e;">✗</div>
+          <div style="width:38px;height:38px;border:2px solid #3d2c1e;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;">👁</div>
+          <div style="width:38px;height:38px;border:2px solid #3d2c1e;border-radius:50%;background:#f5d76e;display:flex;align-items:center;justify-content:center;">⭐</div>
+          <div style="width:44px;height:44px;border:2px solid #3d2c1e;border-radius:50%;background:#d4f0e8;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 #3d2c1e;">♡</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <h3>Những thay đổi cụ thể</h3>
+  <div class="options" data-multiselect>
+    <div class="option" data-choice="name-overlay" onclick="toggleSelect(this)">
+      <div class="letter">1</div>
+      <div class="content"><h3>Tên/tuổi/khoảng cách overlay lên ảnh bìa</h3><p>Thay vì để trắng bên dưới avatar — thông tin cơ bản nằm ngay trên gradient ảnh, tiết kiệm không gian</p></div>
+    </div>
+    <div class="option" data-choice="card-shrink" onclick="toggleSelect(this)">
+      <div class="letter">2</div>
+      <div class="content"><h3>Card co theo nội dung (không cố định h-full)</h3><p>Bỏ <code>h-full</code> trên ProfileCard, card sẽ cao đúng bằng nội dung. Scrollable bên trong nếu cần.</p></div>
+    </div>
+    <div class="option" data-choice="bg-pattern" onclick="toggleSelect(this)">
+      <div class="letter">3</div>
+      <div class="content"><h3>Background có pattern nhẹ thay vì trắng trơn</h3><p>Khu vực xung quanh card dùng retro-paper hoặc subtle dot/grid pattern thay vì màu đơn</p></div>
+    </div>
+    <div class="option" data-choice="action-bar" onclick="toggleSelect(this)">
+      <div class="letter">4</div>
+      <div class="content"><h3>Action buttons tách ra, có border top rõ ràng</h3><p>Nút bấm không nổi tùy tiện mà có khu vực riêng, tạo cảm giác app hoàn chỉnh hơn</p></div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle">Select thay đổi bạn muốn áp dụng, hoặc phản hồi trong terminal.</p>

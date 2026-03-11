@@ -1009,6 +1009,49 @@ export class VideoDatingGateway implements OnGatewayConnection, OnGatewayDisconn
         });
     }
 
+    // =====================================================
+    // 🎙️ WHISPER HYBRID: Server-side audio correction
+    // =====================================================
+
+    /**
+     * Client sends a raw audio chunk (base64-encoded WebM/Opus).
+     * Server transcribes with Whisper and relays the accurate text to the partner.
+     *
+     * Payload: { audioData: string }  (base64)
+     * Emits to partner: 'subtitle:receive' { text, isFinal: true, userId, source: 'whisper' }
+     */
+    @SubscribeMessage('subtitle:audio')
+    async handleSubtitleAudio(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { audioData: string },
+    ) {
+        const userId = client.data.userId as string;
+        const sessionId = this.userSessions.get(userId);
+        if (!sessionId) return;
+
+        const session = this.activeSessions.get(sessionId);
+        if (!session) return;
+
+        try {
+            const audioBuffer = Buffer.from(data.audioData, 'base64');
+            const text = await this.translationService.transcribeSegment(audioBuffer);
+
+            if (text && text.trim()) {
+                const targetSocketId =
+                    session.user1 === client.id ? session.user2 : session.user1;
+
+                this.server.to(targetSocketId).emit('subtitle:receive', {
+                    text: text.trim(),
+                    isFinal: true,
+                    userId,
+                    source: 'whisper',
+                });
+            }
+        } catch (err) {
+            this.logger.warn(`[Whisper] transcription failed for ${userId}: ${err.message}`);
+        }
+    }
+
     /**
      * Broadcast current queue size to all connected clients
      */

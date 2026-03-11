@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9898/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.9:9898/api';
 
 interface ProfileTip {
     category: string;

@@ -57,6 +57,7 @@ export default function MatchPage() {
     sessionId: matchInfo?.sessionId ?? null,
     language: 'vi-VN',
     enabled: isCallActive && !isMuted,
+    stream: localStream,
   });
 
   // Connect on mount

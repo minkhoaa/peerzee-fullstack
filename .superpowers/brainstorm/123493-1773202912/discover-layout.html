@@ -1,0 +1,130 @@
+<h2>Discover Page — Chọn hướng layout</h2>
+<p class="subtitle">Tất cả layout đều bao gồm: card ngắn hơn, filter, stats, empty state có animation. Khác nhau ở cách sắp xếp.</p>
+
+<div class="cards">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#faf7f2;">
+      <div style="font-family:monospace;font-size:11px;line-height:1.6;padding:14px 16px;color:#3d2c1e;">
+        <div style="background:#e8d5c4;border-radius:6px;padding:6px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+          <span>❤️ 8 likes</span>
+          <span>⭐ 2 super</span>
+          <span>💫 12 matches</span>
+          <span style="font-size:10px;opacity:0.6">hôm nay</span>
+        </div>
+        <div style="background:#fff;border:2px solid #3d2c1e;border-radius:12px;padding:12px;margin-bottom:8px;position:relative;">
+          <div style="background:#d4c4b0;height:120px;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:#999;font-size:10px;">Ảnh bìa</div>
+          <div style="font-weight:bold;font-size:13px;">Linh, 24</div>
+          <div style="font-size:10px;opacity:0.7;margin:2px 0;">Hồ Chí Minh · 3.2km</div>
+          <div style="font-size:10px;margin:4px 0;">UI/UX Designer · RMIT</div>
+          <div style="background:#fdf0f5;border-radius:6px;padding:6px;font-size:10px;margin:6px 0;">"Cuối tuần thích cà phê và xem phim"</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+            <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:12px;padding:2px 8px;font-size:9px;">cafe</span>
+            <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:12px;padding:2px 8px;font-size:9px;">phim</span>
+            <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:12px;padding:2px 8px;font-size:9px;">du lịch</span>
+          </div>
+          <div style="position:absolute;top:8px;right:8px;background:#7c3aed;color:white;border-radius:8px;padding:2px 6px;font-size:9px;">⚙️ Filter</div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:16px;">
+          <div style="width:44px;height:44px;border:2px solid #3d2c1e;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;">✗</div>
+          <div style="width:44px;height:44px;border:2px solid #3d2c1e;border-radius:50%;background:#fde8f0;display:flex;align-items:center;justify-content:center;font-size:18px;">⭐</div>
+          <div style="width:44px;height:44px;border:2px solid #3d2c1e;border-radius:50%;background:#d4f0e8;display:flex;align-items:center;justify-content:center;font-size:18px;">♡</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Stats bar trên đầu</h3>
+      <p>Dải thống kê mỏng ngay bên trên card. Filter button nổi góc trên-phải card. Card ngắn hơn. Gọn, tập trung vào card.</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#faf7f2;">
+      <div style="font-family:monospace;font-size:11px;line-height:1.6;padding:14px 16px;color:#3d2c1e;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <div style="flex:1;background:#e8d5c4;border-radius:6px;padding:6px 8px;text-align:center;">
+            <div style="font-size:14px;font-weight:bold;">8</div>
+            <div style="font-size:9px;opacity:0.7;">likes</div>
+          </div>
+          <div style="flex:1;background:#f0e8d4;border-radius:6px;padding:6px 8px;text-align:center;">
+            <div style="font-size:14px;font-weight:bold;">2</div>
+            <div style="font-size:9px;opacity:0.7;">super</div>
+          </div>
+          <div style="flex:1;background:#d4e8f0;border-radius:6px;padding:6px 8px;text-align:center;">
+            <div style="font-size:14px;font-weight:bold;">12</div>
+            <div style="font-size:9px;opacity:0.7;">matches</div>
+          </div>
+          <div style="flex:1;background:#fff;border:1px solid #3d2c1e;border-radius:6px;padding:6px 8px;text-align:center;">
+            <div style="font-size:14px;">⚙️</div>
+            <div style="font-size:9px;opacity:0.7;">filter</div>
+          </div>
+        </div>
+        <div style="background:#fff;border:2px solid #3d2c1e;border-radius:12px;padding:12px;margin-bottom:8px;">
+          <div style="background:#d4c4b0;height:100px;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:#999;font-size:10px;">Ảnh bìa</div>
+          <div style="font-weight:bold;font-size:13px;">Linh, 24 · 3.2km</div>
+          <div style="font-size:10px;opacity:0.7;margin:2px 0;">UI/UX Designer · RMIT</div>
+          <div style="background:#fdf0f5;border-radius:6px;padding:6px;font-size:10px;margin:6px 0;">"Cuối tuần thích cà phê và xem phim"</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+            <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:12px;padding:2px 8px;font-size:9px;">cafe</span>
+            <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:12px;padding:2px 8px;font-size:9px;">phim</span>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:16px;">
+          <div style="width:44px;height:44px;border:2px solid #3d2c1e;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;">✗</div>
+          <div style="width:44px;height:44px;border:2px solid #3d2c1e;border-radius:50%;background:#fde8f0;display:flex;align-items:center;justify-content:center;font-size:18px;">⭐</div>
+          <div style="width:44px;height:44px;border:2px solid #3d2c1e;border-radius:50%;background:#d4f0e8;display:flex;align-items:center;justify-content:center;font-size:18px;">♡</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — 4 ô stats + filter hàng ngang</h3>
+      <p>4 ô ngang đều nhau: likes, super, matches, filter. Card compact hơn. Layout vuông vức, dễ scan.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#faf7f2;">
+      <div style="font-family:monospace;font-size:11px;line-height:1.6;padding:14px 16px;color:#3d2c1e;">
+        <div style="background:#fff;border:2px solid #3d2c1e;border-radius:12px;padding:12px;margin-bottom:8px;">
+          <div style="background:#d4c4b0;height:110px;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:#999;font-size:10px;">Ảnh bìa</div>
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <div style="font-weight:bold;font-size:13px;">Linh, 24</div>
+              <div style="font-size:10px;opacity:0.7;">3.2km · RMIT</div>
+            </div>
+            <div style="text-align:right;font-size:10px;background:#7c3aed;color:white;border-radius:6px;padding:3px 6px;">92% match</div>
+          </div>
+          <div style="background:#fdf0f5;border-radius:6px;padding:5px;font-size:10px;margin:5px 0;">"Cuối tuần thích cà phê"</div>
+          <div style="display:flex;gap:4px;">
+            <span style="background:#fde8f0;border-radius:12px;padding:2px 6px;font-size:9px;border:1px solid #f0a0c0;">cafe</span>
+            <span style="background:#fde8f0;border-radius:12px;padding:2px 6px;font-size:9px;border:1px solid #f0a0c0;">phim</span>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:12px;margin-bottom:8px;">
+          <div style="width:40px;height:40px;border:2px solid #3d2c1e;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;">✗</div>
+          <div style="width:40px;height:40px;border:2px solid #3d2c1e;border-radius:50%;background:#fde8f0;display:flex;align-items:center;justify-content:center;font-size:16px;">⭐</div>
+          <div style="width:40px;height:40px;border:2px solid #3d2c1e;border-radius:50%;background:#d4f0e8;display:flex;align-items:center;justify-content:center;font-size:16px;">♡</div>
+        </div>
+        <div style="background:#fff;border:1px solid #d4c4b0;border-radius:8px;padding:8px 10px;">
+          <div style="font-size:9px;font-weight:bold;opacity:0.5;margin-bottom:4px;text-transform:uppercase;">Hôm nay</div>
+          <div style="display:flex;justify-content:space-between;">
+            <span>❤️ 8 thích</span>
+            <span>⭐ 2 super</span>
+            <span>💫 12 match</span>
+            <span style="color:#7c3aed;">⚙️ Filter</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Stats mini bên dưới action buttons</h3>
+      <p>Card và nút bấm trên đầu. Stats + filter link nhỏ gọn dưới cùng. Match % badge trên card. Sắp xếp theo tầm quan trọng từ trên xuống.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">👉 Click chọn layout bạn thích, hoặc cho tôi biết trong terminal.</p>

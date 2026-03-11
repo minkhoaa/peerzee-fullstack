@@ -1,0 +1,209 @@
+<h2>Discover — Lấp đầy 2 cột bên trái/phải</h2>
+<p class="subtitle">3 cách dùng khoảng trắng hai bên card trên desktop. Card giữa giữ nguyên.</p>
+
+<div class="cards">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#faf7f2;">
+      <div style="display:flex;height:320px;font-family:monospace;font-size:10px;color:#3d2c1e;gap:0;">
+        <!-- Left: Mini profile + stats -->
+        <div style="width:90px;background:#e8d5c4;border-right:2px solid #3d2c1e;padding:10px 8px;display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;">
+            <div style="width:44px;height:44px;border-radius:8px;background:#d4c4b0;border:2px solid #3d2c1e;margin:0 auto 4px;"></div>
+            <div style="font-weight:bold;font-size:9px;">Bạn</div>
+          </div>
+          <div style="height:1px;background:#3d2c1e;opacity:0.2;"></div>
+          <div style="text-align:center;">
+            <div style="font-size:16px;font-weight:bold;">24</div>
+            <div style="font-size:8px;opacity:0.6;text-transform:uppercase;">Thích</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:16px;font-weight:bold;">3</div>
+            <div style="font-size:8px;opacity:0.6;text-transform:uppercase;">Super</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:16px;font-weight:bold;">12</div>
+            <div style="font-size:8px;opacity:0.6;text-transform:uppercase;">Match</div>
+          </div>
+          <div style="height:1px;background:#3d2c1e;opacity:0.2;"></div>
+          <div style="background:#7c3aed;color:white;border-radius:6px;padding:4px;text-align:center;font-size:8px;font-weight:bold;">Filter</div>
+        </div>
+        <!-- Center: Card -->
+        <div style="flex:1;background:#e8f5e9;display:flex;align-items:center;justify-content:center;">
+          <div style="width:120px;height:240px;background:#fff;border:2px solid #3d2c1e;border-radius:10px;box-shadow:2px 2px 0 #3d2c1e;overflow:hidden;">
+            <div style="background:#c8b8a0;height:100px;display:flex;align-items:end;padding:6px;">
+              <div style="background:rgba(0,0,0,0.4);color:white;border-radius:4px;padding:2px 4px;font-size:8px;">Linh, 24</div>
+            </div>
+            <div style="padding:7px;font-size:8px;">
+              <div style="opacity:0.7;margin-bottom:4px;">UI Designer · RMIT</div>
+              <div style="background:#fdf0f5;border-radius:3px;padding:3px 4px;margin-bottom:4px;">"Thích cà phê ☕"</div>
+              <div style="display:flex;gap:2px;flex-wrap:wrap;">
+                <span style="background:#fde8f0;border-radius:6px;padding:1px 4px;border:1px solid #f0a0c0;">cafe</span>
+                <span style="background:#fde8f0;border-radius:6px;padding:1px 4px;border:1px solid #f0a0c0;">phim</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Người đã thích bạn -->
+        <div style="width:90px;background:#fde8f0;border-left:2px solid #3d2c1e;padding:10px 8px;">
+          <div style="font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;text-align:center;">Thích bạn</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div style="width:28px;height:28px;border-radius:6px;background:#f0a0c0;border:1px solid #3d2c1e;flex-shrink:0;filter:blur(2px);"></div>
+              <div style="font-size:8px;opacity:0.6;">???</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div style="width:28px;height:28px;border-radius:6px;background:#d4b8f0;border:1px solid #3d2c1e;flex-shrink:0;filter:blur(2px);"></div>
+              <div style="font-size:8px;opacity:0.6;">???</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div style="width:28px;height:28px;border-radius:6px;background:#b8d4f0;border:1px solid #3d2c1e;flex-shrink:0;filter:blur(2px);"></div>
+              <div style="font-size:8px;opacity:0.6;">???</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;background:#ffa0c0;border:1px solid #3d2c1e;border-radius:6px;padding:4px;text-align:center;font-size:8px;font-weight:bold;">Xem ai</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Stats trái + Likers phải</h3>
+      <p>Trái: avatar bạn + stats (thích/super/match) + filter. Phải: teaser "Ai đã thích bạn" với avatar mờ, CTA dẫn /likers.</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#faf7f2;">
+      <div style="display:flex;height:320px;font-family:monospace;font-size:10px;color:#3d2c1e;gap:0;">
+        <!-- Left: Recent matches / chat shortcuts -->
+        <div style="width:90px;background:#e8f0fd;border-right:2px solid #3d2c1e;padding:8px;">
+          <div style="font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Match mới</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="background:#fff;border:1px solid #3d2c1e;border-radius:6px;padding:4px;display:flex;align-items:center;gap:4px;">
+              <div style="width:22px;height:22px;border-radius:4px;background:#d4c4b0;flex-shrink:0;"></div>
+              <div style="font-size:8px;overflow:hidden;">
+                <div style="font-weight:bold;truncate;">Linh</div>
+                <div style="opacity:0.5;font-size:7px;">2 giờ trước</div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #3d2c1e;border-radius:6px;padding:4px;display:flex;align-items:center;gap:4px;">
+              <div style="width:22px;height:22px;border-radius:4px;background:#f0d4c0;flex-shrink:0;"></div>
+              <div style="font-size:8px;">
+                <div style="font-weight:bold;">Minh</div>
+                <div style="opacity:0.5;font-size:7px;">hôm qua</div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #3d2c1e;border-radius:6px;padding:4px;display:flex;align-items:center;gap:4px;">
+              <div style="width:22px;height:22px;border-radius:4px;background:#c0d4f0;flex-shrink:0;"></div>
+              <div style="font-size:8px;">
+                <div style="font-weight:bold;">Hoa</div>
+                <div style="opacity:0.5;font-size:7px;">3 ngày</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:8px;background:#5b8df0;color:white;border:1px solid #3d2c1e;border-radius:6px;padding:4px;text-align:center;font-size:8px;font-weight:bold;">Chat →</div>
+        </div>
+        <!-- Center: Card -->
+        <div style="flex:1;background:#e8f5e9;display:flex;align-items:center;justify-content:center;">
+          <div style="width:120px;height:240px;background:#fff;border:2px solid #3d2c1e;border-radius:10px;box-shadow:2px 2px 0 #3d2c1e;overflow:hidden;">
+            <div style="background:#c8b8a0;height:100px;display:flex;align-items:end;padding:6px;">
+              <div style="background:rgba(0,0,0,0.4);color:white;border-radius:4px;padding:2px 4px;font-size:8px;">Linh, 24</div>
+            </div>
+            <div style="padding:7px;font-size:8px;">
+              <div style="opacity:0.7;margin-bottom:4px;">UI Designer · RMIT</div>
+              <div style="background:#fdf0f5;border-radius:3px;padding:3px 4px;margin-bottom:4px;">"Thích cà phê ☕"</div>
+              <div style="display:flex;gap:2px;flex-wrap:wrap;">
+                <span style="background:#fde8f0;border-radius:6px;padding:1px 4px;border:1px solid #f0a0c0;">cafe</span>
+                <span style="background:#fde8f0;border-radius:6px;padding:1px 4px;border:1px solid #f0a0c0;">phim</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: AI Search quick panel -->
+        <div style="width:90px;background:#f5f0ff;border-left:2px solid #3d2c1e;padding:8px;">
+          <div style="font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Tìm kiếm</div>
+          <div style="background:#fff;border:1px solid #3d2c1e;border-radius:6px;padding:4px;margin-bottom:6px;font-size:8px;color:#999;">Mô tả bạn muốn...</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="background:#ede9f8;border-radius:4px;padding:3px 5px;font-size:8px;">Bạn gái học AI</div>
+            <div style="background:#ede9f8;border-radius:4px;padding:3px 5px;font-size:8px;">Nam thích gym</div>
+            <div style="background:#ede9f8;border-radius:4px;padding:3px 5px;font-size:8px;">Bạn nữ HN</div>
+          </div>
+          <div style="margin-top:8px;background:#7c3aed;color:white;border:1px solid #3d2c1e;border-radius:6px;padding:4px;text-align:center;font-size:8px;font-weight:bold;">Tìm →</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Recent matches trái + AI Search phải</h3>
+      <p>Trái: danh sách match mới nhất + nút Chat. Phải: ô tìm kiếm AI + sample queries. Tích hợp chức năng có sẵn.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#faf7f2;">
+      <div style="display:flex;height:320px;font-family:monospace;font-size:10px;color:#3d2c1e;gap:0;">
+        <!-- Left: Gợi ý nhanh + filter -->
+        <div style="width:90px;background:#faf7f2;border-right:2px solid #3d2c1e;padding:8px;">
+          <div style="font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Bộ lọc</div>
+          <div style="margin-bottom:8px;">
+            <div style="font-size:8px;opacity:0.6;margin-bottom:3px;">Giới tính</div>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <div style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:4px;padding:2px 5px;font-size:8px;">Nữ ✓</div>
+              <div style="background:#e8f0fd;border-radius:4px;padding:2px 5px;font-size:8px;opacity:0.6;">Nam</div>
+              <div style="background:#e8f0fd;border-radius:4px;padding:2px 5px;font-size:8px;opacity:0.6;">Tất cả</div>
+            </div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <div style="font-size:8px;opacity:0.6;margin-bottom:3px;">Khoảng cách</div>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <div style="background:#e8f0fd;border-radius:4px;padding:2px 5px;font-size:8px;opacity:0.6;">10km</div>
+              <div style="background:#7c3aed;color:white;border-radius:4px;padding:2px 5px;font-size:8px;">50km ✓</div>
+              <div style="background:#e8f0fd;border-radius:4px;padding:2px 5px;font-size:8px;opacity:0.6;">100km</div>
+            </div>
+          </div>
+          <div style="background:#3d2c1e;color:#faf7f2;border-radius:6px;padding:4px;text-align:center;font-size:8px;font-weight:bold;">Áp dụng</div>
+        </div>
+        <!-- Center: Card -->
+        <div style="flex:1;background:#e8f5e9;display:flex;align-items:center;justify-content:center;">
+          <div style="width:120px;height:240px;background:#fff;border:2px solid #3d2c1e;border-radius:10px;box-shadow:2px 2px 0 #3d2c1e;overflow:hidden;">
+            <div style="background:#c8b8a0;height:100px;display:flex;align-items:end;padding:6px;">
+              <div style="background:rgba(0,0,0,0.4);color:white;border-radius:4px;padding:2px 4px;font-size:8px;">Linh, 24</div>
+            </div>
+            <div style="padding:7px;font-size:8px;">
+              <div style="opacity:0.7;margin-bottom:4px;">UI Designer · RMIT</div>
+              <div style="background:#fdf0f5;border-radius:3px;padding:3px 4px;margin-bottom:4px;">"Thích cà phê ☕"</div>
+              <div style="display:flex;gap:2px;flex-wrap:wrap;">
+                <span style="background:#fde8f0;border-radius:6px;padding:1px 4px;border:1px solid #f0a0c0;">cafe</span>
+                <span style="background:#fde8f0;border-radius:6px;padding:1px 4px;border:1px solid #f0a0c0;">phim</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Profile gợi ý nearby -->
+        <div style="width:90px;background:#faf0e8;border-left:2px solid #3d2c1e;padding:8px;">
+          <div style="font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Gần bạn</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="background:#fff;border:1px solid #3d2c1e;border-radius:6px;padding:4px;text-align:center;">
+              <div style="width:36px;height:36px;border-radius:6px;background:#f0d4c0;border:1px solid #3d2c1e;margin:0 auto 2px;"></div>
+              <div style="font-size:8px;font-weight:bold;">Mai</div>
+              <div style="font-size:7px;opacity:0.6;">1.2km</div>
+            </div>
+            <div style="background:#fff;border:1px solid #3d2c1e;border-radius:6px;padding:4px;text-align:center;">
+              <div style="width:36px;height:36px;border-radius:6px;background:#d4c0f0;border:1px solid #3d2c1e;margin:0 auto 2px;"></div>
+              <div style="font-size:8px;font-weight:bold;">Thu</div>
+              <div style="font-size:7px;opacity:0.6;">2.8km</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Filter trái + Gần bạn phải</h3>
+      <p>Trái: bộ lọc persistent (giới tính, khoảng cách). Phải: grid nhỏ "Gần bạn" — quick-view không cần swipe.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Click chọn option hoặc phản hồi trong terminal. Có thể kết hợp ý từ nhiều option.</p>

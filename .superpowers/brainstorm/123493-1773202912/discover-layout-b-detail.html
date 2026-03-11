@@ -1,0 +1,165 @@
+<h2>Layout B — Chi tiết (không icon)</h2>
+<p class="subtitle">Refined version với text-only stats, filter drawer, card compact hơn, và empty state.</p>
+
+<div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;">
+
+  <!-- Normal state -->
+  <div>
+    <div class="label" style="margin-bottom:8px;text-align:center;">Trạng thái bình thường</div>
+    <div style="width:320px;background:#faf7f2;border:2px solid #3d2c1e;border-radius:16px;overflow:hidden;font-family:monospace;font-size:11px;color:#3d2c1e;">
+      <!-- Header -->
+      <div style="background:#3d2c1e;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:#faf7f2;font-weight:bold;font-size:12px;">DISCOVER</span>
+        <div style="display:flex;gap:8px;">
+          <div style="background:#f5d76e;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:bold;">DATE</div>
+          <div style="background:transparent;border:1px solid #faf7f2;color:#faf7f2;border-radius:6px;padding:3px 8px;font-size:10px;">STUDY</div>
+        </div>
+      </div>
+
+      <!-- Stats strip (4 boxes, no icons) -->
+      <div style="display:flex;gap:6px;padding:10px 12px;background:#e8d5c4;border-bottom:2px solid #3d2c1e;">
+        <div style="flex:1;background:#faf7f2;border:1px solid #d4b896;border-radius:8px;padding:6px 4px;text-align:center;">
+          <div style="font-size:16px;font-weight:bold;">8</div>
+          <div style="font-size:9px;opacity:0.6;text-transform:uppercase;letter-spacing:0.5px;">Thích</div>
+        </div>
+        <div style="flex:1;background:#faf7f2;border:1px solid #d4b896;border-radius:8px;padding:6px 4px;text-align:center;">
+          <div style="font-size:16px;font-weight:bold;">2</div>
+          <div style="font-size:9px;opacity:0.6;text-transform:uppercase;letter-spacing:0.5px;">Super</div>
+        </div>
+        <div style="flex:1;background:#faf7f2;border:1px solid #d4b896;border-radius:8px;padding:6px 4px;text-align:center;">
+          <div style="font-size:16px;font-weight:bold;">12</div>
+          <div style="font-size:9px;opacity:0.6;text-transform:uppercase;letter-spacing:0.5px;">Match</div>
+        </div>
+        <div style="flex:1;background:#7c3aed;border:1px solid #5b21b6;border-radius:8px;padding:6px 4px;text-align:center;cursor:pointer;">
+          <div style="font-size:13px;font-weight:bold;color:white;">Lọc</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.5px;">Filter</div>
+        </div>
+      </div>
+
+      <!-- Card compact -->
+      <div style="padding:12px;">
+        <div style="background:#fff;border:2px solid #3d2c1e;border-radius:12px;overflow:hidden;box-shadow:3px 3px 0 #3d2c1e;">
+          <div style="background:linear-gradient(180deg,#d4c4b0,#b8a490);height:140px;display:flex;align-items:end;padding:8px;">
+            <div style="background:rgba(255,255,255,0.9);border-radius:8px;padding:5px 8px;font-size:11px;">
+              <span style="font-weight:bold;">Linh, 24</span> · Hồ Chí Minh · 3.2km
+            </div>
+          </div>
+          <div style="padding:10px;">
+            <div style="font-size:10px;opacity:0.7;margin-bottom:5px;">UI/UX Designer · RMIT</div>
+            <div style="background:#fdf0f5;border-left:3px solid #f0a0c0;border-radius:4px;padding:5px 7px;font-size:10px;margin-bottom:6px;">"Cuối tuần thích cà phê và xem phim indie"</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:10px;padding:2px 7px;font-size:9px;">cafe</span>
+              <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:10px;padding:2px 7px;font-size:9px;">phim indie</span>
+              <span style="background:#fde8f0;border:1px solid #f0a0c0;border-radius:10px;padding:2px 7px;font-size:9px;">du lịch</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;justify-content:center;gap:14px;margin-top:14px;">
+          <div style="width:48px;height:48px;border:2px solid #3d2c1e;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:2px 2px 0 #3d2c1e;">✗</div>
+          <div style="width:48px;height:48px;border:2px solid #3d2c1e;border-radius:50%;background:#f5d76e;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:2px 2px 0 #3d2c1e;">⭐</div>
+          <div style="width:48px;height:48px;border:2px solid #3d2c1e;border-radius:50%;background:#d4f0e8;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:2px 2px 0 #3d2c1e;">♡</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div>
+    <div class="label" style="margin-bottom:8px;text-align:center;">Hết profile (empty state)</div>
+    <div style="width:320px;background:#faf7f2;border:2px solid #3d2c1e;border-radius:16px;overflow:hidden;font-family:monospace;font-size:11px;color:#3d2c1e;">
+      <!-- Header same -->
+      <div style="background:#3d2c1e;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:#faf7f2;font-weight:bold;font-size:12px;">DISCOVER</span>
+        <div style="display:flex;gap:8px;">
+          <div style="background:#f5d76e;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:bold;">DATE</div>
+        </div>
+      </div>
+
+      <!-- Stats strip -->
+      <div style="display:flex;gap:6px;padding:10px 12px;background:#e8d5c4;border-bottom:2px solid #3d2c1e;">
+        <div style="flex:1;background:#faf7f2;border:1px solid #d4b896;border-radius:8px;padding:6px 4px;text-align:center;">
+          <div style="font-size:16px;font-weight:bold;">24</div>
+          <div style="font-size:9px;opacity:0.6;text-transform:uppercase;">Thích</div>
+        </div>
+        <div style="flex:1;background:#faf7f2;border:1px solid #d4b896;border-radius:8px;padding:6px 4px;text-align:center;">
+          <div style="font-size:16px;font-weight:bold;">5</div>
+          <div style="font-size:9px;opacity:0.6;text-transform:uppercase;">Super</div>
+        </div>
+        <div style="flex:1;background:#faf7f2;border:1px solid #d4b896;border-radius:8px;padding:6px 4px;text-align:center;">
+          <div style="font-size:16px;font-weight:bold;">18</div>
+          <div style="font-size:9px;opacity:0.6;text-transform:uppercase;">Match</div>
+        </div>
+        <div style="flex:1;background:#7c3aed;border:1px solid #5b21b6;border-radius:8px;padding:6px 4px;text-align:center;">
+          <div style="font-size:13px;font-weight:bold;color:white;">Lọc</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.7);text-transform:uppercase;">Filter</div>
+        </div>
+      </div>
+
+      <!-- Empty state content -->
+      <div style="padding:24px 16px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;animation:spin 4s linear infinite;">✨</div>
+        <div style="font-weight:bold;font-size:14px;margin-bottom:6px;">Đã xem hết rồi!</div>
+        <div style="font-size:10px;opacity:0.7;line-height:1.6;margin-bottom:16px;">Bạn đã xem qua tất cả gợi ý trong khu vực.<br>Mở rộng bộ lọc hoặc thử lại sau.</div>
+
+        <div style="display:flex;gap:8px;justify-content:center;flex-direction:column;align-items:center;">
+          <div style="background:#7c3aed;color:white;border:2px solid #3d2c1e;border-radius:10px;padding:8px 20px;font-size:11px;font-weight:bold;box-shadow:2px 2px 0 #3d2c1e;cursor:pointer;">Mở rộng bộ lọc</div>
+          <div style="background:#fff;border:2px solid #3d2c1e;border-radius:10px;padding:8px 20px;font-size:11px;font-weight:bold;box-shadow:2px 2px 0 #3d2c1e;cursor:pointer;">Thử lại sau</div>
+        </div>
+
+        <div style="margin-top:16px;font-size:9px;opacity:0.5;">Cập nhật hồ sơ mới thường xuyên mỗi ngày</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter drawer preview -->
+  <div>
+    <div class="label" style="margin-bottom:8px;text-align:center;">Khi bấm "Lọc"</div>
+    <div style="width:320px;background:#faf7f2;border:2px solid #3d2c1e;border-radius:16px;overflow:hidden;font-family:monospace;font-size:11px;color:#3d2c1e;">
+      <!-- Dimmed background -->
+      <div style="background:rgba(61,44,30,0.3);padding:20px 12px 0;height:80px;display:flex;align-items:center;justify-content:center;">
+        <div style="color:rgba(250,247,242,0.7);font-size:10px;">← discover page mờ đi</div>
+      </div>
+      <!-- Drawer slides up -->
+      <div style="background:#faf7f2;border-top:2px solid #3d2c1e;padding:14px;">
+        <div style="text-align:center;font-weight:bold;font-size:13px;margin-bottom:12px;">Bộ lọc</div>
+
+        <div style="margin-bottom:10px;">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.6;margin-bottom:4px;">Độ tuổi</div>
+          <div style="background:#e8d5c4;border-radius:6px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;">
+            <span>18</span>
+            <div style="flex:1;height:3px;background:#7c3aed;border-radius:2px;margin:0 8px;position:relative;">
+              <div style="position:absolute;right:30%;width:8px;height:8px;background:#7c3aed;border-radius:50%;top:-3px;"></div>
+            </div>
+            <span>35</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.6;margin-bottom:4px;">Khoảng cách tối đa</div>
+          <div style="display:flex;gap:4px;">
+            <div style="flex:1;background:#e8d5c4;border-radius:6px;padding:5px;text-align:center;font-size:9px;">10km</div>
+            <div style="flex:1;background:#7c3aed;color:white;border-radius:6px;padding:5px;text-align:center;font-size:9px;font-weight:bold;">50km</div>
+            <div style="flex:1;background:#e8d5c4;border-radius:6px;padding:5px;text-align:center;font-size:9px;">100km</div>
+            <div style="flex:1;background:#e8d5c4;border-radius:6px;padding:5px;text-align:center;font-size:9px;">Tất cả</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.6;margin-bottom:4px;">Giới tính</div>
+          <div style="display:flex;gap:4px;">
+            <div style="flex:1;background:#e8d5c4;border-radius:6px;padding:5px;text-align:center;font-size:9px;">Nữ</div>
+            <div style="flex:1;background:#7c3aed;color:white;border-radius:6px;padding:5px;text-align:center;font-size:9px;font-weight:bold;">Nam</div>
+            <div style="flex:1;background:#e8d5c4;border-radius:6px;padding:5px;text-align:center;font-size:9px;">Tất cả</div>
+          </div>
+        </div>
+
+        <div style="background:#7c3aed;color:white;border:2px solid #3d2c1e;border-radius:10px;padding:9px;text-align:center;font-weight:bold;box-shadow:2px 2px 0 #3d2c1e;">Áp dụng</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:20px;">Layout B chốt. Filter drawer phù hợp không? Nói trong terminal nhé.</p>

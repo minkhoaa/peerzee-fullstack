@@ -22,6 +22,8 @@ interface UseSubtitleOptions {
   language?: string;
   /** Set to false to pause recognition (e.g. when call is idle) */
   enabled?: boolean;
+  /** Local media stream — enables Whisper server-side correction when provided */
+  stream?: MediaStream | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,6 +47,7 @@ export function useSubtitle({
   sessionId,
   language = 'vi-VN',
   enabled = true,
+  stream = null,
 }: UseSubtitleOptions) {
   // ── Local speech ──────────────────────────────────────────────────────────
   const [localInterim, setLocalInterim] = useState<string>('');
@@ -57,6 +60,58 @@ export function useSubtitle({
   const recognitionRef = useRef<any>(null);
   const remoteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  // ── Whisper hybrid: send audio chunks to server every 3 s ────────────────
+  useEffect(() => {
+    if (!enabled || !stream || !socket) return;
+
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length === 0) return;
+
+    // Use only the audio track
+    const audioStream = new MediaStream(audioTracks);
+
+    // Pick a supported MIME type
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : 'audio/webm';
+
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(audioStream, { mimeType });
+    } catch {
+      return; // MediaRecorder not supported
+    }
+
+    mediaRecorderRef.current = recorder;
+
+    const sendChunk = (blob: Blob) => {
+      if (!socket || blob.size === 0) return;
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = (reader.result as string).split(',')[1];
+        if (base64) {
+          socket.emit('subtitle:audio', { audioData: base64 });
+        }
+      };
+      reader.readAsDataURL(blob);
+    };
+
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) {
+        sendChunk(e.data);
+      }
+    };
+
+    // Emit a chunk every 3 seconds
+    recorder.start(3000);
+
+    return () => {
+      recorder.stop();
+      mediaRecorderRef.current = null;
+    };
+  }, [enabled, stream, socket]);
 
   // ── Auto-clear remote subtitle after 4 s of silence ──────────────────────
   const scheduleRemoteClear = useCallback(() => {

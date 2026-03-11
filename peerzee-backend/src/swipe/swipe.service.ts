@@ -156,12 +156,8 @@ export class SwipeService {
             };
         }
 
-        // Create conversation for the match
-        const conversation = await this.chatService.createConversation(
-            'direct',
-            [swiperId, targetId],
-            'Match Chat',
-        );
+        // Create conversation for the match (find existing first to avoid duplicates)
+        const conversation = await this.chatService.findOrCreateDMConversation(swiperId, targetId);
 
         // Create match record
         const match = new Match();

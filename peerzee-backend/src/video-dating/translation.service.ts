@@ -243,6 +243,14 @@ Text: ${text}`;
     }
 
     /**
+     * Transcribe a single audio segment using Whisper (with Gemini fallback).
+     * Called by the gateway when a client sends an audio chunk for server-side correction.
+     */
+    async transcribeSegment(audioBuffer: Buffer): Promise<string | null> {
+        return this.transcribeAudio(audioBuffer);
+    }
+
+    /**
      * Stop translation session
      */
     async stopTranslation(sessionId: string, userId: string): Promise<void> {

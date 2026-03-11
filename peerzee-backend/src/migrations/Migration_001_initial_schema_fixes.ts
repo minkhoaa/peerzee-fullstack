@@ -71,12 +71,22 @@ export class Migration_001_initial_schema_fixes extends Migration {
 
     // 6. Ensure bio_embedding column exists (snake_case — matches entity fieldName)
     this.addSql(`
-      ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS bio_embedding vector(768);
+      DO $$ BEGIN
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS bio_embedding vector(768);
+      EXCEPTION
+        WHEN undefined_table THEN NULL;
+        WHEN others THEN NULL;
+      END $$;
     `);
 
     // 7. Drop duplicate camelCase column if it exists
     this.addSql(`
-      ALTER TABLE user_profiles DROP COLUMN IF EXISTS "bioEmbedding";
+      DO $$ BEGIN
+        ALTER TABLE user_profiles DROP COLUMN IF EXISTS "bioEmbedding";
+      EXCEPTION
+        WHEN undefined_table THEN NULL;
+        WHEN others THEN NULL;
+      END $$;
     `);
 
     // 8. Create intent_mode enum type
@@ -89,19 +99,31 @@ export class Migration_001_initial_schema_fixes extends Migration {
     `);
 
     // 9. Add missing user_profiles columns
-    this.addSql(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS intent_mode varchar(20) DEFAULT 'DATE';`);
-    this.addSql(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS profile_properties jsonb DEFAULT '{}';`);
-    this.addSql(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS availability jsonb DEFAULT '{}';`);
-    this.addSql(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS gender varchar(20);`);
-    this.addSql(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS last_active timestamp;`);
-    this.addSql(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS embedding_updated_at timestamp;`);
-    this.addSql(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS city varchar(100);`);
-    this.addSql(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS region varchar(100);`);
-    this.addSql(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS country varchar(2);`);
+    this.addSql(`
+      DO $$ BEGIN
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS intent_mode varchar(20) DEFAULT 'DATE';
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS profile_properties jsonb DEFAULT '{}';
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS availability jsonb DEFAULT '{}';
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS gender varchar(20);
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS last_active timestamp;
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS embedding_updated_at timestamp;
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS city varchar(100);
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS region varchar(100);
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS country varchar(2);
+      EXCEPTION
+        WHEN undefined_table THEN NULL;
+        WHEN others THEN NULL;
+      END $$;
+    `);
 
     // 10. Add GIN index for efficient blocked user lookups
     this.addSql(`
-      CREATE INDEX IF NOT EXISTS idx_users_blocked_ids ON users USING GIN (blocked_user_ids);
+      DO $$ BEGIN
+        CREATE INDEX IF NOT EXISTS idx_users_blocked_ids ON users USING GIN (blocked_user_ids);
+      EXCEPTION
+        WHEN undefined_table THEN NULL;
+        WHEN others THEN NULL;
+      END $$;
     `);
   }
 

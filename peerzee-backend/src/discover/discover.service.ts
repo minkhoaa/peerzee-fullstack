@@ -145,7 +145,8 @@ AND(6371 * acos(
         // Cursor pagination
         let cursorFilter = '';
         if (cursor) {
-            cursorFilter = `AND u.id > '${cursor}'`;
+            cursorFilter = `AND u.id > ?`;
+            params.push(cursor);
         }
 
         // RAW SQL IS MUST HERE for complex joins and exclusions
@@ -355,12 +356,8 @@ LIMIT ?
             };
         }
 
-        // Create conversation
-        const conversation = await this.chatService.createConversation(
-            'direct',
-            [userId, targetId],
-            'Match Chat',
-        );
+        // Create conversation (find existing first to avoid duplicates)
+        const conversation = await this.chatService.findOrCreateDMConversation(userId, targetId);
 
         // Create match
         const match = new Match();

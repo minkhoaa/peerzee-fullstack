@@ -230,10 +230,15 @@ export default function ChatPage() {
             processedMsgIds.current.add(data.id);
 
             setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, data]));
+            const lastMessagePreview = data.body?.startsWith('{"type":"itinerary"')
+                ? '🗓️ Wingman gợi ý kế hoạch hẹn hò'
+                : data.body?.startsWith('{"type":"venues"')
+                ? '📍 Wingman gợi ý địa điểm'
+                : data.body;
             setConversations((prev) =>
                 prev.map((c) =>
                     c.id === data.conversation_id
-                        ? { ...c, lastMessage: data.body, lastMessageAt: data.createdAt }
+                        ? { ...c, lastMessage: lastMessagePreview, lastMessageAt: data.createdAt }
                         : c
                 )
             );
@@ -384,8 +389,18 @@ export default function ChatPage() {
                     participantInfo?: { user_id: string; email?: string; display_name?: string; avatarUrl?: string | null }[];
                 })[]
             >(`/conversation`);
-            setConversations(res.data);
-            res.data.forEach((c) => {
+            // Deduplicate: keep only the most recent conversation per other user
+            const seenOtherUser = new Map<string, Conversation & { participantInfo?: { user_id: string; email?: string; display_name?: string; avatarUrl?: string | null }[] }>();
+            for (const c of res.data) {
+                const otherUser = c.participantIds?.find((id) => id !== userId) ?? c.id;
+                const existing = seenOtherUser.get(otherUser);
+                if (!existing || (c.lastMessageAt && (!existing.lastMessageAt || new Date(c.lastMessageAt) > new Date(existing.lastMessageAt)))) {
+                    seenOtherUser.set(otherUser, c);
+                }
+            }
+            const deduped = Array.from(seenOtherUser.values());
+            setConversations(deduped);
+            deduped.forEach((c) => {
                 c.participantInfo?.forEach((p) => {
                     if (p.user_id !== userId) {
                         if (p.display_name) setUserNames((prev) => ({ ...prev, [p.user_id]: p.display_name! }));

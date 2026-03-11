@@ -131,7 +131,14 @@ export class ChatService {
 
       // Update conversation metadata
       conv.lastMessageAt = new Date();
-      conv.lastMessage = body.substring(0, 100); // Truncate preview if needed, or keep full
+      // For wingman JSON messages, store a friendly preview instead of raw JSON
+      let lastMessagePreview = body.substring(0, 100);
+      if (body.startsWith('{"type":"itinerary"')) {
+        lastMessagePreview = '🗓️ Wingman gợi ý kế hoạch hẹn hò';
+      } else if (body.startsWith('{"type":"venues"')) {
+        lastMessagePreview = '📍 Wingman gợi ý địa điểm';
+      }
+      conv.lastMessage = lastMessagePreview;
       // Atomic increment for lastSeq using JS (assuming pessimistic lock or accepting slight race in MVP)
       // Or cleaner: just parse int, add 1, stringify.
       const currentSeq = parseInt(conv.lastSeq || '0', 10);
