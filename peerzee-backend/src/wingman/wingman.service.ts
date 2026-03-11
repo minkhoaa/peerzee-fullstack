@@ -659,15 +659,16 @@ ${triggerMessage}`;
 
       const parsed: WingmanMentionResult = JSON.parse(jsonMatch[0]);
 
-      // Enrich each suggestion with real OSM coordinates (parallel)
+      // Enrich each suggestion with Foursquare-verified place info (parallel)
       await Promise.all(
         parsed.suggestions.map(async (s) => {
-          const osm = await this.searchPlacesOSM(`${s.place_name} ${s.address}`);
-          if (osm) {
-            s.google_maps_url = `https://www.google.com/maps/search/?api=1&query=${osm.lat},${osm.lon}`;
-            console.log(`[WINGMAN] ✅ Enriched "${s.place_name}" → ${s.google_maps_url}`);
+          const fsq = await this.searchPlacesFoursquare(`${s.place_name} ${s.address}`);
+          if (fsq) {
+            const q = encodeURIComponent(`${fsq.name} ${fsq.address}`);
+            s.google_maps_url = `https://www.google.com/maps/search/?api=1&query=${q}`;
+            console.log(`[WINGMAN] ✅ FSQ enriched "${s.place_name}" → ${s.google_maps_url}`);
           } else {
-            console.log(`[WINGMAN] ⚠️ OSM failed for "${s.place_name}", keeping Gemini URL`);
+            console.log(`[WINGMAN] ⚠️ FSQ failed for "${s.place_name}", keeping Gemini URL`);
           }
         }),
       );
@@ -690,25 +691,47 @@ ${triggerMessage}`;
     }
   }
 
-  private async searchPlacesOSM(
+  private async searchPlacesFoursquare(
     query: string,
-  ): Promise<{ lat: string; lon: string; display_name: string } | null> {
-    try {
-      const encoded = encodeURIComponent(`${query}, Ho Chi Minh City`);
-      const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`;
-      const response = await axios.get<{ lat: string; lon: string; display_name: string }[]>(url, {
-        headers: { 'User-Agent': 'peerzee-app/1.0 (contact@peerzee.app)' },
-        timeout: 5000,
-      });
-      if (response.data?.length > 0) {
-        const { lat, lon, display_name } = response.data[0];
-        console.log(`[OSM] ✅ "${query}" → lat=${lat} lon=${lon} | ${display_name}`);
-        return { lat, lon, display_name };
-      }
-      this.logger.warn(`[OSM] ⚠️ No results for "${query}"`);
+  ): Promise<{ lat: number; lon: number; address: string; name: string } | null> {
+    const apiKey = process.env.FSQ_API_KEY || '';
+    if (!apiKey) {
+      this.logger.warn('[FSQ] FSQ_API_KEY not set, skipping lookup');
       return null;
-    } catch (err) {
-      this.logger.warn(`[OSM] Lookup failed for "${query}":`, err);
+    }
+    try {
+      const response = await axios.get('https://api.foursquare.com/v3/places/search', {
+        headers: {
+          Authorization: apiKey,
+          Accept: 'application/json',
+        },
+        params: {
+          query,
+          near: 'Ho Chi Minh City, Vietnam',
+          limit: 1,
+          fields: 'name,geocodes,location',
+        },
+        timeout: 6000,
+      });
+
+      const results = response.data?.results;
+      if (!results?.length) {
+        this.logger.warn(`[FSQ] No results for "${query}"`);
+        return null;
+      }
+
+      const place = results[0];
+      const lat = place.geocodes?.main?.latitude;
+      const lon = place.geocodes?.main?.longitude;
+      const address = place.location?.formatted_address || place.location?.locality || '';
+      const name: string = place.name || query;
+
+      if (!lat || !lon) return null;
+
+      this.logger.log(`[FSQ] ✅ "${query}" → ${name} | ${address}`);
+      return { lat, lon, address, name };
+    } catch (err: any) {
+      this.logger.warn(`[FSQ] Lookup failed for "${query}":`, err?.message || err);
       return null;
     }
   }
@@ -799,15 +822,16 @@ Quy tắc bắt buộc:
           step.locationUrl = '';
           return;
         }
-        const osm = await this.searchPlacesOSM(step.locationName);
-        if (osm) {
-          step.locationUrl = `https://www.google.com/maps/search/?api=1&query=${osm.lat},${osm.lon}`;
-          this.logger.log(`[Itinerary] ✅ OSM pin for "${step.locationName}"`);
+        const fsq = await this.searchPlacesFoursquare(step.locationName);
+        if (fsq) {
+          const q = encodeURIComponent(`${fsq.name} ${fsq.address}`);
+          step.locationUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+          this.logger.log(`[Itinerary] ✅ FSQ pin for "${step.locationName}" → "${fsq.name}"`);
         } else {
           // Reliable text-search fallback built by us, not the LLM
           const q = encodeURIComponent(`${step.locationName}, Ho Chi Minh City`);
           step.locationUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
-          this.logger.warn(`[Itinerary] ⚠️ OSM miss for "${step.locationName}", using text-search fallback`);
+          this.logger.warn(`[Itinerary] ⚠️ FSQ miss for "${step.locationName}", using text-search fallback`);
         }
       }),
     );
