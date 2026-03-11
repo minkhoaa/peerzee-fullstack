@@ -8,8 +8,10 @@ import ModeSwitcher from '@/components/discover/ModeSwitcher';
 import { LocationRequest } from '@/components/discover/LocationRequest';
 import { useDiscover } from '@/hooks/useDiscover';
 import { useMatchContext } from '@/components/MatchProvider';
-import api, { discoverApi, swipeApi, userApi, SearchResult, SearchResponse, getAssetUrl } from '@/lib/api';
+import api, { discoverApi, swipeApi, userApi, profileApi, SearchResult, SearchResponse, getAssetUrl } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
+import DiscoverLeftPanel from '@/components/discover/DiscoverLeftPanel';
+import DiscoverRightPanel from '@/components/discover/DiscoverRightPanel';
 
 type IntentMode = 'DATE' | 'STUDY' | 'FRIEND';
 
@@ -37,6 +39,10 @@ export default function DiscoverPage() {
 
     // Likers count (for badge)
     const [likersCount, setLikersCount] = useState(0);
+    const [likerPreviews, setLikerPreviews] = useState<Array<{ id: string; display_name: string; avatar?: string }>>([]);
+    const [profileStats, setProfileStats] = useState<{ matches: number; likes: number; views: number } | null>(null);
+    const [userDisplayName, setUserDisplayName] = useState<string | undefined>(undefined);
+    const [userAvatarUrl, setUserAvatarUrl] = useState<string | undefined>(undefined);
 
     // Search state
     const [showSearch, setShowSearch] = useState(false);
@@ -57,9 +63,10 @@ export default function DiscoverPage() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [profileRes, likersRes] = await Promise.all([
+                const [profileRes, likersRes, statsRes] = await Promise.all([
                     userApi.getUserProfile('me'),
                     swipeApi.getLikers(),
+                    profileApi.getStats(),
                 ]);
                 if (profileRes.data?.profile?.intentMode) {
                     setIntentMode(profileRes.data.profile.intentMode);
@@ -74,7 +81,21 @@ export default function DiscoverPage() {
                 } else {
                     setHasLocation(false);
                 }
+                // User identity for left panel
+                setUserDisplayName(profileRes.data?.profile?.display_name);
+                setUserAvatarUrl(profileRes.data?.profile?.photos?.[0]?.url);
+                // Likers
+                const likers = likersRes.data?.likers || [];
                 setLikersCount(likersRes.data?.count || 0);
+                setLikerPreviews(likers.slice(0, 3).map((l: { id: string; display_name: string; avatar?: string }) => ({
+                    id: l.id,
+                    display_name: l.display_name,
+                    avatar: l.avatar,
+                })));
+                // Profile stats
+                if (statsRes.data) {
+                    setProfileStats(statsRes.data);
+                }
             } catch (e) {
                 console.error('Failed to load data:', e);
                 setHasLocation(false);
@@ -441,45 +462,60 @@ export default function DiscoverPage() {
                 </div>
             )}
 
-            {/* Mode Switcher - only show when not in search mode */}
+            {/* 3-column layout — only when not in search results mode */}
             {!searchResults.length && (
-                <div className="max-w-4xl mx-auto px-4 py-6">
-                    <ModeSwitcher
-                        currentMode={intentMode}
-                        onModeChange={handleModeChange}
-                        isLoading={isChangingMode}
-                    />
+                <div className="max-w-6xl mx-auto px-4 py-4 flex gap-4 items-start">
+                    {/* Left panel — desktop only */}
+                    <div className="hidden lg:flex w-52 shrink-0 self-stretch">
+                        <DiscoverLeftPanel
+                            userAvatar={userAvatarUrl}
+                            userName={userDisplayName}
+                            stats={profileStats}
+                            onSearchClick={() => setShowSearch(true)}
+                        />
+                    </div>
 
-                    {/* Location Request Banner */}
-                    {hasLocation === false && (
-                        <div className="mt-3">
-                            <LocationRequest
-                                onLocationGranted={handleLocationGranted}
-                                compact={true}
+                    {/* Center column */}
+                    <div className="flex-1 min-w-0 flex flex-col items-center">
+                        <div className="w-full max-w-sm">
+                            <ModeSwitcher
+                                currentMode={intentMode}
+                                onModeChange={handleModeChange}
+                                isLoading={isChangingMode}
                             />
+                            {hasLocation === false && (
+                                <div className="mt-3">
+                                    <LocationRequest
+                                        onLocationGranted={handleLocationGranted}
+                                        compact={true}
+                                    />
+                                </div>
+                            )}
+                            {hasLocation === true && userCoords && (
+                                <div className="mt-3 flex items-center justify-center gap-2 p-3 bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel-sm">
+                                    <MapPin className="w-4 h-4 text-pixel-pink-dark" />
+                                    <span className="font-pixel text-sm text-cocoa uppercase tracking-wider flex items-center gap-1">
+                                        <MapPin className="w-4 h-4" strokeWidth={2.5} /> Tìm kiếm trong bán kính 50km
+                                    </span>
+                                </div>
+                            )}
                         </div>
-                    )}
+                        <ProfileCardStack
+                            users={users}
+                            onSwipe={handleSwipe}
+                            onEmpty={handleEmpty}
+                            isLoading={isLoading || isChangingMode}
+                        />
+                    </div>
 
-                    {/* Show distance info when location enabled */}
-                    {hasLocation === true && userCoords && (
-                        <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-retro-white border-3 border-cocoa rounded-lg shadow-pixel-sm">
-                            <MapPin className="w-4 h-4 text-pixel-pink-dark" />
-                            <span className="font-pixel text-sm text-cocoa uppercase tracking-wider flex items-center gap-1"><MapPin className="w-4 h-4" strokeWidth={2.5} /> Tìm kiếm trong bán kính 50km</span>
-                        </div>
-                    )}
+                    {/* Right panel — desktop only */}
+                    <div className="hidden lg:flex w-52 shrink-0 self-stretch">
+                        <DiscoverRightPanel
+                            likerPreviews={likerPreviews}
+                            likersCount={likersCount}
+                        />
+                    </div>
                 </div>
-            )}
-
-            {/* Main Content - only show when not in search mode */}
-            {!searchResults.length && (
-                <main className="max-w-4xl mx-auto px-4 flex flex-col items-center pb-8">
-                    <ProfileCardStack
-                        users={users}
-                        onSwipe={handleSwipe}
-                        onEmpty={handleEmpty}
-                        isLoading={isLoading || isChangingMode}
-                    />
-                </main>
             )}
         </div>
     );

@@ -96,7 +96,7 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading, o
     // Loading state
     if (isLoading && users.length === 0) {
         return (
-            <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center">
+            <div className="h-[calc(100vh-280px)] max-h-[580px] flex flex-col items-center justify-center">
                 <div className="w-16 h-16 bg-pixel-pink border-3 border-cocoa rounded-xl shadow-pixel flex items-center justify-center mb-4 animate-bounce">
                     <Star className="w-8 h-8 text-cocoa" strokeWidth={2.5} />
                 </div>
@@ -108,7 +108,7 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading, o
     // Empty state - Pixel OS style
     if (!currentUser) {
         return (
-            <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center px-8">
+            <div className="h-[calc(100vh-280px)] max-h-[580px] flex flex-col items-center justify-center px-8">
                 <div className="w-20 h-20 mb-6 rounded-xl bg-pixel-pink border-3 border-cocoa shadow-pixel flex items-center justify-center">
                     <Star className="w-10 h-10 text-cocoa" strokeWidth={2.5} />
                 </div>
@@ -131,7 +131,7 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading, o
     }
 
     return (
-        <div className="relative h-[calc(100vh-200px)] w-full max-w-sm mx-auto">
+        <div className="relative h-[calc(100vh-280px)] max-h-[580px] w-full max-w-sm mx-auto">
             {/* Card Stack */}
             <div className="absolute inset-x-0 top-0 bottom-24">
                 {/* Next card (behind) */}
