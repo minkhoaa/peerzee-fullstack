@@ -443,7 +443,7 @@ export default function DiscoverPage() {
 
             {/* Mode Switcher - only show when not in search mode */}
             {!searchResults.length && (
-                <div className="max-w-4xl mx-auto px-4 py-6">
+                <div className="max-w-lg mx-auto px-4 py-6">
                     <ModeSwitcher
                         currentMode={intentMode}
                         onModeChange={handleModeChange}

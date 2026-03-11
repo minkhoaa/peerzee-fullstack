@@ -131,7 +131,7 @@ export default function ProfileCardStack({ users, onSwipe, onEmpty, isLoading, o
     }
 
     return (
-        <div className="relative h-[calc(100vh-200px)] w-full max-w-sm mx-auto">
+        <div className="relative h-[calc(100vh-200px)] w-full max-w-lg mx-auto">
             {/* Card Stack */}
             <div className="absolute inset-x-0 top-0 bottom-24">
                 {/* Next card (behind) */}
